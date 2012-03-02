@@ -41,6 +41,7 @@ class I2CAdaptor(Axon.Component.component):
         i2c_running = True
         while i2c_running: # TODO: Can't be shut down.
             while not self.dataReady():
+                self.pause()
                 # Thumb twiddling.
                 yield 1
             print "DEBUG.I2CAdaptor: Receiving Message."

@@ -18,20 +18,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# This is a mess right now. It will probably stay that way for a few more months,
+# until we're done with a good concept about the general structure.
+# I'm thinking of something that will only start with a basic minimal component
+# configuration and then read in a configuration to initially populate the system 
+# with further components via a dynamic component loader.
+#     -- riot
+
+
 # TODO:
-# - BUG.Server: System doesn't quit when asked to, probably because signals are wired strangely
-#        Which keeps the socket from resetting correctly. Currently VERY ANNOYING.
-# - I'd rather have a single component interacting with the user, that sends on user input
+# * System doesn't quit when asked to, probably because signal/control boxes are wired
+#   strangely - which keeps the socket from resetting correctly. Currently VERY ANNOYING.
+# * I'd rather have a single component interacting with the user, that sends on user input
 #   to another component which in turn handles distribution/communication with the backplanes.
-# - The whole stuff doesn't idle loop correctly - it eats all cpu it can get. 
+# * The whole stuff doesn't idle loop correctly - it eats all cpu it can get. 
 #   And apparently it is doing that in a non-multicore compatible way. GIL in the way?
-# - Input sanitization
-# - Good command parser
-#  - Sensible (future ready) yet easy command set
-#  - Useful argument handling
-#  - History and interactivity would be nice, yet this is rather client related
-#  - Documentation (builtin)
-# - i2c communicator listening in on the backplane
+#   POSSIBLY Fixed with System/Idler - we'll see if this works.
 
 from re import escape
 
@@ -48,7 +50,24 @@ from Kamaelia.Util.Introspector import Introspector
 from Kamaelia.Util.Console import ConsoleEchoer
 
 from ANRV.Communication.I2C import I2CAdaptor
-from ANRV.Communication.CLI import CLIProtocol
+#from ANRV.Communication.CLI import CLIProtocol
+from ANRV.Communication.JSONServer import JSONServer
+
+from ANRV.System.Idler import Idler
+
+from ANRV.Communication.Ping import Ping
+
+from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
+
+config = {}
+# Default settings:
+config['idler.enable'] = True
+config['idler.frequency'] = Frequency("IdlerFreq", 100)
+
+config['ping.enable'] = True
+config['ping.frequency'] = Frequency("Pingfreq", period=10)
+
+config['console.echoer.enable'] = False
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -56,18 +75,36 @@ Pipeline(
     TCPClient("127.0.0.1",55556)
 ).activate()
 
+
 print "DEBUG.Server: Setting up Backplanes."
 Backplane("I2C").activate()
 Backplane("SENSORS").activate()
 Backplane("CONTROLS").activate()
 
-print "DEBUG.Server: Activating ConsoleEchoer for I2C, CONTROLS and SENSORS."
-Pipeline(
-    SubscribeTo("I2C"),
-    SubscribeTo("CONTROLS"),
-    SubscribeTo("SENSORS"),
-    ConsoleEchoer()
-).activate()
+if config['console.echoer.enable']:
+    print "DEBUG.Server: Activating ConsoleEchoer for I2C, CONTROLS and SENSORS."
+    Pipeline(
+        SubscribeTo("I2C"),
+        SubscribeTo("CONTROLS"),
+        SubscribeTo("SENSORS"),
+        ConsoleEchoer(),
+    ).activate()
+
+if config['ping.enable']:
+    print "DEBUG.Server: Adding Ping."
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Ping(frequency=config['ping.frequency']),
+        PublishTo("CONTROLS")
+    ).activate()
+
+if config['idler.enable']:
+    print "DEBUG.Server: Adding Idler."
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Idler(frequency=config['idler.frequency']),
+        PublishTo("CONTROLS")
+    ).activate()
 
 print "DEBUG.Server: Activating I2CAdaptor."
 Pipeline(
@@ -81,7 +118,7 @@ def CLI(*argv, **argd):
     # TODO: This is an ugly CRUFT thats probably not supposed to live long.
     # The linkages and messageboxes could be optimized, i don't yet know how. 
     return Graphline(
-        CP = CLIProtocol(),
+        CP = JSONServer(),
         I2CP = PublishTo("I2C"),
         I2CS = SubscribeTo("I2C"),
         SENSORSP = PublishTo("SENSORS"),

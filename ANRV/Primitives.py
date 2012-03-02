@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#     - Basic messages and primitives -
+#     - Basic and advanced primitives -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import jsonpickle
-from time import time
-
-
+# TODO: Use some smart OOP to capsule common stuff
+# TODO: Implement more primitives
+# * Geocoordinates
+# * Atmospheric parameters
+#  * Temperatures
+#  * Pressure
+#  * Humidity
+#  * (Gas) concentration (ppm?)
+# * Flow vectors?
+# * (Fluid)-depth
+# * Speeds?
+# * Primitives for 9dof usage
+# * Primitives for GPS usage
 
 class Waypoint():
+    """A Waypoint consists of a geographical location (latitude and longitude) and a name."""
     __slots__ = ['name', 'lat', 'lon']
     def __init__(self, name="", lat="", lon=""):
         self.name = name
@@ -36,6 +46,7 @@ class Waypoint():
         return result
 
 class WaypointList():
+    """A waypointlist consists of several Waypoints and a name."""
     __slots__ = ['name', 'points']
 
     def __init__(self, name="", points=[]):
@@ -53,6 +64,7 @@ class WaypointList():
         self.points.append(point)
 
 class Angle():
+    """Contains a named angle in degrees."""
     __slots__ = ['name', 'value']
     def __init__(self, name="", val=""):
         self.name = name
@@ -61,3 +73,28 @@ class Angle():
     def __str__(self):
         result = "%s: %f° DEG" % (self.name, self.value)
         return result
+
+class Frequency():
+    """Contains a frequency and methods to ease usage.
+    See http://en.wikipedia.org/wiki/Frequency
+    """
+    # TODO: I'd like this one to be transparent about setting/getting either Periods or Frequencies
+    # Internally this object always stores frequencies, hence the name.
+    __slots__ = ['name', 'value']
+    def __init__(self, name="", val=0, period=0):
+        self.name = name
+        if val != 0:
+            self.value = val
+        elif period != 0:
+            self.value = 1.0 / period
+
+    def __str__(self):
+        """Type: string
+        Returns a descriptive string containing name, frequency and the label Hz."""
+        result = "%s: %f Hz" % (self.name, self.value)
+        return result
+
+    def Period(self):
+        """Type: float
+        Returns the period of this frequency (1/f)."""
+        return 1.0 / self.value

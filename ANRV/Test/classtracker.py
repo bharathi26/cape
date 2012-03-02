@@ -10,13 +10,13 @@ from random import randint
 from pympler import web
 from pympler.classtracker import ClassTracker
 
-import messages
-from primitives import Waypoint, WaypointList
+import Messages
+from Primitives import Waypoint, WaypointList
 
 from random import random
 
 
-def create_data(tracker, iterations=20, obj_per_iteration=100):
+def create_data(tracker, iterations=100, obj_per_iteration=100):
     objects = []
     for j, x in enumerate(range(iterations)):
         # Generate a waypoint list
@@ -25,7 +25,7 @@ def create_data(tracker, iterations=20, obj_per_iteration=100):
             wp = Waypoint("Point %i" % i, "%3.5fN" % (52.3 + (random() * 2 - 1)), "%3.5fE" % (52.3 + (random() * 2 -1)))
             wplist.append(wp)
         objects.append(wplist)
-        tracker.create_snapshot()
+#        tracker.create_snapshot()
 
     return objects
 
@@ -39,7 +39,19 @@ tracker.track_class(WaypointList)
 print ("Create data")
 tracker.create_snapshot()
 data = create_data(tracker)
+print data
 print ("Drop data")
+for item in data:
+    del item
+del data
+tracker.create_snapshot()
+
+print ("Create tenfold data")
+tracker.create_snapshot()
+data = create_data(tracker, iterations=1000, obj_per_iteration=100)
+print ("Drop data")
+for item in data:
+    del item
 del data
 tracker.create_snapshot()
 

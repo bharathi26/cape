@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software - CLI Classes
+#    Prototype of the MS0x00 ANRV Operating Software - Rudder Class
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,15 +17,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# DO NOT USE!
+# THIS IS WIP!
+
 import Axon
 
 from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
-from ..Messages import Message
+from Messages import I2CMessage
 
-class CLIProtocol(Axon.Component.component):
+class Rudder(Axon.Component.component):
+    # TODO: Uaah.
     Inboxes = {"inbox": "Command line commands",
                "control": "Signaling to this Protocol",
                "i2cin": "Incoming i2c traffic",
@@ -37,11 +41,10 @@ class CLIProtocol(Axon.Component.component):
                 "sensorsout": "Outgoing sensors traffic",
                 "controlsout": "Outgoing controls traffic"}
     def main(self):
-        protocol_running = True
-        while protocol_running:
+        while True:
             while not self.anyReady():
-                self.pause()
                 # Thumb twiddling.
+                self.pause()
                 yield 1
             if self.dataReady("i2cin"):
                 # TODO: How to correctly handle incoming traffic?
@@ -49,52 +52,18 @@ class CLIProtocol(Axon.Component.component):
                 # - Decide what to do with the rest
                 # For now, just give it to the user:
                 msg = self.recv("i2cin")
+                # TODO: What? I2CMessages are out of date.
                 if not isinstance(msg, I2CMessage):
                     print "ERROR: WRONG MESSAGE FORMAT ON I2C BACKPLANE!"
-                self.send("Backplane.I2C.%s: %s (%s)\n" % (str(msg.origin), str(msg.content), str(msg.msgtype)), "outbox")
+                # TODO: Act upon received i2c message
             # Likewise for the other two backplanes:
             if self.dataReady("sensorsin"):
                 self.send("Backplane.SENSORS: " + self.recv("sensorsin") + "\n", "outbox")
             if self.dataReady("controlsin"):
                 self.send("Backplane.CONTROLS: " + self.recv("controlsin") + "\n", "outbox")
             if self.dataReady("inbox"):
-                print "DEBUG.CLI: Processing CLI Data."
-                data = None
                 data = self.recv("inbox").rstrip('\r\n')
 
-                if len(data) > 0 and data[0] == "/":
-                    # TODO: This CLI parser sucks balls.
-                    # Let's get a good one as soon as we know what we want ;)
-                    data = data.split(" ")
-                    cmd = data[0][1:]
-                    response = "Interpreting command '%s'" % cmd
-                    if cmd.upper() == "DISCONNECT":
-                        print "DEBUG.CLI: Shutting down."
-                        response += "\nOk.\n"
-                        self.send(Axon.Ipc.shutdownMicroprocess(), "signal")
-                    elif cmd.upper() == "QUIT":
-                        # TODO: Bad way to exit. Servers won't be taken down etc.
-                        print("DEBUG.CLI: Quitting upon user request.")
-
-                        from Axon.Scheduler import scheduler
-                        import sys, time
-
-                        scheduler.run.stop()
-                        time.sleep(5)
-                        sys.exit(0)
-                    else:
-                        response += "\nError: Unknown command.\n"
-                elif len(data) > 0:
-                    response = "Processing as i2c command...\n"
-                    # TODO: Interpret command and act accordingly.
-                    # For now, all stuff gets sent to the i2c component via backplane I2C directly
-                    msg = I2CMessage(data, "CLI", "REQ")
-                    self.send(msg, "i2cout")
-            if self.dataReady("control"):
-                data = self.recv("control")
-                if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    print "DEBUG.CLI: Protocol shutting down."
-                    protocolRunning = False
             if response:
                 self.send(response, "outbox")
                 response = None

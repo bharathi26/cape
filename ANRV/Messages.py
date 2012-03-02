@@ -22,7 +22,7 @@
 import jsonpickle
 from time import time
 
-from primitives import Angle, Waypoint, WaypointList
+from Primitives import Angle, Waypoint, WaypointList
 
 class Message():
     # We might need '__weakref__' here..
@@ -38,7 +38,50 @@ class Message():
         result = "%f - [%10s] -> [%10s] %15s (%s)" %(self.timestamp, self.sender, self.recipient, self.func, self.arg)
         return result
 
-if __name__ == "__main__":
+    def response(self, arg):
+        return Message(sender=self.recipient, recipient=self.sender, func=self.func, arg=arg)
+
+    def jsondecode(self, jsonstring):
+#        print "Trying to parse json"
+#        try:
+            from pprint import pprint
+            pprint(jsonstring)
+            test = jsonpickle.decode(jsonstring)
+            if type(test) == type(self):
+                self = test
+                return True
+            else:
+                if test['timestamp']:
+                    self.timestamp = test['timestamp']
+                else:
+                    print "No timestamp. Correcting."
+                    self.timestamp = time()
+                if test['sender']:
+                    self.sender = test['sender']
+                else:
+                    print "No sender"
+                if test['recipient']:
+                    self.recipient = test['recipient']
+                else:
+                    print "No recipient"
+                if test['func']:
+                    self.func = test['func']
+                else:
+                    print "No func"
+                if test['arg']:
+                    self.arg = test['arg']
+                else:
+                    print "No args"
+    
+                return (self.sender and self.recipient and self.func and self.arg)
+#        except:
+#            return False
+
+    def jsonencode(self, unpicklable=True):
+        return jsonpickle.encode(self, unpicklable=unpicklable)
+
+
+def test():
     course = Angle("heading", 223)
     foo = Message('rudder', 'messagetester', func="dataresponse", arg=course)
 
@@ -49,7 +92,9 @@ if __name__ == "__main__":
     print "Now, on to the json en/decoding:"
     spam = jsonpickle.encode(foo)
     ham = jsonpickle.decode(spam)
+    print "JSON:"
     print spam
+    print "Decoded JSON:"
     print ham
 
     print "\n#########################################################################\n"
@@ -71,6 +116,7 @@ if __name__ == "__main__":
     for count, foo in enumerate(range(10)):
         bar = Waypoint("Point %i" % count, "52,30.2N", "13,23.56E")
         print bar
+        print jsonpickle.encode(bar, unpicklable=False)
         ham.append(bar)
 
     print ham
@@ -91,3 +137,6 @@ if __name__ == "__main__":
     print ham.points
     for point in ham.points:
         print point
+
+if __name__ == "__main__":
+    test()
