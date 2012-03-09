@@ -1,7 +1,8 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software - Useless Ping Component
+#    Prototype of the MS0x00 ANRV Operating Software
+#      The counterpart to the useless ping component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -27,62 +28,31 @@ from ..Messages import Message
 from ..Primitives import Frequency
 
 from time import time
-from math import fsum
 
-class Ping(Axon.Component.component):
+class Pong(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
                "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
                 "signal": "Signaling from this Protocol"}
-    lastping = 0
-    count = 0
-    rttlist = [0]*30
     verbosity = 1
 
-    def __init__(self, frequency=Frequency("PingFreq", period=60), verbosity=3):
-        super(Ping, self).__init__(self)
-        self.frequency = frequency
-        self.verbosity = verbosity
-
     def main(self):
-        self.lastping = time()
         while True:
-            while (self.lastping + self.frequency.Period() > time()) and (not self.anyReady()):
+            while not self.anyReady():
                 # Thumb twiddling.
+                self.pause()
                 yield 1
             now = time()
             response = None
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
-                if msg.sender == "Pong":
-                    roundtrip = now - msg.arg['time']
-                    del(self.rttlist[0])
-                    self.rttlist.append(roundtrip)
-
-                    arg = {}
-                    arg['rtt'] = roundtrip
-                    if self.verbosity > 0:
-                        arg['count'] = self.count
-                    if self.verbosity > 1:
-                        arg['lastping'] = self.lastping
-                    if self.verbosity > 2:
-                        meanrtt = (fsum(self.rttlist[-10:]) / 10, fsum(self.rttlist[-20:]) / 20, fsum(self.rttlist) / 30)
-                        arg['meanrtt'] = meanrtt
-                    response = Message(sender=self.name, recipient="ALL", arg=arg)
-                if msg.recipient == "Ping":
-                    response = msg.response(None)
+                if msg.recipient == "Pong":
+                    if msg.func == "PING":
+                        response = msg.response()
+                        response.arg['received'] = now
                     if msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
                         response = msg.response(True)
-                    if msg.func == "SetFreq": # and type(msg.arg) == type(Frequency):
-                        self.frequency = msg.arg
-                        response = msg.response(True)
-            elif not response and (self.lastping + self.frequency.Period() < now):
-                self.count += 1
-                arg = {}
-                arg['time'] = time()
-                response = Message(sender=self.name, recipient="Pong", func="PING", arg=arg)
-                self.lastping = time()
             if response:
                 self.send(response, "outbox")
             yield 1

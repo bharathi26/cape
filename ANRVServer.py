@@ -56,8 +56,11 @@ from ANRV.Communication.JSONServer import JSONServer
 from ANRV.System.Idler import Idler
 
 from ANRV.Communication.Ping import Ping
+from ANRV.Communication.Pong import Pong
 
 from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
+
+from ANRV.Controls.Rudder import Rudder
 
 config = {}
 # Default settings:
@@ -66,8 +69,11 @@ config['idler.frequency'] = Frequency("IdlerFreq", 100)
 
 config['ping.enable'] = True
 config['ping.frequency'] = Frequency("Pingfreq", period=10)
+config['pong.enable'] = True
 
 config['console.echoer.enable'] = False
+
+config['rudder.enable'] = True
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -98,11 +104,27 @@ if config['ping.enable']:
         PublishTo("CONTROLS")
     ).activate()
 
+if config['pong.enable']:
+    print "DEBUG.Server: Adding Pong."
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Pong(),
+        PublishTo("CONTROLS")
+    ).activate()
+
 if config['idler.enable']:
     print "DEBUG.Server: Adding Idler."
     Pipeline(
         SubscribeTo("CONTROLS"),
         Idler(frequency=config['idler.frequency']),
+        PublishTo("CONTROLS")
+    ).activate()
+
+if config['rudder.enable']:
+    print "DEBUG.Server: Adding Simple Rudder Control Virtual Component (SRCVC)"
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Rudder(),
         PublishTo("CONTROLS")
     ).activate()
 

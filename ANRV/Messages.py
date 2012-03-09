@@ -24,6 +24,8 @@ from time import time
 
 from Primitives import Angle, Waypoint, WaypointList
 
+from copy import deepcopy
+
 class Message():
     # We might need '__weakref__' here..
     __slots__ = ['sender', 'recipient', 'timestamp', 'func', 'arg']
@@ -38,8 +40,12 @@ class Message():
         result = "%f - [%10s] -> [%10s] %15s (%s)" %(self.timestamp, self.sender, self.recipient, self.func, self.arg)
         return result
 
-    def response(self, arg):
-        return Message(sender=self.recipient, recipient=self.sender, func=self.func, arg=arg)
+    def response(self, arg=None):
+        result = deepcopy(self)
+        result.sender, result.recipient = result.recipient, result.sender
+        if arg:
+            result.arg = arg
+        return result
 
     def jsondecode(self, jsonstring):
 #        print "Trying to parse json"

@@ -1,0 +1,5 @@
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "SetFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0}, "recipient": "Idler"}
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "SetFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 1000}, "recipient": "Idler"}
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "SetFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 2}, "recipient": "Idler"}
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "SetFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0.5}, "recipient": "Ping"}
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "SetVerbosity", "arg": 3, "recipient": "Ping"}

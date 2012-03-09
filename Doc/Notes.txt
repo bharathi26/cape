@@ -1,0 +1,33 @@
+A few words about different topics:
+
+= RPC Calls =
+I don't like the current method of invoking local functions.
+
+This should be made possible in a way more elegant, with these enhanced capabilities kept in mind for addition later:
+* Security
+ * Authentication
+ * Permissions
+* Logging
+* Statistics
+
+Another thing is: what if a request comes in with bad parameters, how do we respond to that?
+How does the error receiving end inspect the situation? How to react?
+
+= Registry =
+One of the top priorities is the design and implementation of a smart registry that knows about local data and procedures.
+Every component offering either internal or outside interfaces to data or methods should register these with the registry appropriately.
+We need an object that serves as:
+* Registry for functions (and thus ALL the values available)
+* Registry for Object Names
+* Proxy object that is able to bind external information (Good idea? Not so transient anymore!)
+* Meta Redundancy provider (How? What?)
+
+I think it should be able to resolve System default names (How? What? e.g. Pong and other integral System Components (SC)?)
+
+Another similar problem arises with addressing devices and memory on i2c buses.
+Here we need a smaller (and only locally available!) version of the aforementioned registry.
+It must be able to:
+* store and reconfigure physical device information
+* associate Virtual Components (Reading (Sensor Virtual Component - short SVC) and writing (Control Virtual Compoent - CVC) to devices
+
+

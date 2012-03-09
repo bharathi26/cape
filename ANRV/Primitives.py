@@ -83,9 +83,8 @@ class Frequency():
     __slots__ = ['name', 'value']
     def __init__(self, name="", val=0, period=0):
         self.name = name
-        if val != 0:
-            self.value = val
-        elif period != 0:
+        self.value = val
+        if period != 0:
             self.value = 1.0 / period
 
     def __str__(self):
@@ -97,4 +96,7 @@ class Frequency():
     def Period(self):
         """Type: float
         Returns the period of this frequency (1/f)."""
-        return 1.0 / self.value
+        if self.value == 0:
+            return 0
+        else:
+            return 1.0 / self.value
