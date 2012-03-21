@@ -25,6 +25,8 @@ from Kamaelia.Chassis.Graphline import Graphline
 
 from ..Messages import Message
 
+from collections import deque
+
 import jsonpickle
 
 class JSONServer(Axon.Component.component):
@@ -48,13 +50,18 @@ class JSONServer(Axon.Component.component):
                 # Thumb twiddling.
                 yield 1
             response = None
-            if not response and self.dataReady("controlsin"):
+            if self.dataReady("controlsin"):
+                print "DEBUG.JSONServer: Running inbox (control)"
                 msg = self.recv("controlsin")
-                if (not self.msgfilter['recipients']) or msg.recipient in self.msgfilter['recipients']:
+                print msg
+                if ("ALL" in self.msgfilter['recipients']) or (not self.msgfilter['recipients']) or msg.recipient in self.msgfilter['recipients']:
                     response = msg.jsonencode()
+                    self.send(response, "outbox")
+                    yield 1
                 else:
                     print "DEBUG.JSONServer.Filtered: %s" % msg
-            if not response and self.dataReady("inbox"):
+            if self.dataReady("inbox"):
+                print "DEBUG.JSONServer: Running inbox (inbox)"
                 data = self.recv("inbox").rstrip("\r\n")
                 if len(data) == 0:
                     response = "\n"
@@ -64,16 +71,23 @@ class JSONServer(Axon.Component.component):
                         # TODO: This is somewhat stupid:
                         self.send(msg, "controlsout")
                         self.send(msg, "sensorsout")
-                    except:
-                        print "%s:MALFORMED INPUT: %s" % (self.name, data)
+                    except Exception as error:
+                        print "%s:MALFORMED INPUT: %s\n%s:%s" % (self.name, data, type(error), error.args)
                         response = "MALFORMED INPUT: %s" % data
-                    if isinstance(msg, Message):
+                    print msg
+                    if msg and isinstance(msg, Message):
                         if msg.recipient == "JSONServer":
                             if msg.func == "SetFilter":
                                 self.msgfilter = msg.arg
+                                #response = msg.response(True)
                                 print "Filter has been changed to %s" % msg.arg
-            if response:
-                self.send(response, "outbox")
+                            if msg.func == "AddRecipient":
+                                self.msgfilter['recipients'].append(msg.arg)
+                                #response = msg.response(True)
+                                print "Filter has been changed to %s" % msg.arg
+                if response:
+                    self.send(response, "outbox")
+                yield 1
 
 
             if self.dataReady("control"):
@@ -81,6 +95,43 @@ class JSONServer(Axon.Component.component):
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
                     print "DEBUG.JSONServer: Protocol shutting down."
                     protocolRunning = False
+            yield 1
+
+    def shutdown(self):
+        # TODO: Handle correct shutdown
+        if self.dataReady("control"):
+            msg = self.recv("control")
+            return isinstance(msg, Axon.Ipc.producerFinished)
+
+
+class JSONSplitter(Axon.Component.component):
+    Inboxes = {"inbox": "RPC commands",
+               "control": "Signaling to this Protocol"}
+    Outboxes = {"outbox": "RPC Responses",
+                "signal": "Signaling from this Protocol"}
+
+    buflist = deque()
+    maxlength = 20
+    separator = "\r\n"
+
+    def main(self):
+        while True:
+            while not self.anyReady() and len(self.buflist) == 0:
+                # Thumb twiddling.
+                self.pause()
+                yield 1
+            response = None
+
+            if self.dataReady("inbox"):
+                msgs = self.recv("inbox")
+#                if buflist.count() >= maxlength:
+#                    response = Message(self.name, "JSONServer", "WarnQueueFull")
+                for msg in msgs.split(self.separator):
+                    self.buflist.append(msg)
+            if len(self.buflist) > 0:
+                response = self.buflist.popleft()
+                self.send(response, "outbox")
+                print "DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)
             yield 1
 
     def shutdown(self):

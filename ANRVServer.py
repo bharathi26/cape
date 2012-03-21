@@ -51,6 +51,7 @@ from Kamaelia.Util.Console import ConsoleEchoer
 
 from ANRV.Communication.I2C import I2CAdaptor
 #from ANRV.Communication.CLI import CLIProtocol
+from ANRV.Communication.JSONServer import JSONSplitter
 from ANRV.Communication.JSONServer import JSONServer
 
 from ANRV.System.Idler import Idler
@@ -60,12 +61,13 @@ from ANRV.Communication.Pong import Pong
 
 from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
 
-from ANRV.Controls.Rudder import Rudder
+from ANRV.Controls.Rudder import SimpleRudder as Rudder
+from ANRV.Controls.Engine import SimpleEngine as Engine
 
 config = {}
 # Default settings:
 config['idler.enable'] = True
-config['idler.frequency'] = Frequency("IdlerFreq", 100)
+config['idler.frequency'] = Frequency("IdlerFreq", 250)
 
 config['ping.enable'] = True
 config['ping.frequency'] = Frequency("Pingfreq", period=10)
@@ -74,6 +76,7 @@ config['pong.enable'] = True
 config['console.echoer.enable'] = False
 
 config['rudder.enable'] = True
+config['engine.enable'] = True
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -128,6 +131,14 @@ if config['rudder.enable']:
         PublishTo("CONTROLS")
     ).activate()
 
+if config['engine.enable']:
+    print "DEBUG.Server: Adding Simple Engine Control Virtual Component (SECVC)"
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Engine(),
+        PublishTo("CONTROLS")
+    ).activate()
+
 print "DEBUG.Server: Activating I2CAdaptor."
 Pipeline(
     SubscribeTo("I2C"),
@@ -140,6 +151,8 @@ def CLI(*argv, **argd):
     # TODO: This is an ugly CRUFT thats probably not supposed to live long.
     # The linkages and messageboxes could be optimized, i don't yet know how. 
     return Graphline(
+        SPLITTER = JSONSplitter(),
+        #CE = ConsoleEchoer(),
         CP = JSONServer(),
         I2CP = PublishTo("I2C"),
         I2CS = SubscribeTo("I2C"),
@@ -148,9 +161,11 @@ def CLI(*argv, **argd):
         CONTROLSP = PublishTo("CONTROLS"),
         CONTROLSS = SubscribeTo("CONTROLS"),
 
-        linkages = {("self", "inbox"): ("CP", "inbox"),
+        linkages = {("self", "inbox"): ("SPLITTER", "inbox"),
+                    ("SPLITTER", "outbox"): ("CP", "inbox"),
                     ("CP", "outbox"): ("self", "outbox"),
-                    ("self", "signal"): ("CP", "control"),
+                    ("self", "signal"): ("SPLITTER", "control"),
+                    ("SPLITTER", "signal"): ("CP", "control"),
                     ("CP", "signal"): ("self", "control"),
                     ("CP", "i2cout"): ("I2CP", "inbox"),
                     ("I2CS", "outbox"): ("CP", "i2cin"),

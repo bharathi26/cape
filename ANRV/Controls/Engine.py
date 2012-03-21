@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#      Simple Rudder Control Virtual Component (SRCVC)
+#      Simple Engine Control Virtual Component (SECVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -25,18 +25,18 @@ from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
 from ..Messages import Message
-from ..Primitives import Angle
 
-class SimpleRudder(Axon.Component.component):
+class SimpleEngine(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol"}
+               "control": "Signaling to this Control"}
     Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol"}
+                "signal": "Signaling from this Control"}
     verbosity = 1
 
-    def SetRudder(self, course):
-        if isinstance(course, float):
+    def SetRudder(self, thrust):
+        if isinstance(thrust, float):
             # TODO: Push out a message to i2c to instruct the Servo about our new course
+            print "YUP. New thrust is set."
             return True
         return "Wrong argument" # YUCK. How do we respond to erroneous requests accurately?
 
@@ -49,8 +49,8 @@ class SimpleRudder(Axon.Component.component):
             response = None
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
-                if msg.recipient == "Rudder":
-                    if msg.func == "SetRudder":
+                if msg.recipient == "Engine":
+                    if msg.func == "SetThrust":
                         response = msg.response(self.SetRudder(msg.arg))
                     if msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
