@@ -176,8 +176,10 @@ class App:
     def main(self):
         freq = 60
         # TODO: Needs a default for unknown joysticks!
-        if JoystickDB.has_key(self.joystick_names[0]):
-            JoystickConf = JoystickDB[self.joystick_names[0]]
+        # print JoystickDB
+        JoystickConf = next(v for k,v in JoystickDB.items() if self.joystick_names[0] in k)
+   
+        if JoystickConf:
             Correction = JoystickConf['correction']
             AxesConf = JoystickConf['axes']
             ButtonConf = JoystickConf['buttons']

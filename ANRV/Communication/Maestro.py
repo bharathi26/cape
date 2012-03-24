@@ -1,8 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
-#      Simple Rudder Control Virtual Component (SRCVC)
+#    Prototype of the MS0x00 ANRV Operating Software - Useless Ping Component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -25,24 +24,40 @@ from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
 from ..Messages import Message
-from ..Primitives import Angle
+from ..Primitives import Frequency
 
-class SimpleRudder(Axon.Component.component):
+from time import time
+from math import fsum
+
+import serial
+
+class Maestro(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
                "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
                 "signal": "Signaling from this Protocol"}
     verbosity = 1
-    address = 0x00
+    protocol = "SSC"
+    device = "/dev/ttyACM0"
 
-    def SetRudder(self, msg):
-        if isinstance(msg.arg, float):
-            # TODO: Push out a message to i2c to instruct the Servo about our new course
-            rudderbyte = int((msg.arg + 1) * 255) / 2
-            response = Message(self.name, "MAESTRO", "Write", [0xFF, self.address, rudderbyte])
-        else:
-            response = msg.response((False, "WRONG ARGUMENT"))
-        return response
+    def __init__(self, protocol="SSC", device="/dev/ttyACM0", verbosity=3):
+        super(Maestro, self).__init__(self)
+        self.protocol = protocol
+        self.verbosity = verbosity
+        self.maestro = serial.Serial(self.device)
+        self.maestro.write(chr(0xAA))
+        self.maestro.flush()
+
+    def write(self, args):
+        print "DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args
+        try:
+            for byte in args:
+                self.maestro.write(chr(byte))
+            return True
+        except Exception as error:
+            print "DEBUG.MAESTRO.Write: Failed to write: %s" % error
+            return False, error 
+            # TODO: Maybe not a good idea to return the exception itself. Traceback might help
 
     def main(self):
         while True:
@@ -50,15 +65,18 @@ class SimpleRudder(Axon.Component.component):
                 # Thumb twiddling.
                 self.pause()
                 yield 1
+            
             response = None
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
-                if msg.recipient == "Rudder":
-                    if msg.func == "SetRudder":
-                        response = self.SetRudder(msg)
-                    if msg.func == "SetVerbosity":
+                if msg.recipient == "MAESTRO":
+                    if msg.func == "Write":
+                        response = msg.response(arg=self.write(msg.arg))
+                    elif msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
                         response = msg.response(True)
+                    #elif msg.func == "SetFreq": # and type(msg.arg) == type(Frequency):
+                    #    response = msg.response(True)
             if response:
                 self.send(response, "outbox")
             yield 1

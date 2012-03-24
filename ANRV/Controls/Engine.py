@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#      Simple Engine Control Virtual Component (SECVC)
+#      Simple Thrust Control Virtual Component (SRCVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -25,20 +25,24 @@ from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
 from ..Messages import Message
+from ..Primitives import Angle
 
 class SimpleEngine(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Control"}
+               "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Control"}
+                "signal": "Signaling from this Protocol"}
     verbosity = 1
+    address = 0x01
 
-    def SetRudder(self, thrust):
-        if isinstance(thrust, float):
+    def SetThrust(self, msg):
+        if isinstance(msg.arg, float):
             # TODO: Push out a message to i2c to instruct the Servo about our new course
-            print "YUP. New thrust is set."
-            return True
-        return "Wrong argument" # YUCK. How do we respond to erroneous requests accurately?
+            thrustbyte = int((msg.arg + 1) * 255) / 2
+            response = Message(self.name, "MAESTRO", "Write", [0xFF, self.address, thrustbyte])
+        else:
+            response = msg.response((False, "WRONG ARGUMENT"))
+        return response
 
     def main(self):
         while True:
@@ -51,7 +55,7 @@ class SimpleEngine(Axon.Component.component):
                 msg = self.recv("inbox")
                 if msg.recipient == "Engine":
                     if msg.func == "SetThrust":
-                        response = msg.response(self.SetRudder(msg.arg))
+                        response = self.SetThrust(msg)
                     if msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
                         response = msg.response(True)

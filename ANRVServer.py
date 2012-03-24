@@ -61,6 +61,8 @@ from ANRV.Communication.Pong import Pong
 
 from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
 
+from ANRV.Communication.Maestro import Maestro
+
 from ANRV.Controls.Rudder import SimpleRudder as Rudder
 from ANRV.Controls.Engine import SimpleEngine as Engine
 
@@ -77,6 +79,8 @@ config['console.echoer.enable'] = False
 
 config['rudder.enable'] = True
 config['engine.enable'] = True
+
+config['maestro.enable'] = True
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -122,6 +126,17 @@ if config['idler.enable']:
         Idler(frequency=config['idler.frequency']),
         PublishTo("CONTROLS")
     ).activate()
+
+if config['maestro.enable']:
+    print "DEBUG.Server: Adding Maestro."
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        Maestro(),
+        ConsoleEchoer(),
+        PublishTo("CONTROLS")
+    ).activate()
+
+
 
 if config['rudder.enable']:
     print "DEBUG.Server: Adding Simple Rudder Control Virtual Component (SRCVC)"
