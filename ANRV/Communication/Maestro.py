@@ -39,14 +39,27 @@ class Maestro(Axon.Component.component):
     verbosity = 1
     protocol = "SSC"
     device = "/dev/ttyACM0"
+    autodetect = True
+    maestro = None
 
-    def __init__(self, protocol="SSC", device="/dev/ttyACM0", verbosity=3):
+    def _connect(self):
+        try:
+            self.maestro = serial.Serial(self.device)
+            if self.autodetect:
+                self.maestro.write(chr(0xAA))
+                self.maestro.flush()
+        except Exception as error:
+            print "DEBUG.MAESTRO._connect: Failed to open device: %s" % error
+            self.maestro = None
+
+    def __init__(self, device="/dev/ttyACM0", autodetect=True, protocol="SSC", verbosity=1):
         super(Maestro, self).__init__(self)
+        self.device = device
+        self.autodetect = autodetect
         self.protocol = protocol
         self.verbosity = verbosity
-        self.maestro = serial.Serial(self.device)
-        self.maestro.write(chr(0xAA))
-        self.maestro.flush()
+
+        self._connect()
 
     def write(self, args):
         print "DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args

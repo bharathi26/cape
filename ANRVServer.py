@@ -49,7 +49,7 @@ from Kamaelia.Internet.TCPClient import TCPClient
 from Kamaelia.Util.Introspector import Introspector
 from Kamaelia.Util.Console import ConsoleEchoer
 
-from ANRV.Communication.I2C import I2CAdaptor
+#from ANRV.Communication.I2C import I2CAdaptor
 #from ANRV.Communication.CLI import CLIProtocol
 from ANRV.Communication.JSONServer import JSONSplitter
 from ANRV.Communication.JSONServer import JSONServer
@@ -81,6 +81,7 @@ config['rudder.enable'] = True
 config['engine.enable'] = True
 
 config['maestro.enable'] = True
+config['maestro.device'] = "/dev/ttyACM0" # TODO: Autoconfigure this
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -88,18 +89,13 @@ Pipeline(
     TCPClient("127.0.0.1",55556)
 ).activate()
 
-
 print "DEBUG.Server: Setting up Backplanes."
-Backplane("I2C").activate()
-Backplane("SENSORS").activate()
 Backplane("CONTROLS").activate()
 
 if config['console.echoer.enable']:
     print "DEBUG.Server: Activating ConsoleEchoer for I2C, CONTROLS and SENSORS."
     Pipeline(
-        SubscribeTo("I2C"),
         SubscribeTo("CONTROLS"),
-        SubscribeTo("SENSORS"),
         ConsoleEchoer(),
     ).activate()
 
@@ -131,12 +127,10 @@ if config['maestro.enable']:
     print "DEBUG.Server: Adding Maestro."
     Pipeline(
         SubscribeTo("CONTROLS"),
-        Maestro(),
+        Maestro(config['maestro.device']),
         ConsoleEchoer(),
         PublishTo("CONTROLS")
     ).activate()
-
-
 
 if config['rudder.enable']:
     print "DEBUG.Server: Adding Simple Rudder Control Virtual Component (SRCVC)"
@@ -154,12 +148,12 @@ if config['engine.enable']:
         PublishTo("CONTROLS")
     ).activate()
 
-print "DEBUG.Server: Activating I2CAdaptor."
-Pipeline(
-    SubscribeTo("I2C"),
-    I2CAdaptor(),
-    PublishTo("I2C")
-).activate()
+#print "DEBUG.Server: Activating I2CAdaptor."
+#Pipeline(
+#    SubscribeTo("I2C"),
+#    I2CAdaptor(),
+#    PublishTo("I2C")
+#).activate()
 
 print "DEBUG.Server: Preparing CLI protocol."
 def CLI(*argv, **argd):
@@ -169,10 +163,10 @@ def CLI(*argv, **argd):
         SPLITTER = JSONSplitter(),
         #CE = ConsoleEchoer(),
         CP = JSONServer(),
-        I2CP = PublishTo("I2C"),
-        I2CS = SubscribeTo("I2C"),
-        SENSORSP = PublishTo("SENSORS"),
-        SENSORSS = SubscribeTo("SENSORS"),
+#        I2CP = PublishTo("I2C"),
+#        I2CS = SubscribeTo("I2C"),
+#        SENSORSP = PublishTo("SENSORS"),
+#        SENSORSS = SubscribeTo("SENSORS"),
         CONTROLSP = PublishTo("CONTROLS"),
         CONTROLSS = SubscribeTo("CONTROLS"),
 
@@ -182,10 +176,10 @@ def CLI(*argv, **argd):
                     ("self", "signal"): ("SPLITTER", "control"),
                     ("SPLITTER", "signal"): ("CP", "control"),
                     ("CP", "signal"): ("self", "control"),
-                    ("CP", "i2cout"): ("I2CP", "inbox"),
-                    ("I2CS", "outbox"): ("CP", "i2cin"),
-                    ("CP", "sensorsout"): ("SENSORSP", "inbox"),
-                    ("SENSORSP", "outbox"): ("CP", "sensorsin"),
+ #                   ("CP", "i2cout"): ("I2CP", "inbox"),
+ #                   ("I2CS", "outbox"): ("CP", "i2cin"),
+ #                   ("CP", "sensorsout"): ("SENSORSP", "inbox"),
+ #                   ("SENSORSP", "outbox"): ("CP", "sensorsin"),
                     ("CP", "controlsout"): ("CONTROLSP", "inbox"),
                     ("CONTROLSS", "outbox"): ("CP", "controlsin")}
     )
