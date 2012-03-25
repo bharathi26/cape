@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
-#     - Maestro Serial Controller -
+#    Prototype of the MS0x00 ANRV Operating Software
+#     - Serial LCD Component -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,6 +18,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TODO:
+# * Message buffer 
+#  * Walking through messages (Ring, Pendulum etc)
+#  * Message timeout
+# * Write function
+# * Who handles writing of sensor data?
+
+
 import Axon
 
 from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
@@ -25,49 +33,27 @@ from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
 from ..Messages import Message
+from ..Primitives import Frequency
 
-import serial
+from time import time
+from math import fsum
 
-class Maestro(Axon.Component.component):
+
+class SerialLCD(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Maestro"}
+               "control": "Signaling to this LCD"}
     Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Maestro"}
+                "signal": "Signaling from this LCD"}
     verbosity = 1
-    protocol = "SSC"
-    device = "/dev/ttyACM0"
-    autodetect = True
-    maestro = None
 
-    def _connect(self):
-        try:
-            self.maestro = serial.Serial(self.device)
-            if self.autodetect:
-                self.maestro.write(chr(0xAA))
-                self.maestro.flush()
-        except Exception as error:
-            print "DEBUG.MAESTRO._connect: Failed to open device: %s" % error
-            self.maestro = None
-
-    def __init__(self, device="/dev/ttyACM0", autodetect=True, protocol="SSC", verbosity=1):
-        super(Maestro, self).__init__(self)
-        self.device = device
-        self.autodetect = autodetect
-        self.protocol = protocol
+    def __init__(self, verbosity=1):
+        super(SerialLCD, self).__init__(self)
         self.verbosity = verbosity
 
-        self._connect()
-
     def write(self, args):
-        print "DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args
-        try:
-            for byte in args:
-                self.maestro.write(chr(byte))
-            return True
-        except Exception as error:
-            print "DEBUG.MAESTRO.Write: Failed to write: %s" % error
-            return False, error 
-            # TODO: Maybe not a good idea to return the exception itself. Traceback might help
+        # TODO: Call the maestro to actually sendout a message to the serial LCD
+        # See here: http://www.sparkfun.com/datasheets/LCD/SerLCD_V2_5.PDF
+        pass
 
     def main(self):
         while True:
@@ -79,7 +65,7 @@ class Maestro(Axon.Component.component):
             response = None
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
-                if msg.recipient == "MAESTRO":
+                if msg.recipient == "LCD":
                     if msg.func == "Write":
                         response = msg.response(arg=self.write(msg.arg))
                     elif msg.func == "SetVerbosity":
