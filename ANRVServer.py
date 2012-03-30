@@ -36,6 +36,8 @@
 #   POSSIBLY Fixed with System/Idler - we'll see if this works.
 
 from re import escape
+import hashlib
+from time import gmtime, strftime
 
 import Axon
 from Axon.Scheduler import scheduler
@@ -49,27 +51,42 @@ from Kamaelia.Internet.TCPClient import TCPClient
 from Kamaelia.Util.Introspector import Introspector
 from Kamaelia.Util.Console import ConsoleEchoer
 
+from ANRV.System.Idler import Idler
+from ANRV.System.Recorder import Recorder
+
 #from ANRV.Communication.I2C import I2CAdaptor
 #from ANRV.Communication.CLI import CLIProtocol
 from ANRV.Communication.JSONServer import JSONSplitter
 from ANRV.Communication.JSONServer import JSONServer
-
-from ANRV.System.Idler import Idler
-
 from ANRV.Communication.Ping import Ping
 from ANRV.Communication.Pong import Pong
+from ANRV.Communication.Maestro import Maestro
+from ANRV.Communication.Functions import *
 
 from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
-
-from ANRV.Communication.Maestro import Maestro
 
 from ANRV.Controls.Rudder import SimpleRudder as Rudder
 from ANRV.Controls.Engine import SimpleEngine as Engine
 
+global config
 config = {}
+
 # Default settings:
+
+# System
+config['sys.name'] = "ANRV Development Scaffold " + get_ip_address("eth0")
+config['sys.shortname'] = "anrv-ds"
+config['sys.hash'] = hashlib.sha224(config['sys.name']).hexdigest()
+print "DEBUG.Server: Identity: %s (%s) aka %s" % (config['sys.name'], config['sys.hash'], config['sys.shortname'])
+
 config['idler.enable'] = True
 config['idler.frequency'] = Frequency("IdlerFreq", 250)
+
+config['recorder.folder'] = "/tmp/"
+config['recorder.unified'] = True
+config['recorder.hold_open'] = True
+config['recorder.filename'] = strftime("%Y-%m-%d_", gmtime()) + config['sys.shortname'] + ".log"
+print config['recorder.filename']
 
 config['ping.enable'] = True
 config['ping.frequency'] = Frequency("Pingfreq", period=10)
