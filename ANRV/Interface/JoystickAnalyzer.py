@@ -19,6 +19,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+__readme__ = "LOL. Just kidding."
+
 # Original credits:
 #######################################
 # Code coded by Mike Doty
@@ -60,20 +62,21 @@ from math import cos, sin, pi
 from time import time
 import socket
 import sys
+import getopt
 
 from Colors import *
 
 
 class App:
-    def __init__(self):
+    def __init__(self,ip="127.0.0.1",port=55555):
         pygame.init()
 
         pygame.display.set_caption("ANRV Joystick Prototype")
 
         # Set up the network connection
         self.socket = None
-        self.hostname = "localhost"
-        self.port = 55555
+        self.hostname = ip
+        self.port = port
 
         self.connect()
 
@@ -250,7 +253,7 @@ class App:
 
                 if AxesConf:
                     axescolor = DARKGREEN
-                    if not hold and (delta(oldaxesval[i], axesval[i]) > 0.005):
+                    if not hold and (delta(oldaxesval[i], axesval[i]) > 0.001):
                         if AxesConf[i] == THRUST:
                             newthrust = True
                             # YUK. Quick prototype hacking.
@@ -339,5 +342,34 @@ class App:
     def quit(self):
         pygame.display.quit()
 
-app = App()
-app.main()
+def ParseOpts():
+    opts = []
+    ip = "127.0.0.1"
+    port = 55555
+    
+    # parse command line options
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hp:i:v", ["help","port", "ip", "verbose"])
+    except getopt.error, msg:
+        fail = True
+    
+    # process options
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            print __readme__
+            sys.exit(0)
+        if o in ("-i", "--ip"):
+            ip = a
+        if o in ("-p", "--port"):
+            port = int(a)
+
+    return ip, port
+
+
+def Start():
+    ip, port = ParseOpts()
+    app = App(ip,port)
+    app.main()
+
+if __name__ == "__main__":
+    Start()

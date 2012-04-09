@@ -32,14 +32,27 @@ class SimpleEngine(Axon.Component.component):
                "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
                 "signal": "Signaling from this Protocol"}
+
     verbosity = 1
     address = 0x01
+    upper = 1616
+    lower = 1408
+
+    delta = upper - lower
+    center = lower + (delta / 2)
 
     def SetThrust(self, msg):
         if isinstance(msg.arg, float):
-            # TODO: Push out a message to i2c to instruct the Servo about our new course
-            thrustbyte = int((msg.arg + 1) * 255) / 2
-            response = Message(self.name, "MAESTRO", "Write", [0xFF, self.address, thrustbyte])
+            target = (self.center + (self.delta / 2) * msg.arg)
+            print "\n\n\n##### ENGINE TARGET: ", target
+
+            byte[0] = 0x84
+            byte[1] = self.address
+            byte[2] = (target*4) & 0x7f
+            byte[3] = ((target*4) >> 7) & 0x7F
+            print "##### ENGINE BYTES: ", byte, "\n\n\n"
+
+            #response = Message(self.name, "MAESTRO", "Write", byte)
         else:
             response = msg.response((False, "WRONG ARGUMENT"))
         return response

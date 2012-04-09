@@ -106,7 +106,7 @@ Pipeline(
     TCPClient("127.0.0.1",55556)
 ).activate()
 
-print "DEBUG.Server: Setting up Backplanes."
+print "DEBUG.Server: Setting up Control ackplane."
 Backplane("CONTROLS").activate()
 
 if config['console.echoer.enable']:
