@@ -1,22 +1,29 @@
 from distutils.core import setup
 
+from ANRV.Version import ver
+
 #This is a list of files to install, and where
 #(relative to the 'root' dir, where setup.py is)
 #You could be more specific.
 files = ["ANRV/*"]
 
 setup(name = "anrv",
-    version = "1",
+    version = ver,
     description = "Autonomous Naval Robotic Vehicle OS",
-    author = "riot",
+    license = "GPL v3",
+    platform = "Linux",
+    author = "Hackerfleet Contributors",
     author_email = "riot@hackerfleet.org",
     url = "https://hackerfleet.org/anrv",
-    packages = ['ANRV'],
-    #'package' package must contain files (see list above)
-    #I called the package 'package' thus cleverly confusing the whole issue...
-    #This dict maps the package name =to=> directories
-    #It says, package *needs* these files.
-    package_data = {'package' : files },
+    packages = ['ANRV',
+                'ANRV.Communication',
+                'ANRV.Controls',
+                'ANRV.Interface',
+                'ANRV.Sensors',
+                'ANRV.System',
+                'ANRV.Test',
+                ],
+    #package_data = {'package' : files },
     #scripts = [""], # None yet
     long_description = """WiP""" 
     #This next part it for the Cheese Shop, look a little down the page.
