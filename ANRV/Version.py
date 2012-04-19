@@ -54,10 +54,12 @@ try:
     ver_details = _ver_hgapi()
     ver = '0.0.%d' % ver_details['rev']
     ver_num = 0,0,ver_details['rev']
+    ver_is_hg = True
 except:
     ver = _default_ver
     ver_num = _default_ver_num
     ver_details = _default_ver_details
+    ver_is_hg = False
 
 if __name__ == "__main__":
     test()

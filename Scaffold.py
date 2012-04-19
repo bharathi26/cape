@@ -21,23 +21,17 @@
 # This is a mess right now. It will probably stay that way for a few more months,
 # until we're done with a good concept about the general structure.
 # I'm thinking of something that will only start with a basic minimal component
-# configuration and then read in a configuration to initially populate the system 
+# configuration and then read in a configuration to initially populate the system
 # with further components via a dynamic component loader.
 #     -- riot
 
 
-# TODO:
-# * System doesn't quit when asked to, probably because signal/control boxes are wired
-#   strangely - which keeps the socket from resetting correctly. Currently VERY ANNOYING.
-# * I'd rather have a single component interacting with the user, that sends on user input
-#   to another component which in turn handles distribution/communication with the backplanes.
-# * The whole stuff doesn't idle loop correctly - it eats all cpu it can get. 
-#   And apparently it is doing that in a non-multicore compatible way. GIL in the way?
-#   POSSIBLY Fixed with System/Idler - we'll see if this works.
-
-from re import escape
+import sys, os
 import hashlib
+from re import escape
 from time import gmtime, strftime
+
+import ANRV.Version as Version
 
 import Axon
 from Axon.Scheduler import scheduler
@@ -68,6 +62,8 @@ from ANRV.Primitives import Frequency, Angle, WaypointList, Waypoint
 from ANRV.Controls.Rudder import SimpleRudder as Rudder
 from ANRV.Controls.Engine import SimpleEngine as Engine
 
+from ANRV.Interface.SerialLCD import SerialLCD as LCD
+
 global config
 config = {}
 
@@ -89,16 +85,19 @@ config['recorder.filename'] = strftime("%Y-%m-%d_", gmtime()) + config['sys.shor
 print config['recorder.filename']
 
 config['ping.enable'] = True
-config['ping.frequency'] = Frequency("Pingfreq", period=10)
+config['ping.frequency'] = Frequency("Pingfreq", period=60)
 config['pong.enable'] = True
 
 config['console.echoer.enable'] = False
 
-config['rudder.enable'] = True
-config['engine.enable'] = True
+config['rudder.enable'] = False
+config['engine.enable'] = False
 
-config['maestro.enable'] = True
+config['maestro.enable'] = False
 config['maestro.device'] = "/dev/ttyACM0" # TODO: Autoconfigure this
+
+config['lcd.enable'] = True
+config['lcd.device'] = "/dev/ttyUSB0"
 
 print "DEBUG.Server: Setting up Introspection Client."
 Pipeline(
@@ -165,12 +164,13 @@ if config['engine.enable']:
         PublishTo("CONTROLS")
     ).activate()
 
-#print "DEBUG.Server: Activating I2CAdaptor."
-#Pipeline(
-#    SubscribeTo("I2C"),
-#    I2CAdaptor(),
-#    PublishTo("I2C")
-#).activate()
+if config['lcd.enable']:
+    print "DEBUG.Server: Adding LCD."
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        LCD(device=config['lcd.device']),
+        PublishTo("CONTROLS")
+    ).activate()
 
 print "DEBUG.Server: Preparing CLI protocol."
 def CLI(*argv, **argd):
