@@ -52,7 +52,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
     cols = 16
 
     def __init__(self, device="/dev/ttyACM1", verbosity=1):
-        super(SerialLCD, self).__init__(self)
+        super(SerialLCD, self).__init__()
         self.device = device
         self.verbosity = verbosity
         self._connect()
@@ -170,6 +170,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
                     elif msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
                         response = msg.response(True)
+
             if response:
                 self.send(response, "outbox")
 

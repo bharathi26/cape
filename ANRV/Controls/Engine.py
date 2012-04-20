@@ -43,7 +43,7 @@ class SimpleEngine(Axon.Component.component):
 
     def SetThrust(self, msg):
         if isinstance(msg.arg, float):
-            target = (self.center + (self.delta / 2) * msg.arg)
+            target = int(self.center + (self.delta / 2.0) * msg.arg)
             print "\n\n\n##### ENGINE TARGET: ", target
 
             byte[0] = 0x84

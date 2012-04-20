@@ -10,5 +10,6 @@
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Write", "arg": "This is a very large string spanning at least over two displayfulls.", "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Clear", "arg": "", "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0, "recipient": "LCD"}
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.05, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.1, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 1.0, "recipient": "LCD"}
