@@ -52,7 +52,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
     cols = 16
 
     def __init__(self, device="/dev/ttyACM1", verbosity=1):
-        super(SerialLCD, self).__init__(self)
+        super(SerialLCD, self).__init__()
         self.device = device
         self.verbosity = verbosity
         self._connect()
@@ -115,7 +115,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
             self._brightness(0.5)
             self._text("ANRV Booting up - Please wait -")
         except Exception as error:
-            print "DEBUG.LCD._connect: Failed to open device: %s" % error
+            print("DEBUG.LCD._connect: Failed to open device: %s" % error)
             self.lcd = None
 
 
@@ -170,6 +170,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
                     elif msg.func == "SetVerbosity":
                         self.verbosity = int(msg.arg)
                         response = msg.response(True)
+
             if response:
                 self.send(response, "outbox")
 

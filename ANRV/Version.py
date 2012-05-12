@@ -46,8 +46,8 @@ def _ver_hgapi():
 
 def test():
     """N/A: Should test the version information system."""
-    print "No tests yet."
-    print "Version: %s\nNumerical Version: %s\nDetailed Version: %s" % (ver, ver_num, ver_details)
+    print("No tests yet.")
+    print("Version: %s\nNumerical Version: %s\nDetailed Version: %s" % (ver, ver_num, ver_details))
 
 
 try:

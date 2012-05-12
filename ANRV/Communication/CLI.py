@@ -50,7 +50,7 @@ class CLIProtocol(Axon.Component.component):
                 # For now, just give it to the user:
                 msg = self.recv("i2cin")
                 if not isinstance(msg, I2CMessage):
-                    print "ERROR: WRONG MESSAGE FORMAT ON I2C BACKPLANE!"
+                    print("ERROR: WRONG MESSAGE FORMAT ON I2C BACKPLANE!")
                 self.send("Backplane.I2C.%s: %s (%s)\n" % (str(msg.origin), str(msg.content), str(msg.msgtype)), "outbox")
             # Likewise for the other two backplanes:
             if self.dataReady("sensorsin"):
@@ -58,7 +58,7 @@ class CLIProtocol(Axon.Component.component):
             if self.dataReady("controlsin"):
                 self.send("Backplane.CONTROLS: " + self.recv("controlsin") + "\n", "outbox")
             if self.dataReady("inbox"):
-                print "DEBUG.CLI: Processing CLI Data."
+                print("DEBUG.CLI: Processing CLI Data.")
                 data = None
                 data = self.recv("inbox").rstrip('\r\n')
 
@@ -69,7 +69,7 @@ class CLIProtocol(Axon.Component.component):
                     cmd = data[0][1:]
                     response = "Interpreting command '%s'" % cmd
                     if cmd.upper() == "DISCONNECT":
-                        print "DEBUG.CLI: Shutting down."
+                        print("DEBUG.CLI: Shutting down.")
                         response += "\nOk.\n"
                         self.send(Axon.Ipc.shutdownMicroprocess(), "signal")
                     elif cmd.upper() == "QUIT":
@@ -93,7 +93,7 @@ class CLIProtocol(Axon.Component.component):
             if self.dataReady("control"):
                 data = self.recv("control")
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    print "DEBUG.CLI: Protocol shutting down."
+                    print("DEBUG.CLI: Protocol shutting down.")
                     protocolRunning = False
             if response:
                 self.send(response, "outbox")

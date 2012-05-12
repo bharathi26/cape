@@ -29,6 +29,8 @@ from collections import deque
 
 import jsonpickle
 
+from pprint import pprint
+
 class JSONServer(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
                "control": "Signaling to this Protocol",
@@ -51,40 +53,43 @@ class JSONServer(Axon.Component.component):
                 yield 1
             response = None
             if self.dataReady("controlsin"):
-                print "DEBUG.JSONServer: Running inbox (control)"
+#                print("DEBUG.JSONServer: Running inbox (control)")
                 msg = self.recv("controlsin")
-                print msg
+#                print(msg)
                 if ("ALL" in self.msgfilter['recipients']) or (not self.msgfilter['recipients']) or msg.recipient in self.msgfilter['recipients']:
-                    response = msg.jsonencode()
+                    response = msg.jsonencode().encode("utf-8")
                     self.send(response, "outbox")
                     yield 1
                 else:
-                    print "DEBUG.JSONServer.Filtered: %s" % msg
+                    print(("DEBUG.JSONServer.Filtered: %s" % msg))
             if self.dataReady("inbox"):
-                print "DEBUG.JSONServer: Running inbox (inbox)"
-                data = self.recv("inbox").rstrip("\r\n")
+                response = None
+                msg = None
+                data = None
+#                print("DEBUG.JSONServer: Running inbox (inbox)")
+                data = self.recv("inbox")
+#                print("Accepted Input:", data)
                 if len(data) == 0:
                     response = "\n"
                 else:
                     try:
-                        msg = jsonpickle.decode(data)
+                        msg = jsonpickle.decode(data.decode("utf-8"))
                         # TODO: This is somewhat stupid:
                         self.send(msg, "controlsout")
-                        self.send(msg, "sensorsout")
-                    except Exception as error:
-                        print "%s:MALFORMED INPUT: %s\n%s:%s" % (self.name, data, type(error), error.args)
-                        response = "MALFORMED INPUT: %s" % data
-                    print msg
+                    except ValueError as error:
+                        print("%s:MALFORMED INPUT: %s" % (self.name, data))
+                        response = Message(sender=self.name, recipient="CLIENT", func="Error", arg=[error.args[0], data.decode("UTF-8", errors="ignore")]).jsonencode().encode("utf-8")
+
                     if msg and isinstance(msg, Message):
                         if msg.recipient == "JSONServer":
                             if msg.func == "SetFilter":
                                 self.msgfilter = msg.arg
                                 #response = msg.response(True)
-                                print "Filter has been changed to %s" % msg.arg
+                                print(("Filter has been changed to %s" % msg.arg))
                             if msg.func == "AddRecipient":
                                 self.msgfilter['recipients'].append(msg.arg)
-                                #response = msg.response(True)
-                                print "Filter has been changed to %s" % msg.arg
+                                #response = msg.response(True
+                                print(("Recipient %s has been added to filter." % msg.arg))
                 if response:
                     self.send(response, "outbox")
                 yield 1
@@ -93,7 +98,7 @@ class JSONServer(Axon.Component.component):
             if self.dataReady("control"):
                 data = self.recv("control")
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    print "DEBUG.JSONServer: Protocol shutting down."
+                    print("DEBUG.JSONServer: Protocol shutting down.")
                     protocolRunning = False
             yield 1
 
@@ -112,7 +117,7 @@ class JSONSplitter(Axon.Component.component):
 
     buflist = deque()
     maxlength = 20
-    separator = "\r\n"
+    separator = b"\r\n"
 
     def main(self):
         while True:
@@ -127,11 +132,13 @@ class JSONSplitter(Axon.Component.component):
 #                if buflist.count() >= maxlength:
 #                    response = Message(self.name, "JSONServer", "WarnQueueFull")
                 for msg in msgs.split(self.separator):
-                    self.buflist.append(msg)
+                    if len(msg) > 0:
+#                        print("Appending:", msg)
+                        self.buflist.append(msg.rstrip(self.separator))
             if len(self.buflist) > 0:
                 response = self.buflist.popleft()
                 self.send(response, "outbox")
-                print "DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)
+#                print(("DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)))
             yield 1
 
     def shutdown(self):

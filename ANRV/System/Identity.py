@@ -25,7 +25,7 @@ import os
 
 def test():
     """N/A: Should test the Identity information system."""
-    print "No tests yet."
+    print("No tests yet.")
 
 
 if __name__ == "__main__":

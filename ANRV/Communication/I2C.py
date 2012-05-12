@@ -26,7 +26,7 @@ from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
-from Messages import I2CMessage
+from .Messages import I2CMessage
 
 class I2CAdaptor(Axon.Component.component):
     # TODO: This is standard wiring. Either do something nonstandard (why?) or kick this out.
@@ -35,7 +35,7 @@ class I2CAdaptor(Axon.Component.component):
     Outboxes = {"outbox": "i2c bus responses",
                 "signal": "Signaling from this Protocol"}
     def main(self):
-        print "DEBUG.I2CAdaptor: Firing up i2c. (NOT REALLY)"
+        print("DEBUG.I2CAdaptor: Firing up i2c. (NOT REALLY)")
         # TODO: Open i2c bus somehow. (See tickets #78 and #79)
 
         i2c_running = True
@@ -44,13 +44,13 @@ class I2CAdaptor(Axon.Component.component):
                 self.pause()
                 # Thumb twiddling.
                 yield 1
-            print "DEBUG.I2CAdaptor: Receiving Message."
+            print("DEBUG.I2CAdaptor: Receiving Message.")
             data = None
             if self.dataReady("inbox"):
-                print "DEBUG.I2CAdaptor: Processing Message"
+                print("DEBUG.I2CAdaptor: Processing Message")
                 data = self.recv("inbox")
                 if not isinstance(data, I2CMessage):
-                    print "ERROR.I2CAdaptor:  WRONG MESSAGE FORMAT ON I2C BACKPLANE!"
+                    print("ERROR.I2CAdaptor:  WRONG MESSAGE FORMAT ON I2C BACKPLANE!")
                 else:
                     if data.origin != "ADAPTOR":
                         from pprint import pprint
@@ -64,8 +64,8 @@ class I2CAdaptor(Axon.Component.component):
                         response = I2CMessage(data.content, "ADAPTOR", "ANSWER")
                         self.send(response, "outbox")
                     else:
-                        print "DEBUG.I2CAdaptor: Message from ourself - ignored."
+                        print("DEBUG.I2CAdaptor: Message from ourself - ignored.")
             if self.dataReady("control"):
                 data = self.recv("control")
-                print "DEBUG.I2CAdaptor: Received control signal: %s" % data
+                print(("DEBUG.I2CAdaptor: Received control signal: %s" % data))
             yield 1
