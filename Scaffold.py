@@ -173,7 +173,7 @@ if config['lcd.enable']:
     print("DEBUG.Server: Adding LCD.")
     Pipeline(
         SubscribeTo("CONTROLS"),
-        LCD(device=config['lcd.device'], scrollSpeed=config['lcd.scrollspeed']),
+        LCD(device=config['lcd.device']),
         PublishTo("CONTROLS")
     ).activate()
 

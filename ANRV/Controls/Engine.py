@@ -24,6 +24,8 @@ from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
+from ..System import Registry
+from ..System.RPC import RPCComponent
 from ..Messages import Message
 from ..Primitives import Angle
 
@@ -82,3 +84,4 @@ class SimpleEngine(Axon.Component.component):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+Registry.ComponentTemplates.append(SimpleEngine)
