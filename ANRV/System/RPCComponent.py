@@ -24,11 +24,12 @@ import inspect
 
 from pprint import pprint
 
-from .. import Registry
+from ANRV.System.Registry import ComponentTemplates
+from ANRV.System.ConfigurableComponent import ConfigurableComponent
 
-from ...Messages import Message
+from ANRV.Messages import Message
 
-class RPCComponent(Axon.Component.component):
+class RPCComponent(ConfigurableComponent):
     """Basic RPC Component.
 
     Has no real function but:
@@ -54,7 +55,6 @@ class RPCComponent(Axon.Component.component):
 
     TODO: 
     * Correct documentation
-    * Throw out verbosity, doesn't belong here
     * Automate RPC calling somehow, somewhere (smart)
     * RPC Variables? (With automatic getters and setters - by config?)
     * Security! (Here?)
@@ -65,14 +65,12 @@ class RPCComponent(Axon.Component.component):
                 "signal": "Signaling from this Protocol"}
     MethodRegister = {}
 
-    verbosity = 1
+#    def rpc_default(self, arg):
+#       """Default Method"""
+#        # TODO: Do we need a default rpc method? Why? What could we do with it?
+#        pass
 
-    def rpc_default(self):
-        """Default Method"""
-        # TODO: Do we need a default rpc method? Why? What could we do with it?
-        pass
-
-    def rpc_updateComponentInfo(self, msg):
+    def rpc_updateComponentInfo(self, arg):
         """RPC Function '''updateComponentInfo'''
 
         Updates this RPCComponent's methodregister.
@@ -82,7 +80,7 @@ class RPCComponent(Axon.Component.component):
 
         return msg.response(self._buildMethodRegister)
 
-    def rpc_getComponentInfo(self, msg):
+    def rpc_getComponentInfo(self, arg):
         """RPC Function '''getComponentInfo'''
 
         Returns this RPCComponent's methodregister.
@@ -110,7 +108,7 @@ class RPCComponent(Axon.Component.component):
             if msg.func in self.MethodRegister[2]:
                 method = getattr(self, "rpc_" + msg.func)
                 if method:
-                    return method(msg)
+                    return msg.response(method(msg.arg))
                 else:
                     return msg.response(["ERROR", "Method not implemented."])
             else:
@@ -142,11 +140,10 @@ class RPCComponent(Axon.Component.component):
                 self.MethodRegister[name] = [params, doc]
         return True
 
-    def __init__(self, verbosity:[int, 'Sets the initial verbosity.']=1):
-        """Initializes this RPC Component. Don't forget to call super(RPCComponent, self).__init__(self)"""
-        super(RPCComponent, self).__init__(self)
+    def __init__(self):
+        """Initializes this RPC Component. Don't forget to call super(RPCComponent, self).__init__()"""
+        super(RPCComponent, self).__init__()
         self._buildMethodRegister()
-        self.verbosity = verbosity
 
     def main(self):
         """Start the already initialized component and wait for messages.
@@ -173,4 +170,4 @@ class RPCComponent(Axon.Component.component):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
-Registry.ComponentTemplates.append(RPCComponent)
+ComponentTemplates["RPCComponent"] = [RPCComponent, "RPC capable Component"]

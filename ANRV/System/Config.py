@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#     - Registry and associated components
+#     - Configuration and associated components
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -19,21 +19,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-ComponentTemplates = {} # Schema: {'ComponentDescriptiveName': [class, 'Description'],}
-Components = {}         # Schema: {'ComponentName': Component}
-
-import ANRV.System.Config
-from ANRV.System.RPCComponent import RPCComponent
-
-
-#TODO: Reintegrate Registry Component.
-# This involves clearing up a circular import, since RPCComponent needs to be imported
-# for the RegistryComponent.
-
+Config = {}
 
 
 def test():
-    """N/A: Should test the version information system."""
+    """N/A: Should test the configuration system."""
     print("No tests yet.")
 
 if __name__ == "__main__":
