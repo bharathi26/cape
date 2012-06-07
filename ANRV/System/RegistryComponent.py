@@ -20,11 +20,11 @@ class RegistryComponent(RPCComponent):
         else:
             return (False, "No Dispatcher found to register component.")
 
-    def rpc_listRegisteredComponents(self):
-        return Registry.Components
+    def rpc_listRegisteredComponents(self, arg):
+        return list(Registry.Components.keys()) # TODO: Watch out, this is dangerous, when someone else writes here
 
-    def rpc_listRegisteredTemplates(self):
-        return Registry.ComponentTemplates
+    def rpc_listRegisteredTemplates(self, arg):
+        return list(Registry.ComponentTemplates.keys()) # TODO: See above
 
     # TODO:
     # * Destruction of components

@@ -78,7 +78,7 @@ class RPCComponent(ConfigurableComponent):
         Returns True upon completion.
         """
 
-        return msg.response(self._buildMethodRegister)
+        return self._buildMethodRegister()
 
     def rpc_getComponentInfo(self, arg):
         """RPC Function '''getComponentInfo'''
@@ -86,7 +86,7 @@ class RPCComponent(ConfigurableComponent):
         Returns this RPCComponent's methodregister.
         """
 
-        return msg.response(self._getComponentInfo)
+        return self._getComponentInfo()
 
     def handleRPC(self, msg):
         """Handles RPC requests by
@@ -105,10 +105,11 @@ class RPCComponent(ConfigurableComponent):
 
         if msg.recipient == self.name:
             # TODO: Type checking!
-            if msg.func in self.MethodRegister[2]:
+            if msg.func in self.MethodRegister:
                 method = getattr(self, "rpc_" + msg.func)
                 if method:
-                    return msg.response(method(msg.arg))
+                    result = method(msg.arg)
+                    return msg.response(result)
                 else:
                     return msg.response(["ERROR", "Method not implemented."])
             else:

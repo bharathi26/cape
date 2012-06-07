@@ -23,7 +23,8 @@ from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
-from ..Messages import Message
+from ANRV.Messages import Message
+from ANRV.System import Registry
 
 from collections import deque
 
@@ -31,67 +32,75 @@ import jsonpickle
 
 from pprint import pprint
 
+
 class JSONServer(Axon.Component.component):
     Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol",
-               "i2cin": "Incoming i2c traffic",
-               "sensorsin": "Incoming sensors traffic",
-               "controlsin": "Incoming controls traffic"}
+               "protocolin": "Incoming JSON",
+               "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol",
-                "i2cout": "Outgoing i2c traffic",
-                "sensorsout": "Outgoing sensors traffic",
-                "controlsout": "Outgoing controls traffic"}
+                "protocolout": "Outgoing JSON",
+                "signal": "Signaling from this Protocol"}
 
     msgfilter = {'recipients': ['ALL'], 'sender': []}
+
+    def __init__(self):
+        super(JSONServer, self).__init__()
+
     def main(self):
+        Dispatcher = Registry.Components["Dispatcher"]
+        Dispatcher.RegisterComponent(self)
+
         protocol_running = True
         while protocol_running:
             while not self.anyReady():
                 self.pause()
                 # Thumb twiddling.
                 yield 1
+
             response = None
-            if self.dataReady("controlsin"):
-#                print("DEBUG.JSONServer: Running inbox (control)")
-                msg = self.recv("controlsin")
-#                print(msg)
+
+            if self.dataReady("inbox"):
+                msg = self.recv("inbox")
                 if ("ALL" in self.msgfilter['recipients']) or (not self.msgfilter['recipients']) or msg.recipient in self.msgfilter['recipients']:
-                    response = msg.jsonencode().encode("utf-8")
-                    self.send(response, "outbox")
+                    self.send(msg.jsonencode().encode("utf-8"), "protocolout")
                     yield 1
                 else:
                     print(("DEBUG.JSONServer.Filtered: %s" % msg))
-            if self.dataReady("inbox"):
+            if self.dataReady("protocolin"):
                 response = None
                 msg = None
                 data = None
 #                print("DEBUG.JSONServer: Running inbox (inbox)")
-                data = self.recv("inbox")
+                data = self.recv("protocolin")
 #                print("Accepted Input:", data)
                 if len(data) == 0:
                     response = "\n"
                 else:
                     try:
                         msg = jsonpickle.decode(data.decode("utf-8"))
-                        # TODO: This is somewhat stupid:
-                        self.send(msg, "controlsout")
+                        if type(msg) == Message:
+                            # TODO: Message validation!
+                            msg.sender = self.name
+                            self.send(msg, "outbox")
                     except ValueError as error:
                         print("%s:MALFORMED INPUT: %s" % (self.name, data))
-                        response = Message(sender=self.name, recipient="CLIENT", func="Error", arg=[error.args[0], data.decode("UTF-8", errors="ignore")]).jsonencode().encode("utf-8")
+                        response = Message(sender=self.name, recipient="CLIENT", func="Error", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
+                        print(response)
+                        response = response.jsonencode()
+                        response = response.encode("utf-8")
 
-                    if msg and isinstance(msg, Message):
-                        if msg.recipient == "JSONServer":
-                            if msg.func == "SetFilter":
-                                self.msgfilter = msg.arg
-                                #response = msg.response(True)
-                                print(("Filter has been changed to %s" % msg.arg))
-                            if msg.func == "AddRecipient":
-                                self.msgfilter['recipients'].append(msg.arg)
-                                #response = msg.response(True
-                                print(("Recipient %s has been added to filter." % msg.arg))
+#                    if msg and isinstance(msg, Message):
+#                        if msg.recipient == "JSONServer":
+#                            if msg.func == "SetFilter":
+#                                self.msgfilter = msg.arg
+#                                #response = msg.response(True)
+#                                print(("Filter has been changed to %s" % msg.arg))
+#                            if msg.func == "AddRecipient":
+#                                self.msgfilter['recipients'].append(msg.arg)
+#                                #response = msg.response(True
+#                                print(("Recipient %s has been added to filter." % msg.arg))
                 if response:
-                    self.send(response, "outbox")
+                    self.send(response, "protocolout")
                 yield 1
 
 
@@ -110,9 +119,9 @@ class JSONServer(Axon.Component.component):
 
 
 class JSONSplitter(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
+    Inboxes = {"inbox": "Unsplit JSON",
                "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
+    Outboxes = {"outbox": "Linesplit JSON",
                 "signal": "Signaling from this Protocol"}
 
     buflist = deque()
@@ -147,3 +156,14 @@ class JSONSplitter(Axon.Component.component):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+def JSONProtocol(*argv, **argd):
+    return Graphline(
+        SPLITTER = JSONSplitter(),
+        #CE = ConsoleEchoer(),
+        SERVER = JSONServer(),
+
+        linkages = {("self", "inbox"): ("SPLITTER", "inbox"),
+                    ("SPLITTER", "outbox"): ("SERVER", "protocolin"),
+                    ("SERVER", "protocolout"): ("self", "outbox")}
+
+    )

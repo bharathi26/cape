@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software 
@@ -29,9 +29,9 @@ from ANRV.Messages import Message
 from pprint import pprint
 
 class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
-    Inboxes = {'inbox'   : 'Dispatcher Inbox',
+    inboxes = {'inbox'   : 'Dispatcher Inbox',
                'control' : 'Not used yet.'}
-    Outboxes = {'outbox' : 'Dispatcher Outbox',
+    outboxes = {'outbox' : 'Dispatcher Outbox',
                 'signal' : 'Not used yet.'}
     Components = []
 
@@ -39,13 +39,16 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
         super(Dispatcher, self).__init__(self)
 
 
+
     def RegisterComponent(self, thecomponent):
+        self.addChildren(thecomponent)
+
         newIn  = self.addInbox(thecomponent.name)
         newOut = self.addOutbox(thecomponent.name)
 
         newState = "WAITING"
         linkToComponent   = self.link((self, newOut), (thecomponent, "inbox"))
-        linkFromComponent = self.link((thecomponent, "outbox"), (self, newIn))
+        linkFromComponent = self.link((thecomponent, "outbox"), (self, "inbox"))
 
         resource = thecomponent
 
@@ -56,9 +59,31 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
 
         self.trackResource(resource, newIn)
 
+        thecomponent.activate()
+
+        self.Components.append(thecomponent)
+
         return True
 
-#    def main(self):
+    def main(self):
+        while True:
+            while not self.anyReady():
+                yield 1 # Twiddle thumbs.
+
+            msg = self.recv()
+            # Input! We have to act.
+
+            if type(msg) == Message:
+                print(msg.recipient)
+                if msg.recipient in self.inboxes:
+                    self.send(msg,  msg.recipient)
+                elif msg.recipient == self.name:
+                    print('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
+                else:
+                    print('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED:\n%s' % msg)
+                
+
+            
 
     def shutdown(self):
         # TODO: Handle correct shutdown

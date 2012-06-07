@@ -12,3 +12,10 @@
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.1, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 1.0, "recipient": "LCD"}
+
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_7"}
+
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+
+
