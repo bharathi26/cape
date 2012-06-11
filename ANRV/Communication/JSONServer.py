@@ -19,9 +19,8 @@
 
 import Axon
 
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
+import Kamaelia.IPC
 
 from ANRV.Messages import Message
 from ANRV.System import Registry
@@ -51,6 +50,7 @@ class JSONServer(Axon.Component.component):
         Dispatcher.RegisterComponent(self)
 
         protocol_running = True
+        print("DEBUG.JSONServer: Client connected. I am %s" % (self.name))
         while protocol_running:
             while not self.anyReady():
                 self.pause()
@@ -115,6 +115,7 @@ class JSONServer(Axon.Component.component):
         # TODO: Handle correct shutdown
         if self.dataReady("control"):
             msg = self.recv("control")
+            print("DEBUG.JSONServer: Shutdown finished.")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
 
