@@ -22,7 +22,7 @@
 ComponentTemplates = {} # Schema: {'ComponentDescriptiveName': [class, 'Description'],}
 Components = {}         # Schema: {'ComponentName': Component}
 
-import ANRV.System.Config
+import ANRV.System.Configuration
 from ANRV.System.RPCComponent import RPCComponent
 
 

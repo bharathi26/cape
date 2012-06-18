@@ -18,10 +18,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
+import logging
 
 from Kamaelia.Chassis.Graphline import Graphline
 import Kamaelia.IPC
 
+from ANRV.System import Configuration
 from ANRV.Messages import Message
 from ANRV.System import Registry
 
@@ -44,13 +46,12 @@ class JSONServer(Axon.Component.component):
 
     def __init__(self):
         super(JSONServer, self).__init__()
-
-    def main(self):
         Dispatcher = Registry.Components["Dispatcher"]
         Dispatcher.RegisterComponent(self)
 
+    def main(self):
         protocol_running = True
-        print("DEBUG.JSONServer: Client connected. I am %s" % (self.name))
+        logging.info("Client connected. I am %s." % (self.name))
         while protocol_running:
             while not self.anyReady():
                 self.pause()
@@ -65,14 +66,13 @@ class JSONServer(Axon.Component.component):
                     self.send(msg.jsonencode().encode("utf-8"), "protocolout")
                     yield 1
                 else:
-                    print(("DEBUG.JSONServer.Filtered: %s" % msg))
+                    logging.warning("Filtered: %s" % msg)
             if self.dataReady("protocolin"):
                 response = None
                 msg = None
                 data = None
-#                print("DEBUG.JSONServer: Running inbox (inbox)")
+                logging.debug("Running inbox.")
                 data = self.recv("protocolin")
-#                print("Accepted Input:", data)
                 if len(data) == 0:
                     response = "\n"
                 else:
@@ -82,12 +82,14 @@ class JSONServer(Axon.Component.component):
                             # TODO: Message validation!
                             msg.sender = self.name
                             self.send(msg, "outbox")
+                            logging.debug("Accepted external message.")
+                        else:
+                            response = Message(sender=self.name, recipient="CLIENT", func="Error", arg="Malformed Message")
                     except ValueError as error:
-                        print("%s:MALFORMED INPUT: %s" % (self.name, data))
-                        response = Message(sender=self.name, recipient="CLIENT", func="Error", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
-                        print(response)
-                        response = response.jsonencode()
-                        response = response.encode("utf-8")
+                        logging.warning("%s:MALFORMED INPUT: %s" % (self.name, data))
+                        response = Message(sender=self.name, recipient="CLIENT", func="ValueError", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
+                        # TODO: Watch this crappy exception. We need better input handling against bad boys.
+                        logging.debug(response)
 
 #                    if msg and isinstance(msg, Message):
 #                        if msg.recipient == "JSONServer":
@@ -100,6 +102,8 @@ class JSONServer(Axon.Component.component):
 #                                #response = msg.response(True
 #                                print(("Recipient %s has been added to filter." % msg.arg))
                 if response:
+                    response = response.jsonencode()
+                    response = response.encode("utf-8")
                     self.send(response, "protocolout")
                 yield 1
 
@@ -107,7 +111,7 @@ class JSONServer(Axon.Component.component):
             if self.dataReady("control"):
                 data = self.recv("control")
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    print("DEBUG.JSONServer: Protocol shutting down.")
+                    logging.info("DEBUG.JSONServer: Protocol shutting down.")
                     protocolRunning = False
             yield 1
 
@@ -115,7 +119,7 @@ class JSONServer(Axon.Component.component):
         # TODO: Handle correct shutdown
         if self.dataReady("control"):
             msg = self.recv("control")
-            print("DEBUG.JSONServer: Shutdown finished.")
+            logging.info("Client protocol shutdown finished.")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
 

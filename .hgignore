@@ -1,3 +1,6 @@
 # use glob syntax.
 syntax: glob
 
+build
+*.pyc
+__pycache__

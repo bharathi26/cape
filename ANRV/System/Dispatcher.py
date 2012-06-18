@@ -19,6 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
+import logging
 
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
@@ -26,7 +27,6 @@ from Kamaelia.Chassis.Graphline import Graphline
 from ANRV.System import Registry
 from ANRV.Messages import Message
 
-from pprint import pprint
 
 class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
     inboxes = {'inbox'   : 'Dispatcher Inbox',
@@ -36,11 +36,10 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
     Components = []
 
     def __init__(self):
-        super(Dispatcher, self).__init__(self)
-
-
+        super(Dispatcher, self).__init__()
 
     def RegisterComponent(self, thecomponent):
+        logging.debug("Trying to register new component")
         self.addChildren(thecomponent)
 
         newIn  = self.addInbox(thecomponent.name)
@@ -63,6 +62,8 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
 
         self.Components.append(thecomponent)
 
+        logging.info("Registered new component '%s'" % thecomponent.name)
+
         return True
 
     def main(self):
@@ -74,16 +75,13 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
             # Input! We have to act.
 
             if type(msg) == Message:
-                print(msg.recipient)
+                logging.info("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
                 if msg.recipient in self.inboxes:
                     self.send(msg,  msg.recipient)
                 elif msg.recipient == self.name:
-                    print('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
+                    logging.debug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
                 else:
-                    print('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED:\n%s' % msg)
-                
-
-            
+                    logging.warning('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s' % msg)
 
     def shutdown(self):
         # TODO: Handle correct shutdown

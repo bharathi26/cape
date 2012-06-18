@@ -24,6 +24,7 @@ import inspect
 
 from pprint import pprint
 
+from ANRV.System.Identity import SystemName
 from ANRV.System.Registry import ComponentTemplates
 from ANRV.System.ConfigurableComponent import ConfigurableComponent
 
@@ -64,6 +65,7 @@ class RPCComponent(ConfigurableComponent):
     Outboxes = {"outbox": "RPC Responses",
                 "signal": "Signaling from this Protocol"}
     MethodRegister = {}
+    System = SystemName
 
 #    def rpc_default(self, arg):
 #       """Default Method"""

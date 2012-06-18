@@ -28,6 +28,10 @@ class ConfigurableComponent(Axon.Component.component):
 
     TODO:
     * Documentation
+    * ConfigObj!!
+    * Finding of local config attributes
+    * Validation of said attributes
+    * Handling of attribute calls
     * RPC related stuff, later in the tree
     """
 
@@ -36,10 +40,10 @@ class ConfigurableComponent(Axon.Component.component):
     def __init__(self):
         """Initializes this Configurable Component.
         Don't forget to call
-            super(ConfigurableComponent, self).__init__(self)
+            super(ConfigurableComponent, self).__init__()
         if you overwrite this.
         """
-        super(ConfigurableComponent, self).__init__(self)
+        super(ConfigurableComponent, self).__init__()
 
     def GetConfiguration(self):
         """Returns the local Configuration Dictionary"""

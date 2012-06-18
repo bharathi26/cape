@@ -47,19 +47,21 @@ def _ver_hgapi():
 def test():
     """N/A: Should test the version information system."""
     print("No tests yet.")
+    print("Node: %s" % (node))
     print("Version: %s\nNumerical Version: %s\nDetailed Version: %s" % (ver, ver_num, ver_details))
-
 
 try:
     ver_details = _ver_hgapi()
     ver = '0.0.%d' % ver_details['rev']
     ver_num = 0,0,ver_details['rev']
     ver_is_hg = True
+    node = ver_details['node']
 except:
     ver = _default_ver
     ver_num = _default_ver_num
     ver_details = _default_ver_details
     ver_is_hg = False
+    node = None
 
 if __name__ == "__main__":
     test()

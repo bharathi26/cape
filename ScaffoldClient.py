@@ -7,10 +7,14 @@ from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore
 
 from ANRV.System import Registry
 from ANRV.System import Dispatcher
+from ANRV.System import Idler
 from ANRV.System import RegistryComponent
 from ANRV.System import ConfigurableComponent
 from ANRV.System import RPCComponent
+
 from ANRV.Communication import JSONServer
+from ANRV.Communication import Echo
+
 from ANRV.Controls import Engine
 from ANRV.Controls import Rudder
 
@@ -48,8 +52,12 @@ registrycomponent.activate()
 
 printComponents()
 
+print("Requesting creation of Idler.\n")
+registrycomponent.rpc_createComponent("Idler")
+
 print("Requesting creation of SimpleEngine.\n")
 registrycomponent.rpc_createComponent("SimpleEngine")
+
 
 printRunning()
 
