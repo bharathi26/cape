@@ -24,11 +24,13 @@ import logging
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
+from ANRV.System.LoggableComponent import LoggableComponent
 from ANRV.System import Registry
 from ANRV.Messages import Message
+from ANRV.System import Logging
 
 
-class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
+class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableComponent):
     inboxes = {'inbox'   : 'Dispatcher Inbox',
                'control' : 'Not used yet.'}
     outboxes = {'outbox' : 'Dispatcher Outbox',
@@ -39,7 +41,7 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
         super(Dispatcher, self).__init__()
 
     def RegisterComponent(self, thecomponent):
-        logging.debug("Trying to register new component")
+        self.logdebug("Trying to register new component")
         self.addChildren(thecomponent)
 
         newIn  = self.addInbox(thecomponent.name)
@@ -62,7 +64,7 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
 
         self.Components.append(thecomponent)
 
-        logging.info("Registered new component '%s'" % thecomponent.name)
+        self.loginfo("Registered new component '%s'" % thecomponent.name)
 
         return True
 
@@ -75,13 +77,13 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent):
             # Input! We have to act.
 
             if type(msg) == Message:
-                logging.info("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
+                self.loginfo("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
                 if msg.recipient in self.inboxes:
                     self.send(msg,  msg.recipient)
                 elif msg.recipient == self.name:
-                    logging.debug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
+                    self.Logdebug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
                 else:
-                    logging.warning('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s' % msg)
+                    self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s' % msg)
 
     def shutdown(self):
         # TODO: Handle correct shutdown

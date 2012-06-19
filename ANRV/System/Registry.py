@@ -23,8 +23,6 @@ ComponentTemplates = {} # Schema: {'ComponentDescriptiveName': [class, 'Descript
 Components = {}         # Schema: {'ComponentName': Component}
 
 import ANRV.System.Configuration
-from ANRV.System.RPCComponent import RPCComponent
-
 
 #TODO: Reintegrate Registry Component.
 # This involves clearing up a circular import, since RPCComponent needs to be imported

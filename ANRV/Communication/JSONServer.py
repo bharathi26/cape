@@ -18,12 +18,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
-import logging
 
 from Kamaelia.Chassis.Graphline import Graphline
 import Kamaelia.IPC
 
 from ANRV.System import Configuration
+from ANRV.System import Logging
+from ANRV.System.LoggableComponent import LoggableComponent
 from ANRV.Messages import Message
 from ANRV.System import Registry
 
@@ -34,7 +35,7 @@ import jsonpickle
 from pprint import pprint
 
 
-class JSONServer(Axon.Component.component):
+class JSONHandler(Axon.Component.component, LoggableComponent):
     Inboxes = {"inbox": "RPC commands",
                "protocolin": "Incoming JSON",
                "control": "Signaling to this Protocol"}
@@ -45,13 +46,13 @@ class JSONServer(Axon.Component.component):
     msgfilter = {'recipients': ['ALL'], 'sender': []}
 
     def __init__(self):
-        super(JSONServer, self).__init__()
+        super(JSONHandler, self).__init__()
         Dispatcher = Registry.Components["Dispatcher"]
         Dispatcher.RegisterComponent(self)
 
     def main(self):
         protocol_running = True
-        logging.info("Client connected. I am %s." % (self.name))
+        self.loginfo("Client connected.")
         while protocol_running:
             while not self.anyReady():
                 self.pause()
@@ -66,12 +67,12 @@ class JSONServer(Axon.Component.component):
                     self.send(msg.jsonencode().encode("utf-8"), "protocolout")
                     yield 1
                 else:
-                    logging.warning("Filtered: %s" % msg)
+                    self.logwarning("Filtered: %s" % msg)
             if self.dataReady("protocolin"):
                 response = None
                 msg = None
                 data = None
-                logging.debug("Running inbox.")
+                self.logdebug("Running inbox.")
                 data = self.recv("protocolin")
                 if len(data) == 0:
                     response = "\n"
@@ -82,14 +83,14 @@ class JSONServer(Axon.Component.component):
                             # TODO: Message validation!
                             msg.sender = self.name
                             self.send(msg, "outbox")
-                            logging.debug("Accepted external message.")
+                            self.logdebug("Accepted external message.")
                         else:
                             response = Message(sender=self.name, recipient="CLIENT", func="Error", arg="Malformed Message")
                     except ValueError as error:
-                        logging.warning("%s:MALFORMED INPUT: %s" % (self.name, data))
+                        self.logwarning("%s:MALFORMED INPUT: %s" % (self.name, data))
                         response = Message(sender=self.name, recipient="CLIENT", func="ValueError", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
                         # TODO: Watch this crappy exception. We need better input handling against bad boys.
-                        logging.debug(response)
+                        self.logdebug(response)
 
 #                    if msg and isinstance(msg, Message):
 #                        if msg.recipient == "JSONServer":
@@ -111,7 +112,7 @@ class JSONServer(Axon.Component.component):
             if self.dataReady("control"):
                 data = self.recv("control")
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    logging.info("DEBUG.JSONServer: Protocol shutting down.")
+                    self.loginfo("Protocol shutting down.")
                     protocolRunning = False
             yield 1
 
@@ -119,11 +120,11 @@ class JSONServer(Axon.Component.component):
         # TODO: Handle correct shutdown
         if self.dataReady("control"):
             msg = self.recv("control")
-            logging.info("Client protocol shutdown finished.")
+            self.loginfo("Client protocol shutdown finished.")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
 
-class JSONSplitter(Axon.Component.component):
+class JSONSplitter(Axon.Component.component, LoggableComponent):
     Inboxes = {"inbox": "Unsplit JSON",
                "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "Linesplit JSON",
@@ -165,10 +166,13 @@ def JSONProtocol(*argv, **argd):
     return Graphline(
         SPLITTER = JSONSplitter(),
         #CE = ConsoleEchoer(),
-        SERVER = JSONServer(),
+        SERVER = JSONHandler(),
 
         linkages = {("self", "inbox"): ("SPLITTER", "inbox"),
                     ("SPLITTER", "outbox"): ("SERVER", "protocolin"),
                     ("SERVER", "protocolout"): ("self", "outbox")}
 
     )
+
+#class JSONServer(ServerCore):
+#    

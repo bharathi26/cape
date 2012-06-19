@@ -47,10 +47,10 @@ class RegistryComponent(RPCComponent):
                 Dispatcher.RegisterComponent(newcomponent)
                 return True
             else:
-                logging.warning("Cannot instantiate component %s. It is not registered as template." % newcomponentname)
+                self.logwarning("Cannot instantiate component %s. It is not registered as template." % newcomponentname)
                 return (False, "Component not found in templates")
         else:
-            logging.error("No dispatcher found! I can't run standalone")
+            self.logerror("No dispatcher found! I can't run standalone")
             return (False, "No Dispatcher found to register component")
 
     def rpc_listRegisteredComponents(self, arg):

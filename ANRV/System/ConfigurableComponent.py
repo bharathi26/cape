@@ -20,10 +20,11 @@
 
 import Axon
 from ANRV.System.Registry import ComponentTemplates
+from ANRV.System.LoggableComponent import LoggableComponent
 
 from pprint import pprint
 
-class ConfigurableComponent(Axon.Component.component):
+class ConfigurableComponent(Axon.Component.component, LoggableComponent):
     """Basic configurable Component.
 
     TODO:

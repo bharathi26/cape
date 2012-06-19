@@ -14,3 +14,4 @@
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "ANRV.Communication.Echo.Echo_30"}

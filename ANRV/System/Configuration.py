@@ -20,14 +20,14 @@
 #
 
 #import jsonpickle
-import configparser
+import configobj
 import os.path
-import logging
 
+from ANRV.System import Logging
 
 DefaultFilename = "anrv.conf"
 
-Configuration = configparser.ConfigParser()
+Configuration = configobj.ConfigObj()
 
 def _getConfigFilename(filename):
     # TODO: This is stupid. Either read ONE configfile (which?) or read them one after another;
@@ -39,22 +39,26 @@ def _getConfigFilename(filename):
 
     for item in paths:
         name = item + filename
-        logging.debug("Trying %s." % name)
+        Logging.systemdebug("Trying %s." % name)
         if os.path.exists(name):
-            logging.debug("Works")
+            Logging.systemdebug("Works")
             configfile = name
 
     return configfile
 
 
 def _readConfig(filename):
-    try:
-        newconfig = configparser.ConfigParser()
-        newconfig.read(filename)
-        logging.info("Successfully read configuration file '%s'" % filename)
-    except: # TODO: Catch more specific!!!
-        newconfig = False
-        logging.error("Couldn't open configuration file '%s'" % filename)
+    if not filename:
+        newconfig = configobj.ConfigObj()
+        # TODO: Fill in defaults or what?
+        Logging.systemerror("Couldn't open configuration file '%s'" % filename)
+    else:
+        newconfig = configobj.ConfigObj(filename)
+        Logging.systeminfo("Successfully read configuration file '%s'" % filename)
+#    try:
+#        newconfig = configobj.ConfigObj()
+#        newconfig.read(filename)
+#    except: # TODO: Catch more specific!!!
     return newconfig
 
 def test():
@@ -62,11 +66,11 @@ def test():
     # TODO: Needs testing. Heavy.
     print("No real tests yet")
 
-logging.info("Determining configuration filename")
+Logging.systeminfo("Determining configuration filename")
 Filename = _getConfigFilename(DefaultFilename)
-logging.info("Loading configuration from '%s'" % Filename)
+Logging.systeminfo("Loading configuration from '%s'" % Filename)
 Configuration = _readConfig(Filename)
-logging.info("Configuration successfully loaded") # TODO: YUCK! This doesn't compute. All errors being ignored.
+
 
 if __name__ == "__main__":
     test()
