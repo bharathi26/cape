@@ -1,8 +1,11 @@
+= Idler =
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0}, "recipient": "ANRV.System.Idler.Idler_7"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 1000}, "recipient": "ANRV.System.Idler.Idler_7"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 2}, "recipient": "ANRV.System.Idler.Idler_7"}
+= Ping =
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setVerbosity", "arg": 3, "recipient": "Ping"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0.5}, "recipient": "Ping"}
+= LCD =
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "This is a large string.", "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "Hello World!", "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Write", "arg": "This is a very large string spanning at least over two displayfulls.", "recipient": "LCD"}
@@ -10,8 +13,16 @@
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.1, "recipient": "LCD"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 1.0, "recipient": "LCD"}
+= Engine =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_7"}
+= Registry =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredTemplates", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+= Echo =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "ANRV.Communication.Echo.Echo_30"}
+
+= EVIL DEBUG MESSAGES =
+== Wrong recipient ==
+{"py/object": "ANRV.Messages.Message", "sender": "ANRV.System.Echo", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}

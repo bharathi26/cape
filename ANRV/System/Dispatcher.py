@@ -77,13 +77,25 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
             # Input! We have to act.
 
             if type(msg) == Message:
+                response = None
                 self.loginfo("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
                 if msg.recipient in self.inboxes:
                     self.send(msg,  msg.recipient)
                 elif msg.recipient == self.name:
                     self.Logdebug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
+                    response = Message.response((False, "Not available."))
                 else:
                     self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s' % msg)
+                    response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False, "Recipient not found."))
+                    # TODO: maybe we should include the original timestamp, look in ANRV/Messages.py for more on that topic.
+                if response:
+                    if response.recipient in self.inboxes:
+                        self.logdebug("Responding to '%s'" % response.recipient)
+                        self.send(response, response.recipient)
+                    else:
+                        self.logerror("Response to '%s' can't be sent, not available." % response.recipient)
+            else:
+                self.logerror("Received something weird non-message: '%s'" % msg)
 
     def shutdown(self):
         # TODO: Handle correct shutdown

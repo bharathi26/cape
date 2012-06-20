@@ -27,7 +27,29 @@ from .Primitives import Angle, Waypoint, WaypointList
 from copy import deepcopy
 
 class Message():
+    """
+    Basic Message Class
+
+    Stores
+        * Sender
+        * Recipient
+        * Timestamp
+        * Function Name
+        * Function Arguments
+
+    The timestamp is currently set upon init to the current time but can be changed later.
+    """
+
+    # TODO:
+    # * Clean up
+    # * Better JSON pickling, maybe
+    # * Validation?
+    # * Include reference timestamp?
+    # * optimize
+    #  * so any rpc can work with these
+    #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
+
     __slots__ = ['sender', 'recipient', 'timestamp', 'func', 'arg']
     def __init__(self, sender="", recipient="", func="", arg=""):
         self.timestamp = time()

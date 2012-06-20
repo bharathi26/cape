@@ -113,12 +113,13 @@ class RPCComponent(ConfigurableComponent):
                     result = method(msg.arg)
                     return msg.response(result)
                 else:
-                    return msg.response(["ERROR", "Method not implemented."])
+                    self.logerror("Requested Method in register, but not found.")
+                    return msg.response(["ERROR", "Method not found."])
             else:
+                self.logwarning("Requested Method not found: %s" % msg.func)
                 return msg.response(["ERROR", "Method not found."])
         else:
-            pass # TODO: Actually not even addressed to us. Maybe we should warn about this..
-
+            self.logwarning("Received a message without being the recipient!")
 
     def _getComponentInfo(self):
         """Returns this component's metadescription including its MethodRegister"""
@@ -132,6 +133,7 @@ class RPCComponent(ConfigurableComponent):
         # TODO: This has to be thrown out in a higher subclass of Axon.Component, it is not only relevant to RPC
         # TODO: Consider a tiny datastructure to store the data in a conveniently addressable way.
         self.MethodRegister = {}
+        self.loginfo("Building method register.")
         for method in inspect.getmembers(self):
             if method[0].startswith("rpc_") or method[0] == "__init__":
                 if method[0] == "__init__":
@@ -160,9 +162,11 @@ class RPCComponent(ConfigurableComponent):
             response = None
 
             if self.dataReady("inbox"):
+                self.logdebug("Handling incoming rpc messages.")
                 msg = self.recv("inbox")
                 response = self.handleRPC(msg)
             if response:
+                self.logdebug("Sending response to '%s'" % response.recipient)
                 self.send(response, "outbox")
             yield 1
 
@@ -173,4 +177,7 @@ class RPCComponent(ConfigurableComponent):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+# TODO: These (and other baseclass components) shouldn't be listed unless being tested
+# * ConfigurableComponent
+# * Dispatcher
 ComponentTemplates["RPCComponent"] = [RPCComponent, "RPC capable Component"]

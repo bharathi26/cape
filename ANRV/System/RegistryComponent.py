@@ -19,8 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-import ANRV.System.Registry as Registry
+from ANRV.System import Registry
 from ANRV.System.RPCComponent import RPCComponent
 
 class RegistryComponent(RPCComponent):
@@ -43,6 +42,7 @@ class RegistryComponent(RPCComponent):
 
                 Registry.Components[newcomponentname] = newcomponent
 
+                self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                 Dispatcher = Registry.Components["Dispatcher"]
                 Dispatcher.RegisterComponent(newcomponent)
                 return True
@@ -55,10 +55,12 @@ class RegistryComponent(RPCComponent):
 
     def rpc_listRegisteredComponents(self, arg):
         """Returns the current list of registered (running!) components."""
+        self.logdebug("RPC: List of registered (running) components requested")
         return list(Registry.Components.keys()) # TODO: Watch out, this is dangerous, when someone else writes here
 
     def rpc_listRegisteredTemplates(self, arg):
         """Returns the current list of available (producible via createComponent) components."""
+        self.logdebug("RPC: List of registered component templates requested")
         return list(Registry.ComponentTemplates.keys()) # TODO: See above
 
     # TODO:
