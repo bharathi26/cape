@@ -53,7 +53,10 @@ def _readConfig(filename):
         # TODO: Fill in defaults or what?
         Logging.systemerror("Couldn't open configuration file '%s'" % filename)
     else:
-        newconfig = configobj.ConfigObj(filename)
+        try:
+            newconfig = configobj.ConfigObj(filename, unrepr=True)
+        except configobj.UnknownType as error:
+            Logging.systemerror("Couldn't read configuration: '%s'" % error)
         Logging.systeminfo("Successfully read configuration file '%s'" % filename)
 #    try:
 #        newconfig = configobj.ConfigObj()

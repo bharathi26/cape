@@ -19,12 +19,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
-from ANRV.System.Registry import ComponentTemplates
+#from ANRV.System.Registry import ComponentTemplates
+from ANRV.System.BaseComponent import BaseComponent
 from ANRV.System.LoggableComponent import LoggableComponent
+from ANRV.System.Configuration import Configuration
+from configobj import ConfigObj
 
 from pprint import pprint
 
-class ConfigurableComponent(Axon.Component.component, LoggableComponent):
+class ConfigurableComponent(BaseComponent):
     """Basic configurable Component.
 
     TODO:
@@ -36,7 +39,7 @@ class ConfigurableComponent(Axon.Component.component, LoggableComponent):
     * RPC related stuff, later in the tree
     """
 
-    Configuration = {}
+    Configuration = ConfigObj()
 
     def __init__(self):
         """Initializes this Configurable Component.
@@ -46,16 +49,55 @@ class ConfigurableComponent(Axon.Component.component, LoggableComponent):
         """
         super(ConfigurableComponent, self).__init__()
 
+    def HasConfiguration(self):
+        # TODO: This one should probably validate an integrated configuration automatically
+        # We need a defined configuration set per component, to enable that.
+        # So, for now we just check for our BaseComponent's attributes.. which is kind of lame
+        uuid = sysname = hname = hdesc = "Not found"
+        try:
+            c = self.Configuration
+            uuid = c['uuid']
+            name = c['name']
+            sysname = c['systemname']
+            hname = c['hname']
+            hdesc = c['hdesc']
+        except KeyError as err:
+            errmsg = "%s '%s@%s (%s)': '%s' '%s'" % (err, name, sysname, uuid, hname, hdesc)
+            self.logerror(errmsg)
+            return (False, errmsg)
+        self.logdebug("Configuration found.")
+        return True
+
     def GetConfiguration(self):
         """Returns the local Configuration Dictionary"""
         return self.Configuration
 
     def SetConfiguration(self, NewConfiguration):
         """Sets the local Configuration to a new Dictionary"""
+        # TODO: Validation, Backup?
         self.Configuration = NewConfiguration
 
     def WriteConfiguration(self):
-        """TODO: Should write the local configuration to the default location"""
-        pass
+        """Stores this components configuration back in to the System's configuration database"""
+        self.logdebug("Generating new configuration.")
+        c = self.Configuration
+        c['uuid'] = self.uuid
+        c['name'] = self.name
+        c['hname'] = self.hname
+        c['hdesc'] = self.hdesc
+        c['systemname'] = self.systemname
+        self.logdebug("Writing config.")
+        Configuration[self.name] = c
+        return True
 
-ComponentTemplates["ConfigurableComponent"] = [ConfigurableComponent, "Configurable Component"]
+    def ReadConfiguration(self):
+        """Tries to obtain a configuration from the System's configuration database"""
+        try:
+            self.Configuration = Configuration[self.name]
+            return True
+        except KeyError as e:
+            errormsg = "No configuration found for '%s'" % self.name
+            self.logwarn(errormsg)
+            return (False, errormsg)
+
+#ComponentTemplates["ConfigurableComponent"] = [ConfigurableComponent, "Configurable Component"]
