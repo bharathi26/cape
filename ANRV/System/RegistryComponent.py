@@ -34,6 +34,8 @@ class RegistryComponent(RPCComponent):
 
     def rpc_createComponent(self, newcomponentname: [str, 'Name of new component template']):
         """Creates a new component and registers it with a dispatcher."""
+
+        # TODO: The next check is somewhat ugly.
         if "Dispatcher" in Registry.Components:
             if newcomponentname in Registry.ComponentTemplates:
                 # TODO: Better addressing without too much added trouble
@@ -53,12 +55,12 @@ class RegistryComponent(RPCComponent):
             self.logerror("No dispatcher found! I can't run standalone")
             return (False, "No Dispatcher found to register component")
 
-    def rpc_listRegisteredComponents(self, arg):
+    def rpc_listRegisteredComponents(self):
         """Returns the current list of registered (running!) components."""
         self.logdebug("RPC: List of registered (running) components requested")
         return list(Registry.Components.keys()) # TODO: Watch out, this is dangerous, when someone else writes here
 
-    def rpc_listRegisteredTemplates(self, arg):
+    def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
         self.logdebug("RPC: List of registered component templates requested")
         return list(Registry.ComponentTemplates.keys()) # TODO: See above

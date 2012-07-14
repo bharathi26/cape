@@ -70,7 +70,7 @@ class RPCComponent(ConfigurableComponent):
 #        # TODO: Do we need a default rpc method? Why? What could we do with it?
 #        pass
 
-    def rpc_updateComponentInfo(self, arg):
+    def rpc_updateComponentInfo(self):
         """RPC Function '''updateComponentInfo'''
 
         Updates this RPCComponent's methodregister.
@@ -80,7 +80,7 @@ class RPCComponent(ConfigurableComponent):
 
         return self._buildMethodRegister()
 
-    def rpc_getComponentInfo(self, arg):
+    def rpc_getComponentInfo(self):
         """RPC Function '''getComponentInfo'''
 
         Returns this RPCComponent's methodregister.
@@ -88,19 +88,19 @@ class RPCComponent(ConfigurableComponent):
 
         return self._getComponentInfo()
 
-    def rpc_getConfiguration(self, arg):
+    def rpc_getConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
         return self.GetConfiguration()
 
-    def rpc_writeConfiguration(self, arg):
+    def rpc_writeConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
         return self.WriteConfiguration()
 
-    def rpc_readConfiguration(self, arg):
+    def rpc_readConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
         return self.ReadConfiguration()
 
-    def rpc_hasConfiguration(self, arg):
+    def rpc_hasConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
         return self.HasConfiguration()
 
@@ -108,10 +108,11 @@ class RPCComponent(ConfigurableComponent):
     def handleRPC(self, msg):
         """Handles RPC requests by
         * first checking for the correct recipient
-        * looking up wether the RPC Method actually exists
-        * trying to get a hold on to the actual function
+        * looking up wether the RPC method actually exists
+        * trying to get a hold on to the actual method
+        * checking the delivered arguments against the method's specification
         * calling it
-        * returning the methods result as RPC Response
+        * returning the methods result as RPC response
 
         = Important Requirement =
         For every component that intends to do RPC and react to requests,
@@ -121,20 +122,72 @@ class RPCComponent(ConfigurableComponent):
         # TODO: Grand unified error responses everywhere, needs a well documented standard.
 
         if msg.recipient == self.name:
-            # TODO: Type checking!
+            self.logdebug("Checking RPC request")
+
             if msg.func in self.MethodRegister:
+                self.logdebug("Request for method %s" % msg.func)
                 method = getattr(self, "rpc_" + msg.func)
+
                 if method:
-                    result = method(msg.arg)
+                    # TODO: cleanup return vs result mess
+                    # Better checking and error reporting
+                    argspeclist = self.MethodRegister[msg.func]['args']
+                    print("SPECIFICATION:")
+                    pprint(argspeclist)
+
+                    if len(argspeclist) == 0: # Method has no arguments
+                        self.loginfo("Method '%s' (no args) called." % msg.func)
+                        result = method()
+                    elif isinstance(msg.arg, dict): # Method has more than one argument
+                        # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
+                        args = msg.arg
+                        self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
+
+                        # TODO: with this, specified args HAVE to be supplied
+                        # Consider optional and required args as possibly better alternative
+                        # But how to best specify that in an unobscured way?
+
+                        for param in args:
+                            self.logdebug("Being checked: %s" % param)
+                            try:
+                                argspec = argspeclist[param]
+                                self.logdebug(argspec)
+                                if type(args[param]) != argspec[0]:
+                                    warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
+                                    self.logwarn(warning)
+                                    return msg.response((False, warning))
+                            except Exception as e:
+                                self.logerror(e)
+                                return msg.response((False, "Unknown Error %s" % e))
+
+                        self.logdebug("Calling method after successful ArgSpecTest")
+                        result = method(**args)
+
+                    else: # Method only accepts one default parameter
+
+                        self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
+                        argspec = list(argspeclist.values())[0]
+                        self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
+
+                        if type(msg.arg) != argspec[0]:
+                            warning = "Argument type error: %s expected." % (argspec[0])
+                            self.logwarn(warning)
+                            return msg.response((False, warning))
+                        else:
+                            result = method(msg.arg)
+
+                    # Deliver the final, good result
                     return msg.response(result)
                 else:
-                    self.logerror("Requested Method in register, but not found.")
-                    return msg.response(["ERROR", "Method not found."])
+                    # This shouldn't happen, as the register gets built automatically
+                    self.logerror("Requested Method in register, but not implemented/found.")
+                    return msg.response((False, "Method not found."))
             else:
+                # Clients should look up the requested method at least once, but may use e.g. caching
                 self.logwarning("Requested Method not found: %s" % msg.func)
-                return msg.response(["ERROR", "Method not found."])
+                return msg.response((False, "Method not found."))
         else:
-            self.logwarning("Received a message without being the recipient!")
+            self.logerror("Received a message without being the recipient!")
 
     def _getComponentInfo(self):
         """Returns this component's metadescription including its MethodRegister"""
@@ -146,7 +199,7 @@ class RPCComponent(ConfigurableComponent):
         Every found method will be added to the register together with its annotations.
         """
         # TODO: This has to be thrown out in a higher subclass of Axon.Component, it is not only relevant to RPC
-        # TODO: Consider a tiny datastructure to store the data in a conveniently addressable way.
+        # TODO: Consider a tiny datastructure to store the data in a conveniently addressable way. (50% ;)
         self.MethodRegister = {}
         self.loginfo("Building method register.")
         for method in inspect.getmembers(self):
@@ -157,7 +210,7 @@ class RPCComponent(ConfigurableComponent):
                     name = method[0][4:]
                 params = inspect.getfullargspec(method[1]).annotations
                 doc = inspect.getdoc(method[1])
-                self.MethodRegister[name] = [params, doc]
+                self.MethodRegister[name] = {"args": params, "doc": doc}
         return True
 
     def __init__(self):

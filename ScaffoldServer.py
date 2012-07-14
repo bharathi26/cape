@@ -10,6 +10,9 @@ import sys
 
 from Axon.Scheduler import scheduler
 from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore
+#from Kamaelia.Internet.TCPClient import TCPClient
+#from Kamaelia.Chassis.Pipeline import Pipeline
+#from Kamaelia.Util.Introspector import Introspector
 
 from ANRV import Version
 from ANRV.System import Identity
@@ -26,6 +29,7 @@ from ANRV.Communication import Echo
 
 from ANRV.Controls import Engine
 from ANRV.Controls import Rudder
+from ANRV.Controls import Timer
 
 
 # STATIC PREPARATION
@@ -36,6 +40,14 @@ def main(args):
     else:
         Logging.systemcritical("No Server Configuration found. Copy the sample or create one.")
         sys.exit(23)
+
+    introspector = False
+
+    if introspector:
+        Pipeline(
+            Introspector(),
+            TCPClient(55556),
+        ).activate()
 
     Logging.systeminfo("Instantiating Dispatcher")
     dispatcher = Dispatcher.Dispatcher()
@@ -55,6 +67,9 @@ def main(args):
 
     Logging.systeminfo("Requesting creation of SimpleEngine")
     registrycomponent.rpc_createComponent("SimpleEngine")
+
+    Logging.systeminfo("Requesting creation of Timer")
+    registrycomponent.rpc_createComponent("Timer")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

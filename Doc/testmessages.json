@@ -23,10 +23,21 @@
 = Registry =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredTemplates", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+
+
+= Timer =
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Timer", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_19"}
+
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "addTimer", "arg": {"usec": 1342208520.734531, "message": {"py/object": "ANRV.Messages.Message", "sender": "ANRV.Communication.JSONServer_JSONHandler_16", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}}, "recipient": "ANRV.Controls.Timer.Timer_9"}
 = Echo =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "ANRV.Communication.Echo.Echo_30"}
+
+
 
 = EVIL DEBUG MESSAGES =
 == Wrong recipient ==
