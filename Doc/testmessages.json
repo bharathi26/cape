@@ -31,16 +31,25 @@
 = Timer =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Timer", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_19"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_9"}
 
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "addTimer", "arg": {"usec": 1342208520.734531, "message": {"py/object": "ANRV.Messages.Message", "sender": "ANRV.Communication.JSONServer_JSONHandler_16", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}}, "recipient": "ANRV.Controls.Timer.Timer_9"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listEvents", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_19"}
+
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "addTimer", "arg": {"usec": 1342275941.284734, "message": {"py/object": "ANRV.Messages.Message", "sender": "ANRV.Communication.JSONServer.JSONHandler_16", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}}, "recipient": "ANRV.Controls.Timer.Timer_9"}
 = Echo =
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "ANRV.Communication.Echo.Echo_30"}
+
+
+= TkAdmin =
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "TkAdmin", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "FOOBAR", "arg": "BAZQUX", "recipient": "ANRV.Interface.TkAdmin.TkAdmin_11"}
+
 
 
 
 = EVIL DEBUG MESSAGES =
 == Wrong recipient ==
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23, "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}, "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 {"py/object": "ANRV.Messages.Message", "sender": "ANRV.System.Echo", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
 
 

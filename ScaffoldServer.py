@@ -31,6 +31,7 @@ from ANRV.Controls import Engine
 from ANRV.Controls import Rudder
 from ANRV.Controls import Timer
 
+from ANRV.Interface import TkAdmin
 
 # STATIC PREPARATION
 
@@ -70,6 +71,9 @@ def main(args):
 
     Logging.systeminfo("Requesting creation of Timer")
     registrycomponent.rpc_createComponent("Timer")
+
+    Logging.systeminfo("Requesting creation of TkAdmin")
+    registrycomponent.rpc_createComponent("TkAdmin")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

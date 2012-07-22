@@ -25,7 +25,22 @@ import os.path
 
 from ANRV.System import Logging
 
-DefaultFilename = "anrv.conf"
+# General paths to look for configuration and module data
+Paths = DefaultPaths = {1: '/etc/anrv/', 2: os.path.expanduser('~/.'), 3: os.path.expanduser('~/.anrv/')}
+
+# Filename of main configuration
+ConfigFilename = DefaultConfigFilename = "anrv.conf"
+
+# Pathname to look for modules in
+ModulePath = DefaultModulePath = "modules/"
+
+# Actual found module paths
+ModulePaths = []
+
+# TODO:
+# * Modules shouldn't be stored along configuration and only looked for in trusted locations
+# * Segmentation of Configurationdata - desired? Or only one host-exclusive configuration?
+#   (i.e. basic config is loaded from a general source, userdata can overwrite)
 
 Configuration = configobj.ConfigObj()
 
@@ -33,12 +48,12 @@ def _getConfigFilename(filename):
     # TODO: This is stupid. Either read ONE configfile (which?) or read them one after another;
     # The latter would allow overwriting by the user.
     # Currently only the last one found will be inspected, wich works during development and testing
-    paths = ['/etc/', '/etc/anrv/', os.path.expanduser('~/.'), os.path.expanduser('~/.anrv/')]
 
     configfile = None
 
-    for item in paths:
-        name = item + filename
+    # TODO: Like this, using a dict with preference value is useless. Needs config segmentation or clearing.
+    for key in Paths:
+        name = Paths[key] + ConfigFilename
         Logging.systemdebug("Trying %s." % name)
         if os.path.exists(name):
             Logging.systemdebug("Works")
@@ -46,6 +61,17 @@ def _getConfigFilename(filename):
 
     return configfile
 
+def _getModulePath(Path):
+    modulepaths = []
+
+    for key in Paths:
+        name = Paths[key] + ModulePath
+        Logging.systemdebug("Trying %s." % name)
+        if os.path.exists(name):
+            Logging.systemdebug("Found module folder: %s" % name)
+            modulepaths.append(name)
+
+    return modulepaths
 
 def _readConfig(filename):
     if not filename:
@@ -70,9 +96,12 @@ def test():
     print("No real tests yet")
 
 Logging.systeminfo("Determining configuration filename")
-Filename = _getConfigFilename(DefaultFilename)
+Filename = _getConfigFilename(ConfigFilename)
 Logging.systeminfo("Loading configuration from '%s'" % Filename)
 Configuration = _readConfig(Filename)
+Logging.systeminfo("Checking module paths")
+ModulePaths = _getModulePath(ModulePath)
+Logging.systeminfo("Found module paths: %s" % ModulePaths)
 
 
 if __name__ == "__main__":
