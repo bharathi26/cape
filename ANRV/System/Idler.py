@@ -24,7 +24,9 @@ from ANRV.Primitives import Frequency
 from time import sleep
 
 class Idler(RPCComponent):
-    def __init__(self, frequency:(Frequency, 'Period to wait')=Frequency("IdlerFreq", 200), realtime:(bool, 'Initial realtime setting.')=False):
+    def __init__(self, frequency=Frequency("IdlerFreq", 200), realtime=False):
+        args = {'frequency':[Frequency, 'Period to wait'],
+                'realtime' :[bool, 'Initial realtime setting.']}
         super(Idler, self).__init__()
         self.frequency = frequency
         self.realtime = realtime
@@ -35,7 +37,8 @@ class Idler(RPCComponent):
             return True
         else: return (False, "Wrong Argument")
 
-    def rpc_setRealtime(self, arg: (bool, 'Set to true to run system in Realtime')):
+    def rpc_setRealtime(self, arg):
+        args = {'arg': [bool, 'Set to true to run system in Realtime']}
         if isinstance(arg, bool):
             self.realtime = arg
             return True

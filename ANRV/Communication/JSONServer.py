@@ -85,6 +85,7 @@ class JSONHandler(Axon.Component.component, LoggableComponent):
                             self.send(msg, "outbox")
                             self.logdebug("Accepted external message.")
                         else:
+                            self.logdebug("Malformed message or non message. Type '%s': '%s'" %(type(msg), msg))
                             response = Message(sender=self.name, recipient="CLIENT", func="Error", arg="Malformed Message")
                     except ValueError as error:
                         self.logwarning("%s:MALFORMED INPUT: %s" % (self.name, data))

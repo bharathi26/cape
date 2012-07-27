@@ -26,8 +26,14 @@ from ANRV.System.LoggableComponent import LoggableComponent
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
-import tkinter
-import tkinter.messagebox
+try:
+    unicode
+    import Tkinter as tkinter
+    import tkMessageBox as messagebox
+except NameError:
+    import tkinter
+    import tkinter.messagebox as messagebox
+
 
 import jsonpickle
 
@@ -103,7 +109,7 @@ class TkAdmin(TkWindow, LoggableComponent):
             self.logwarning(errmsg)
             self.textboxInput['bg'] = 'red'
             self.textboxInput['fg'] = 'yellow'
-            tkinter.messagebox.showinfo("Transmit failed!", errmsg)
+            messagebox.showinfo("Transmit failed!", errmsg)
 
         if self.clearInput.get():
             self.textboxInput.delete('1.0', tkinter.END)

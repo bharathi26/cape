@@ -25,13 +25,14 @@ from ANRV.System import ConfigurableComponent
 from ANRV.System import RPCComponent
 
 from ANRV.Communication import JSONServer
+from ANRV.Communication import WSGIGateway
 from ANRV.Communication import Echo
 
 from ANRV.Controls import Engine
 from ANRV.Controls import Rudder
 from ANRV.Controls import Timer
 
-from ANRV.Interface import TkAdmin
+from ANRV.Interface import TkAdmin2
 
 # STATIC PREPARATION
 
@@ -73,7 +74,10 @@ def main(args):
     registrycomponent.rpc_createComponent("Timer")
 
     Logging.systeminfo("Requesting creation of TkAdmin")
-    registrycomponent.rpc_createComponent("TkAdmin")
+    registrycomponent.rpc_createComponent("TkAdmin2")
+
+    Logging.systeminfo("Requesting creation of WSGIGateway")
+    registrycomponent.rpc_createComponent("WSGIGateway")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

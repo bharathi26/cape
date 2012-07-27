@@ -32,8 +32,10 @@ class RegistryComponent(RPCComponent):
     More (like finding all available but not loaded components) will follow.
     """
 
-    def rpc_createComponent(self, newcomponentname: [str, 'Name of new component template']):
+
+    def rpc_createComponent(self, newcomponentname):
         """Creates a new component and registers it with a dispatcher."""
+        args = {'newcomponentname': [str, 'Name of new component template']}
 
         # TODO: The next check is somewhat ugly.
         if "Dispatcher" in Registry.Components:
@@ -58,12 +60,21 @@ class RegistryComponent(RPCComponent):
     def rpc_listRegisteredComponents(self):
         """Returns the current list of registered (running!) components."""
         self.logdebug("RPC: List of registered (running) components requested")
+        self.logdebug(Registry.Components)
         return list(Registry.Components.keys()) # TODO: Watch out, this is dangerous, when someone else writes here
 
     def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
         self.logdebug("RPC: List of registered component templates requested")
+        self.logdebug(list(Registry.ComponentTemplates.keys()))
         return list(Registry.ComponentTemplates.keys()) # TODO: See above
+
+    def __init__(self):
+        self.MR['rpc_createComponent'] = [str, 'Name of new component template']
+        self.MR['rpc_listRegisteredComponents'] = [None]
+        self.MR['rpc_listRegisteredTemplates'] = [None]
+        super(RegistryComponent, self).__init__()
+
 
     # TODO:
     # * Destruction of components

@@ -35,11 +35,12 @@ class SimpleRudder(RPCComponent.RPCComponent):
     delta = upper - lower
     center = lower + (delta / 2)
 
-    def rpc_setRudder(self, newangle: [float, 'New rudder angle (-1;0;1)']):
+    def rpc_setRudder(self, newangle):
         """Calculates the new servo value for a given angle.
         Arranges 4 bytes to contain the control command, servo address and new target.
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
+        args = {'newangle': [float, 'New rudder angle (-1;0;1)']}
 
         if isinstance(newangle, float): # TODO: Bad, we should do argument typechecking at a higher (RPC) level!
             target = (self.center + (self.delta / 2) * msg.arg)

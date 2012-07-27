@@ -30,11 +30,12 @@ class SimpleEngine(RPCComponent.RPCComponent):
     delta = upper - lower
     center = lower + (delta / 2)
 
-    def rpc_setThrust(self, newthrust: [float, 'New thrust (-1;0;1)']):
+    def rpc_setThrust(self, newthrust):
         """Calculates the new servo value for a given thrust.
         Arranges 4 bytes to contain the control command, servo address and new target.
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
+        args = {'newthrust': [float, 'New thrust (-1;0;1)']}
 
 #        Problems:
 #        * We don't really know what name the Maestro has.

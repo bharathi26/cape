@@ -61,6 +61,8 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
         self.trackResource(resource, newIn)
 
         thecomponent.activate()
+        if isinstance(thecomponent, Axon.ThreadedComponent.threadedcomponent):
+            pass
 
         self.Components.append(thecomponent)
 
@@ -76,7 +78,7 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
             msg = self.recv()
             # Input! We have to act.
 
-            if type(msg) == Message:
+            if isinstance(msg, Message):
                 response = None
                 self.loginfo("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
                 if msg.recipient in self.inboxes:

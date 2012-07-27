@@ -27,13 +27,12 @@ import time
 class Timer(RPCComponent.RPCComponent):
     events = []
 
-    def rpc_addTimer(self,
-                     usec: [float, 'Time when to fire message (Microseconds since 1970)'],
-                     message: [Message, 'What message to send.']
-                     ):
+    def rpc_addTimer(self, usec, message):
         """
         Stores a timed message.
         """
+        args = {'usec': [float, 'Time when to fire message (Microseconds since 1970)'],
+                'message': [Message, 'What message to send.']}
         if time.time() > usec:
             return (False, "Past events can't be handled")
         else:
@@ -47,22 +46,23 @@ class Timer(RPCComponent.RPCComponent):
             self.loginfo("New event logged. Eventtime: %s" % usec)
             return True
 
-    def rpc_addCountdown(self,
-                         usec: [float, 'Countdowntime'],
-                         message: [Message, 'What message to send']
-                        ):
+    def rpc_addCountdown(self, usec, message):
         """
         Calculates the time, when a given countdown runs out and stores a message.
         """
+        args = {'usec': [float, 'Countdowntime'],
+                'message': [Message, 'What message to send']}
 
         now = time.time()
         return self.rpc_addTimer(usec, message)
 
-    def rpc_delTimer(self, usec: [float, 'Time of to be deleted event.']):
+    def rpc_delTimer(self, usec):
         """
         NOT IMPLEMENTED!
         Deletes a specified event.
         """
+        args = {'usec': [float, 'Time of to be deleted event.']}
+
         if usec in self.events:
             return True
         else:
