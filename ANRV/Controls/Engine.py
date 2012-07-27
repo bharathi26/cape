@@ -35,7 +35,7 @@ class SimpleEngine(RPCComponent.RPCComponent):
         Arranges 4 bytes to contain the control command, servo address and new target.
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
-        args = {'newthrust': [float, 'New thrust (-1;0;1)']}
+        args = [float, 'New thrust (-1;0;1)']
 
 #        Problems:
 #        * We don't really know what name the Maestro has.
