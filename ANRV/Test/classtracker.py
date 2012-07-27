@@ -18,10 +18,10 @@ from random import random
 
 def create_data(tracker, iterations=100, obj_per_iteration=100):
     objects = []
-    for j, x in enumerate(range(iterations)):
+    for j, x in enumerate(list(range(iterations))):
         # Generate a waypoint list
         wplist = WaypointList("WPL #%i" % j)
-        for i, y in enumerate(range(obj_per_iteration)):
+        for i, y in enumerate(list(range(obj_per_iteration))):
             wp = Waypoint("Point %i" % i, "%3.5fN" % (52.3 + (random() * 2 - 1)), "%3.5fE" % (52.3 + (random() * 2 -1)))
             wplist.append(wp)
         objects.append(wplist)
@@ -39,7 +39,7 @@ tracker.track_class(WaypointList)
 print ("Create data")
 tracker.create_snapshot()
 data = create_data(tracker)
-print data
+print(data)
 print ("Drop data")
 for item in data:
     del item

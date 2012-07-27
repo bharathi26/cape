@@ -57,14 +57,14 @@ __readme__ = "LOL. Just kidding."
 import pygame
 from pygame.locals import *
 from time import sleep
-from JoystickDescription import *
+from .JoystickDescription import *
 from math import cos, sin, pi
 from time import time
 import socket
 import sys
 import getopt
 
-from Colors import *
+from .Colors import *
 
 
 class App:
@@ -90,7 +90,7 @@ class App:
         for i in range(0, pygame.joystick.get_count()):
             self.joystick_names.append(pygame.joystick.Joystick(i).get_name())
 
-        print self.joystick_names
+        print(self.joystick_names)
 
         # By default, load the first available joystick.
         if (len(self.joystick_names) > 0):
@@ -106,27 +106,27 @@ class App:
         self.font = pygame.font.SysFont("Helvetica", 10)
 
     def connect(self):
-        print "Connecting to %s:%i" % (self.hostname, self.port)
+        print("Connecting to %s:%i" % (self.hostname, self.port))
         s = None
         for res in socket.getaddrinfo(self.hostname, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
             af, socktype, proto, canonname, sa = res
             try:
                 s = socket.socket(af, socktype, proto)
-            except socket.error, msg:
+            except socket.error as msg:
                 s = None
                 continue
             try:
                 s.connect(sa)
-            except socket.error, msg:
+            except socket.error as msg:
                 s.close()
                 s = None
                 continue
             break
         if s is None:
-            print 'Could not open socket'
+            print('Could not open socket')
             sys.exit(1)
         else:
-            print "Connected!"
+            print("Connected!")
         self.socket = s
         request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "ANRV.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (time())
         self.socket.sendto(request, (self.hostname, self.port))
@@ -180,7 +180,7 @@ class App:
         freq = 60
         # TODO: Needs a default for unknown joysticks!
         # print JoystickDB
-        JoystickConf = next(v for k,v in JoystickDB.items() if self.joystick_names[0] in k)
+        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
    
         if JoystickConf:
             Correction = JoystickConf['correction']
@@ -350,13 +350,13 @@ def ParseOpts():
     # parse command line options
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hp:i:v", ["help","port", "ip", "verbose"])
-    except getopt.error, msg:
+    except getopt.error as msg:
         fail = True
     
     # process options
     for o, a in opts:
         if o in ("-h", "--help"):
-            print __readme__
+            print(__readme__)
             sys.exit(0)
         if o in ("-i", "--ip"):
             ip = a

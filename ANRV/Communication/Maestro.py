@@ -46,7 +46,7 @@ class Maestro(Axon.Component.component):
                 self.maestro.write(chr(0xAA))
                 self.maestro.flush()
         except Exception as error:
-            print "DEBUG.MAESTRO._connect: Failed to open device: %s" % error
+            print(("DEBUG.MAESTRO._connect: Failed to open device: %s" % error))
             self.maestro = None
 
     def __init__(self, device="/dev/ttyACM0", autodetect=True, protocol="SSC", verbosity=1):
@@ -59,13 +59,13 @@ class Maestro(Axon.Component.component):
         self._connect()
 
     def write(self, args):
-        print "DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args
+        print(("DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args))
         try:
             for byte in args:
                 self.maestro.write(chr(byte))
             return True
         except Exception as error:
-            print "DEBUG.MAESTRO.Write: Failed to write: %s" % error
+            print(("DEBUG.MAESTRO.Write: Failed to write: %s" % error))
             return False, error 
             # TODO: Maybe not a good idea to return the exception itself. Traceback might help
 

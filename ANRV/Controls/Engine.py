@@ -18,22 +18,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
+from ANRV.System import Registry
+from ANRV.System import RPCComponent
+from ANRV.Messages import Message
 
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
-
-from ..Messages import Message
-from ..Primitives import Angle
-
-class SimpleEngine(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol"}
-
-    verbosity = 1
+class SimpleEngine(RPCComponent.RPCComponent):
     address = 0x01
     upper = 1616
     lower = 1408
@@ -41,44 +30,36 @@ class SimpleEngine(Axon.Component.component):
     delta = upper - lower
     center = lower + (delta / 2)
 
-    def SetThrust(self, msg):
-        if isinstance(msg.arg, float):
-            target = int(self.center + (self.delta / 2.0) * msg.arg)
-            print "\n\n\n##### ENGINE TARGET: ", target
+    def rpc_setThrust(self, newthrust):
+        """Calculates the new servo value for a given thrust.
+        Arranges 4 bytes to contain the control command, servo address and new target.
+        Transmits a Message containing these bytes to the Maestro Component and returns True.
+        """
+        args = [float, 'New thrust (-1;0;1)']
 
+#        Problems:
+#        * We don't really know what name the Maestro has.
+#        * Most of the stuff isn't really configureable right now, this has to wait for the configuration system to be
+#          fully grown to potential.
+#        * This is a very Maestro centric component, and should be defined as such.
+#        * It cannot really decide wether the maestro actually sent the command, unless we integrate states and defers
+#          (It has to talk back with the Maestro and await its response before it can reliably give the requesting
+#           party a response)
+
+        if isinstance(newthrust, float): # TODO: Bad, we should do argument typechecking at a higher (RPC) level!
+            target = (self.center + (self.delta / 2) * msg.arg)
+            #print(("\n\n\n##### ENGINE TARGET: ", target))
+
+            # Construct the bytes to send to the maestro
             byte[0] = 0x84
             byte[1] = self.address
             byte[2] = (target*4) & 0x7f
             byte[3] = ((target*4) >> 7) & 0x7F
-            print "##### ENGINE BYTES: ", byte, "\n\n\n"
+            #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
-            #response = Message(self.name, "MAESTRO", "Write", byte)
+            self.send(Message(self.name, "MAESTRO", "Write", byte))
+            return True
         else:
-            response = msg.response((False, "WRONG ARGUMENT"))
-        return response
+            return (False, "WRONG ARGUMENT")
 
-    def main(self):
-        while True:
-            while not self.anyReady():
-                # Thumb twiddling.
-                self.pause()
-                yield 1
-            response = None
-            if self.dataReady("inbox"):
-                msg = self.recv("inbox")
-                if msg.recipient == "Engine":
-                    if msg.func == "SetThrust":
-                        response = self.SetThrust(msg)
-                    if msg.func == "SetVerbosity":
-                        self.verbosity = int(msg.arg)
-                        response = msg.response(True)
-            if response:
-                self.send(response, "outbox")
-            yield 1
-
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
-
+Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]

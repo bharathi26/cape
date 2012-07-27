@@ -19,81 +19,101 @@
 
 import Axon
 
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
+import Kamaelia.IPC
 
-from ..Messages import Message
+from ANRV.System import Configuration
+from ANRV.System import Logging
+from ANRV.System.LoggableComponent import LoggableComponent
+from ANRV.Messages import Message
+from ANRV.System import Registry
 
 from collections import deque
 
 import jsonpickle
 
-class JSONServer(Axon.Component.component):
+from pprint import pprint
+
+
+class JSONHandler(Axon.Component.component, LoggableComponent):
     Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol",
-               "i2cin": "Incoming i2c traffic",
-               "sensorsin": "Incoming sensors traffic",
-               "controlsin": "Incoming controls traffic"}
+               "protocolin": "Incoming JSON",
+               "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol",
-                "i2cout": "Outgoing i2c traffic",
-                "sensorsout": "Outgoing sensors traffic",
-                "controlsout": "Outgoing controls traffic"}
+                "protocolout": "Outgoing JSON",
+                "signal": "Signaling from this Protocol"}
 
     msgfilter = {'recipients': ['ALL'], 'sender': []}
+
+    def __init__(self):
+        super(JSONHandler, self).__init__()
+        Dispatcher = Registry.Components["Dispatcher"]
+        Dispatcher.RegisterComponent(self)
+
     def main(self):
         protocol_running = True
+        self.loginfo("Client connected.")
         while protocol_running:
             while not self.anyReady():
                 self.pause()
                 # Thumb twiddling.
                 yield 1
+
             response = None
-            if self.dataReady("controlsin"):
-                print "DEBUG.JSONServer: Running inbox (control)"
-                msg = self.recv("controlsin")
-                print msg
+
+            if self.dataReady("inbox"):
+                msg = self.recv("inbox")
                 if ("ALL" in self.msgfilter['recipients']) or (not self.msgfilter['recipients']) or msg.recipient in self.msgfilter['recipients']:
-                    response = msg.jsonencode()
-                    self.send(response, "outbox")
+                    self.send(msg.jsonencode().encode("utf-8"), "protocolout")
                     yield 1
                 else:
-                    print "DEBUG.JSONServer.Filtered: %s" % msg
-            if self.dataReady("inbox"):
-                print "DEBUG.JSONServer: Running inbox (inbox)"
-                data = self.recv("inbox").rstrip("\r\n")
+                    self.logwarning("Filtered: %s" % msg)
+            if self.dataReady("protocolin"):
+                response = None
+                msg = None
+                data = None
+                self.logdebug("Running inbox.")
+                data = self.recv("protocolin")
                 if len(data) == 0:
                     response = "\n"
                 else:
                     try:
-                        msg = jsonpickle.decode(data)
-                        # TODO: This is somewhat stupid:
-                        self.send(msg, "controlsout")
-                        self.send(msg, "sensorsout")
-                    except Exception as error:
-                        print "%s:MALFORMED INPUT: %s\n%s:%s" % (self.name, data, type(error), error.args)
-                        response = "MALFORMED INPUT: %s" % data
-                    print msg
-                    if msg and isinstance(msg, Message):
-                        if msg.recipient == "JSONServer":
-                            if msg.func == "SetFilter":
-                                self.msgfilter = msg.arg
-                                #response = msg.response(True)
-                                print "Filter has been changed to %s" % msg.arg
-                            if msg.func == "AddRecipient":
-                                self.msgfilter['recipients'].append(msg.arg)
-                                #response = msg.response(True)
-                                print "Filter has been changed to %s" % msg.arg
+                        msg = jsonpickle.decode(data.decode("utf-8"))
+                        if type(msg) == Message:
+                            # TODO: Message validation!
+                            msg.sender = self.name
+                            self.send(msg, "outbox")
+                            self.logdebug("Accepted external message.")
+                        else:
+                            self.logdebug("Malformed message or non message. Type '%s': '%s'" %(type(msg), msg))
+                            response = Message(sender=self.name, recipient="CLIENT", func="Error", arg="Malformed Message")
+                    except ValueError as error:
+                        self.logwarning("%s:MALFORMED INPUT: %s" % (self.name, data))
+                        response = Message(sender=self.name, recipient="CLIENT", func="ValueError", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
+                        # TODO: Watch this crappy exception. We need better input handling against bad boys.
+                        self.logdebug(response)
+
+#                    if msg and isinstance(msg, Message):
+#                        if msg.recipient == "JSONServer":
+#                            if msg.func == "SetFilter":
+#                                self.msgfilter = msg.arg
+#                                #response = msg.response(True)
+#                                print(("Filter has been changed to %s" % msg.arg))
+#                            if msg.func == "AddRecipient":
+#                                self.msgfilter['recipients'].append(msg.arg)
+#                                #response = msg.response(True
+#                                print(("Recipient %s has been added to filter." % msg.arg))
                 if response:
-                    self.send(response, "outbox")
+                    response = response.jsonencode()
+                    response = response.encode("utf-8")
+                    self.send(response, "protocolout")
                 yield 1
 
 
             if self.dataReady("control"):
                 data = self.recv("control")
                 if isinstance(data, Kamaelia.IPC.socketShutdown):
-                    print "DEBUG.JSONServer: Protocol shutting down."
+                    self.loginfo("Protocol shutting down.")
                     protocolRunning = False
             yield 1
 
@@ -101,18 +121,19 @@ class JSONServer(Axon.Component.component):
         # TODO: Handle correct shutdown
         if self.dataReady("control"):
             msg = self.recv("control")
+            self.loginfo("Client protocol shutdown finished.")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
 
-class JSONSplitter(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
+class JSONSplitter(Axon.Component.component, LoggableComponent):
+    Inboxes = {"inbox": "Unsplit JSON",
                "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
+    Outboxes = {"outbox": "Linesplit JSON",
                 "signal": "Signaling from this Protocol"}
 
     buflist = deque()
     maxlength = 20
-    separator = "\r\n"
+    separator = b"\r\n"
 
     def main(self):
         while True:
@@ -127,11 +148,13 @@ class JSONSplitter(Axon.Component.component):
 #                if buflist.count() >= maxlength:
 #                    response = Message(self.name, "JSONServer", "WarnQueueFull")
                 for msg in msgs.split(self.separator):
-                    self.buflist.append(msg)
+                    if len(msg) > 0:
+#                        print("Appending:", msg)
+                        self.buflist.append(msg.rstrip(self.separator))
             if len(self.buflist) > 0:
                 response = self.buflist.popleft()
                 self.send(response, "outbox")
-                print "DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)
+#                print(("DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)))
             yield 1
 
     def shutdown(self):
@@ -140,3 +163,17 @@ class JSONSplitter(Axon.Component.component):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+def JSONProtocol(*argv, **argd):
+    return Graphline(
+        SPLITTER = JSONSplitter(),
+        #CE = ConsoleEchoer(),
+        SERVER = JSONHandler(),
+
+        linkages = {("self", "inbox"): ("SPLITTER", "inbox"),
+                    ("SPLITTER", "outbox"): ("SERVER", "protocolin"),
+                    ("SERVER", "protocolout"): ("self", "outbox")}
+
+    )
+
+#class JSONServer(ServerCore):
+#    

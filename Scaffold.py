@@ -64,16 +64,18 @@ from ANRV.Controls.Engine import SimpleEngine as Engine
 
 from ANRV.Interface.SerialLCD import SerialLCD as LCD
 
+from ANRV.Test.NewComponent import NewComponent
+
 global config
 config = {}
 
 # Default settings:
 
 # System
-config['sys.name'] = "ANRV Development Scaffold " + get_ip_address("eth0")
+config['sys.name'] = "ANRV Development Scaffold " # + get_ip_address("eth0")
 config['sys.shortname'] = "anrv-ds"
-config['sys.hash'] = hashlib.sha224(config['sys.name']).hexdigest()
-print "DEBUG.Server: Identity: %s (%s) aka %s" % (config['sys.name'], config['sys.hash'], config['sys.shortname'])
+config['sys.hash'] = hashlib.sha224(config['sys.name'].encode("ASCII")).hexdigest()
+print("DEBUG.Server: Identity: %s (%s) aka %s" % (config['sys.name'], config['sys.hash'], config['sys.shortname']))
 
 config['idler.enable'] = True
 config['idler.frequency'] = Frequency("IdlerFreq", 250)
@@ -82,7 +84,7 @@ config['recorder.folder'] = "/tmp/"
 config['recorder.unified'] = True
 config['recorder.hold_open'] = True
 config['recorder.filename'] = strftime("%Y-%m-%d_", gmtime()) + config['sys.shortname'] + ".log"
-print config['recorder.filename']
+print(config['recorder.filename'])
 
 config['ping.enable'] = True
 config['ping.frequency'] = Frequency("Pingfreq", period=60)
@@ -98,25 +100,28 @@ config['maestro.device'] = "/dev/ttyACM0" # TODO: Autoconfigure this
 
 config['lcd.enable'] = True
 config['lcd.device'] = "/dev/ttyUSB0"
+config['lcd.scrollspeed'] = Frequency("Scrollspeed", val=42)
 
-print "DEBUG.Server: Setting up Introspection Client."
+config['newcomponent.enable'] = True
+
+print("DEBUG.Server: Setting up Introspection Client.")
 Pipeline(
     Introspector(),
     TCPClient("127.0.0.1",55556)
 ).activate()
 
-print "DEBUG.Server: Setting up Control ackplane."
+print("DEBUG.Server: Setting up Control ackplane.")
 Backplane("CONTROLS").activate()
 
 if config['console.echoer.enable']:
-    print "DEBUG.Server: Activating ConsoleEchoer for I2C, CONTROLS and SENSORS."
+    print("DEBUG.Server: Activating ConsoleEchoer for I2C, CONTROLS and SENSORS.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         ConsoleEchoer(),
     ).activate()
 
 if config['ping.enable']:
-    print "DEBUG.Server: Adding Ping."
+    print("DEBUG.Server: Adding Ping.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Ping(frequency=config['ping.frequency']),
@@ -124,7 +129,7 @@ if config['ping.enable']:
     ).activate()
 
 if config['pong.enable']:
-    print "DEBUG.Server: Adding Pong."
+    print("DEBUG.Server: Adding Pong.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Pong(),
@@ -132,7 +137,7 @@ if config['pong.enable']:
     ).activate()
 
 if config['idler.enable']:
-    print "DEBUG.Server: Adding Idler."
+    print("DEBUG.Server: Adding Idler.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Idler(frequency=config['idler.frequency']),
@@ -140,7 +145,7 @@ if config['idler.enable']:
     ).activate()
 
 if config['maestro.enable']:
-    print "DEBUG.Server: Adding Maestro."
+    print("DEBUG.Server: Adding Maestro.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Maestro(config['maestro.device']),
@@ -149,7 +154,7 @@ if config['maestro.enable']:
     ).activate()
 
 if config['rudder.enable']:
-    print "DEBUG.Server: Adding Simple Rudder Control Virtual Component (SRCVC)"
+    print("DEBUG.Server: Adding Simple Rudder Control Virtual Component (SRCVC)")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Rudder(),
@@ -157,7 +162,7 @@ if config['rudder.enable']:
     ).activate()
 
 if config['engine.enable']:
-    print "DEBUG.Server: Adding Simple Engine Control Virtual Component (SECVC)"
+    print("DEBUG.Server: Adding Simple Engine Control Virtual Component (SECVC)")
     Pipeline(
         SubscribeTo("CONTROLS"),
         Engine(),
@@ -165,14 +170,22 @@ if config['engine.enable']:
     ).activate()
 
 if config['lcd.enable']:
-    print "DEBUG.Server: Adding LCD."
+    print("DEBUG.Server: Adding LCD.")
     Pipeline(
         SubscribeTo("CONTROLS"),
         LCD(device=config['lcd.device']),
         PublishTo("CONTROLS")
     ).activate()
 
-print "DEBUG.Server: Preparing CLI protocol."
+if config['newcomponent.enable']:
+    print("DEBUG.Server: Adding new component.")
+    Pipeline(
+        SubscribeTo("CONTROLS"),
+        NewComponent(),
+        PublishTo("CONTROLS")
+    ).activate()
+
+print("DEBUG.Server: Preparing CLI protocol.")
 def CLI(*argv, **argd):
     # TODO: This is an ugly CRUFT thats probably not supposed to live long.
     # The linkages and messageboxes could be optimized, i don't yet know how. 
@@ -201,8 +214,8 @@ def CLI(*argv, **argd):
                     ("CONTROLSS", "outbox"): ("CP", "controlsin")}
     )
 
-print "DEBUG.Server: Setting up CLI server on port 55555."
+print("DEBUG.Server: Setting up CLI server on port 55555.")
 ServerCore(protocol = CLI, port=55555).activate()
 
-print "DEBUG.Server: Starting all threads."
+print("DEBUG.Server: Starting all threads.")
 scheduler.run.runThreads()

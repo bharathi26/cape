@@ -25,11 +25,11 @@
 # (If not sufficient - replace them!)
 
 from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Util.Console import ConsoleReader, ConsoleEchoer
+from Kamaelia.UI.Pygame.Text import Textbox, TextDisplayer
 from Kamaelia.Internet.TCPClient import TCPClient
 
-
-Pipeline( ConsoleReader(),
-          TCPClient("127.0.0.1", 55555),
-          ConsoleEchoer(),
+Pipeline(
+         Textbox(size = (800, 300), position = (100,380)),
+         TCPClient("127.0.0.1", 55555),
+         TextDisplayer(size = (800, 300), position = (100,40))
 ).run()

@@ -115,7 +115,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
             self._brightness(0.5)
             self._text("ANRV Booting up - Please wait -")
         except Exception as error:
-            print "DEBUG.LCD._connect: Failed to open device: %s" % error
+            print("DEBUG.LCD._connect: Failed to open device: %s" % error)
             self.lcd = None
 
 

@@ -20,12 +20,38 @@
 #
 
 import os
+import uuid
 
+from ANRV import Version
+from ANRV.System import Logging
+from ANRV.System import Configuration
 
+SystemName = DefaultSystemName = "DEFAULT"
+SystemClass = DefaultSystemClass = "DEFAULT"
+SystemUUID = DefaultSystemUUID = uuid.uuid4()
+
+if 'IDENTITY' in Configuration.Configuration.sections:
+    config = Configuration.Configuration['IDENTITY']
+    SystemName = config.get('name', DefaultSystemName)
+    SystemClass = config.get('class', DefaultSystemClass)
+    SystemUUID = config.get('uuid', DefaultSystemUUID)
+    Logging.systeminfo("System name configured from configuration", facility="IDENTITY")
+else:
+    if Version.node:
+        SystemName = DefaultSystemClass + Version.node
+        SystemClass = DefaultSystemClass
+        SystemUUID = DefaultSystemUUID
+        Logging.systemwarn("No configured name. You might want to configure this.", facility="IDENTITY")
+    else:
+        SystemName = DefaultSystemClass + DefaultName
+        SystemClass = DefaultSystemClass
+        SystemUUID = DefaultSystemUUID
+        Logging.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
 
 def test():
     """N/A: Should test the Identity information system."""
-    print "No tests yet."
+    print("System Name: %s\nSystem Class: %s\nSystem UUID: %s" % (SystemName, SystemClass, SystemUUID))
+    print("No other tests yet.")
 
 
 if __name__ == "__main__":

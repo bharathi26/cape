@@ -1,7 +1,8 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3.2
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software - Graphical CLIClient
+#    Prototype of the MS0x00 ANRV Operating Software
+#      Simple Echo Component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,20 +17,20 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
-# TODO:
-# * configurable address
-# * evaluate additional capabilities of TextDisplayer component
-# * evaluate additional capabilities of Textbox component
-# (If not sufficient - replace them!)
+from ANRV.System import Registry
+from ANRV.System.RPCComponent import RPCComponent
+from ANRV.Messages import Message
 
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Util.Console import ConsoleReader, ConsoleEchoer
-from Kamaelia.Internet.TCPClient import TCPClient
+class Echo(RPCComponent):
+    """
+    Simple Echo Component that just echoes back any request to its echo rpc function.
+    TODO: Enhance it to respond to ANY function.
+    """
+    def rpc_echo(self, arg):
+        """
+        Echoes back any message.
+        """
+        return arg
 
-
-Pipeline( ConsoleReader(),
-          TCPClient("127.0.0.1", 55555),
-          ConsoleEchoer(),
-).run()
+Registry.ComponentTemplates['Echo'] = [Echo, "Simple RPC Echo Component"]

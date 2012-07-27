@@ -17,38 +17,49 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
-
-from ..Primitives import Frequency
+from ANRV.System import Registry
+from ANRV.System.RPCComponent import RPCComponent
+from ANRV.Primitives import Frequency
 
 from time import sleep
 
-class Idler(Axon.Component.component):
-    def __init__(self, frequency=Frequency("IdlerFreq", 200)):
-        super(Idler, self).__init__(self)
+class Idler(RPCComponent):
+    def __init__(self, frequency=Frequency("IdlerFreq", 200), realtime=False):
+        args = {'frequency':[Frequency, 'Period to wait'],
+                'realtime' :[bool, 'Initial realtime setting.']}
+        super(Idler, self).__init__()
         self.frequency = frequency
+        self.realtime = realtime
+
+    def rpc_setFreq(self, arg):
+        if isinstance(arg, Frequency):
+            self.frequency = arg
+            return True
+        else: return (False, "Wrong Argument")
+
+    def rpc_setRealtime(self, arg):
+        args = {'arg': [bool, 'Set to true to run system in Realtime']}
+        if isinstance(arg, bool):
+            self.realtime = arg
+            return True
+        else: return (False, "Wrong Argument")
 
     def main(self):
-        running = True
-        while running:
+        """Mainloop copied over from RPCComponent, since we need to wait here to achieve our idletime.
+        """
+        while True:
+            while not self.anyReady():
+                if not self.realtime:
+                    sleep(self.frequency.Period())
+                yield 1
+            msg = None
             response = None
+
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
-                if msg.recipient == "Idler":
-                    if msg.func == "SetFreq": # and type(msg.arg) == type(Frequency):
-                        self.frequency = msg.arg
-                        response = msg.response(True)
-                    else:
-                        response = msg.response(False)
-
+                response = self.handleRPC(msg)
             if response:
                 self.send(response, "outbox")
-            sleep(self.frequency.Period())
             yield 1
 
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
-
+Registry.ComponentTemplates['Idler'] = (Idler, 'System idle time component')

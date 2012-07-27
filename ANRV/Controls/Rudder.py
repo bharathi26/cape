@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#      Simple Rudder Control Virtual Component (SRCVC)
+#      Simple Thrust Control Virtual Component (SRCVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,54 +18,44 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
+from ANRV.System import Registry
+from ANRV.System import RPCComponent
+from ANRV.Messages import Message
 
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
+class SimpleRudder(RPCComponent.RPCComponent):
+    """
+    This is currently essentially a copy of the Rudder Component but shouldn't
+    be just an inheritance of it.
+    """
 
-from ..Messages import Message
-from ..Primitives import Angle
-
-class SimpleRudder(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol"}
-    verbosity = 1
     address = 0x00
+    upper = 1744
+    lower = 1104
 
-    def SetRudder(self, msg):
-        if isinstance(msg.arg, float):
-            # TODO: Push out a message to i2c to instruct the Servo about our new course
-            rudderbyte = int((msg.arg + 1) * 255) / 2
-            response = Message(self.name, "MAESTRO", "Write", [0xFF, self.address, rudderbyte])
+    delta = upper - lower
+    center = lower + (delta / 2)
+
+    def rpc_setRudder(self, newangle):
+        """Calculates the new servo value for a given angle.
+        Arranges 4 bytes to contain the control command, servo address and new target.
+        Transmits a Message containing these bytes to the Maestro Component and returns True.
+        """
+        args = {'newangle': [float, 'New rudder angle (-1;0;1)']}
+
+        if isinstance(newangle, float): # TODO: Bad, we should do argument typechecking at a higher (RPC) level!
+            target = (self.center + (self.delta / 2) * msg.arg)
+            #print(("\n\n\n##### ENGINE TARGET: ", target))
+
+            # Construct the bytes to send to the maestro
+            byte[0] = 0x84
+            byte[1] = self.address
+            byte[2] = (target*4) & 0x7f
+            byte[3] = ((target*4) >> 7) & 0x7F
+            #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
+
+            self.send(Message(self.name, "MAESTRO", "Write", byte))
+            return True
         else:
-            response = msg.response((False, "WRONG ARGUMENT"))
-        return response
+            return (False, "WRONG ARGUMENT")
 
-    def main(self):
-        while True:
-            while not self.anyReady():
-                # Thumb twiddling.
-                self.pause()
-                yield 1
-            response = None
-            if self.dataReady("inbox"):
-                msg = self.recv("inbox")
-                if msg.recipient == "Rudder":
-                    if msg.func == "SetRudder":
-                        response = self.SetRudder(msg)
-                    if msg.func == "SetVerbosity":
-                        self.verbosity = int(msg.arg)
-                        response = msg.response(True)
-            if response:
-                self.send(response, "outbox")
-            yield 1
-
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
-
+Registry.ComponentTemplates['SimpleRudder'] = [SimpleRudder, "Simple Rudder (Maestro Controlled) Component"]
