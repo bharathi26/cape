@@ -23,8 +23,9 @@ import uuid
 
 from ANRV.System.Identity import SystemName
 from ANRV.System.LoggableComponent import LoggableComponent
+from ANRV.System.ConfigurableComponent import ConfigurableComponent
 
-class BaseComponent(Axon.Component.component, LoggableComponent):
+class BaseMixin(LoggableComponent, ConfigurableComponent):
     """
     Basic Component
 
@@ -54,5 +55,12 @@ class BaseComponent(Axon.Component.component, LoggableComponent):
         self.uuid = uuid.uuid4()
         self.hdesc = "No description yet."
         self.hname = self.name
+
+class BaseComponent(Axon.Component.component, BaseMixin):
+    pass
+
+class BaseComponentThreaded(Axon.ThreadedComponent.threadedcomponent, BaseMixin):
+    pass
+
 
 #ComponentTemplates["ConfigurableComponent"] = [ConfigurableComponent, "Configurable Component"]

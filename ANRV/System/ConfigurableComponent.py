@@ -20,14 +20,12 @@
 
 import Axon
 #from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.BaseComponent import BaseComponent
-from ANRV.System.LoggableComponent import LoggableComponent
 from ANRV.System.Configuration import Configuration
 from configobj import ConfigObj
 
 from pprint import pprint
 
-class ConfigurableComponent(BaseComponent):
+class ConfigurableComponent():
     """Basic configurable Component.
 
     TODO:
@@ -47,7 +45,6 @@ class ConfigurableComponent(BaseComponent):
             super(ConfigurableComponent, self).__init__()
         if you overwrite this.
         """
-        super(ConfigurableComponent, self).__init__()
 
     def HasConfiguration(self):
         # TODO: This one should probably validate an integrated configuration automatically

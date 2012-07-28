@@ -43,7 +43,7 @@ class WSGIGateway(Axon.ThreadedComponent.threadedcomponent, LoggableComponent):
         return "FOOBAR %s" % kwargs
 
     def main(self):
-        self.logdebug("Starting bottle server.")
+        self.loginfo("Starting bottle server.")
         bottle.run(app=self.app, host="localhost", port=8080, debug=False)
 
 

@@ -25,11 +25,12 @@ import inspect
 from pprint import pprint
 
 from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.ConfigurableComponent import ConfigurableComponent
+#from ANRV.System.ConfigurableComponent import ConfigurableComponent
+from ANRV.System.BaseComponent import BaseComponent
 
 from ANRV.Messages import Message
 
-class RPCComponent(ConfigurableComponent):
+class RPCComponent(BaseComponent):
     """Basic RPC Component.
 
     Has no real function but:
