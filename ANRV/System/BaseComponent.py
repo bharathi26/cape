@@ -25,7 +25,7 @@ from ANRV.System.Identity import SystemName
 from ANRV.System.LoggableComponent import LoggableComponent
 from ANRV.System.ConfigurableComponent import ConfigurableComponent
 
-class BaseMixin(LoggableComponent, ConfigurableComponent):
+class BaseMixin():
     """
     Basic Component
 
@@ -42,6 +42,7 @@ class BaseMixin(LoggableComponent, ConfigurableComponent):
     hname = ""
     hdesc = ""
     systemname = SystemName
+    systemregistry = ""
 
     def __init__(self, **kwargs):
         """Initializes this Configurable Component.
@@ -51,16 +52,24 @@ class BaseMixin(LoggableComponent, ConfigurableComponent):
         """
         # TODO: Do we want to be able to handle kwargs here?
         # They'll just get thrown upwards in the callchain and will then be bound as attributes, iirc.
-        super(BaseComponent, self).__init__(**kwargs)
+        #super(BaseComponent, self).__init__(**kwargs)
         self.uuid = uuid.uuid4()
         self.hdesc = "No description yet."
         self.hname = self.name
 
-class BaseComponent(Axon.Component.component, BaseMixin):
-    pass
+class BaseComponent(Axon.Component.component, BaseMixin, ConfigurableComponent, LoggableComponent):
+    def __init__(self, **kwargs):
+        Axon.Component.component.__init__(self, **kwargs)
+        BaseMixin.__init__(self)
+        ConfigurableComponent.__init__(self)
+        LoggableComponent.__init__(self)
 
-class BaseComponentThreaded(Axon.ThreadedComponent.threadedcomponent, BaseMixin):
-    pass
+class BaseComponentThreaded(Axon.ThreadedComponent.threadedcomponent, BaseMixin, ConfigurableComponent, LoggableComponent):
+    def __init__(self, **kwargs):
+        Axon.Component.component.__init__(self, **kwargs)
+        BaseMixin.__init__(self)
+        ConfigurableComponent.__init__(self)
+        LoggableComponent.__init__(self)
 
 
 #ComponentTemplates["ConfigurableComponent"] = [ConfigurableComponent, "Configurable Component"]

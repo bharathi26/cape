@@ -33,25 +33,28 @@ class RegistryComponent(RPCComponent):
     """
 
 
-    def rpc_createComponent(self, newcomponentname):
+    def rpc_createComponent(self, templatename):
         """Creates a new component and registers it with a dispatcher."""
-        args = {'newcomponentname': [str, 'Name of new component template']}
+        args = {'templatename': [str, 'Name of new component template']}
 
         # TODO: The next check is somewhat ugly.
         if "Dispatcher" in Registry.Components:
-            if newcomponentname in Registry.ComponentTemplates:
+            if templatename in Registry.ComponentTemplates:
                 # TODO: Better addressing without too much added trouble
                 # TODO: Initialize parameters correctly (How?)
-                newcomponent = Registry.ComponentTemplates[newcomponentname][0]()
+                newcomponent = Registry.ComponentTemplates[templatename][0]()
+                newcomponent.systemregistry = self.name
 
-                Registry.Components[newcomponentname] = newcomponent
+                realname = newcomponent.name
+
+                Registry.Components[realname] = newcomponent
 
                 self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                 Dispatcher = Registry.Components["Dispatcher"]
                 Dispatcher.RegisterComponent(newcomponent)
                 return True
             else:
-                self.logwarning("Cannot instantiate component %s. It is not registered as template." % newcomponentname)
+                self.logwarning("Cannot instantiate component %s. It is not registered as template." % templatename)
                 return (False, "Component not found in templates")
         else:
             self.logerror("No dispatcher found! I can't run standalone")
@@ -61,18 +64,24 @@ class RegistryComponent(RPCComponent):
         """Returns the current list of registered (running!) components."""
         self.logdebug("RPC: List of registered (running) components requested")
         self.logdebug(Registry.Components)
-        return list(Registry.Components.keys()) # TODO: Watch out, this is dangerous, when someone else writes here
+        return (True, list(Registry.Components.keys())) # TODO: Watch out, this is dangerous, when someone else writes here
 
     def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
         self.logdebug("RPC: List of registered component templates requested")
         self.logdebug(list(Registry.ComponentTemplates.keys()))
-        return list(Registry.ComponentTemplates.keys()) # TODO: See above
+        return (True, list(Registry.ComponentTemplates.keys())) # TODO: See above
+
+    def rpc_test(self, foo, bar):
+        print(foo, bar)
+        return (True, (bar, foo))
 
     def __init__(self):
-        self.MR['rpc_createComponent'] = [str, 'Name of new component template']
-        self.MR['rpc_listRegisteredComponents'] = [None]
-        self.MR['rpc_listRegisteredTemplates'] = [None]
+        self.MR['rpc_createComponent'] = {'default': [str, 'Name of new component template']}
+        self.MR['rpc_listRegisteredComponents'] = {}
+        self.MR['rpc_listRegisteredTemplates'] = {}
+        self.MR['rpc_test'] = {'foo': [int, 'foo int arg'],
+                               'bar': [float, 'bar float arg']}
         super(RegistryComponent, self).__init__()
 
 

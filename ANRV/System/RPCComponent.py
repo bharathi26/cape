@@ -26,22 +26,44 @@ from pprint import pprint
 
 from ANRV.System.Registry import ComponentTemplates
 #from ANRV.System.ConfigurableComponent import ConfigurableComponent
-from ANRV.System.BaseComponent import BaseComponent
+from ANRV.System.BaseComponent import BaseComponent, BaseComponentThreaded
 
 from ANRV.Messages import Message
 
-class RPCComponent(BaseComponent):
-    """Basic RPC Component.
+class RPCMixin():
+    """
+    = Basic RPC Component =
 
-    Has no real function but:
-    * Automated Method register via
+    Basic RPC services including:
+    * Automated Method register realized by _buildMethodRegister
      * Method annotations
      * Docstrings
-     * Only registers methods beginning with "rpc_"
-    * realized by _buildMethodRegister
+     * Only registers methods wich are exported via self.MR
+    * RPC Type Checking
+    * RPC Call Handling
 
-    See these examples about the annotations necessary to complete this:
-    
+    = Methodregister syntax =
+    You have to fill out a Methodregister dictionary before calling RPCComponent's __init__ to 
+    actually export methods.
+
+    See below, for how to do that.
+
+    == No arguments ==
+    self.MR[METHODNAME] = {}
+
+    == Single (default) argument ==
+    self.MR[METHODNAME] = {'default': [TYPE, DOCSTRING]
+
+    == Multiple (named) arguments ==
+    self.MR[METHODNAME] = {'arg1_name': [TYPE, DOCSTRING],
+                           'arg2_name': [TYPE, DOCSTRING]}
+
+
+    == Automated (3.x) system ==
+
+    The following is for reference. It illustrates the more comfortable
+    automated python3 system using method annotations.
+
     def rpc_set(self, val: [int, 'New integer value to set']):
         "Sets the internal integer to a given value."
         self.value = val
@@ -54,7 +76,11 @@ class RPCComponent(BaseComponent):
         "Resets the internal integer to the specified reset value."
         self._reset()
 
-    TODO: 
+    = RPC Type Checking =
+
+    = RPC Call Handling =
+
+    = TODO =
     * Correct documentation
     * Automate RPC calling somehow, somewhere (smart)
     * RPC Variables? (With automatic getters and setters - by config?)
@@ -80,7 +106,7 @@ class RPCComponent(BaseComponent):
         Returns True upon completion.
         """
 
-        return self._buildMethodRegister()
+        return (True, self._buildMethodRegister())
 
     def rpc_getComponentInfo(self):
         """RPC Function '''getComponentInfo'''
@@ -88,7 +114,7 @@ class RPCComponent(BaseComponent):
         Returns this RPCComponent's methodregister.
         """
 
-        return self._getComponentInfo()
+        return (True, self._getComponentInfo())
 
     def rpc_getConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
@@ -108,6 +134,7 @@ class RPCComponent(BaseComponent):
 
     def _callMethod(self, method, msg):
         argspeclist = self.MethodRegister[msg.func]['args']
+        pprint(argspeclist)
         if len(argspeclist) > 1:
             return method(**msg.arg)
         elif len(argspeclist) == 1:
@@ -122,45 +149,47 @@ class RPCComponent(BaseComponent):
         # * Needs moar secure handling and logical checking of args etc.
 
         argspeclist = self.MethodRegister[msg.func]['args']
-        self.logdebug("SPECIFICATION: '%s'" % argspeclist)
+        self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
 
+        if isinstance(argspeclist, dict):
+            if len(argspeclist) == 0: # Method has no arguments
+                self.loginfo("Method '%s' (no args) called." % msg.func)
+                return True, 'No args.'
+            elif len(argspeclist) > 1: # Call requires possibly more than one argument
+                # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
+                args = msg.arg
+                self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
 
-        if len(argspeclist) == 0: # Method has no arguments
-            self.loginfo("Method '%s' (no args) called." % msg.func)
-            return True, 'No args.'
-        elif isinstance(msg.arg, dict): # Sender sent more than one argument
-            # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
-            args = msg.arg
-            self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
+                # TODO: with this, specified args HAVE to be supplied AND named.
+                # Consider optional and required args as possibly better alternative
+                # But how to best specify that in an unobscured way?
 
-            # TODO: with this, specified args HAVE to be supplied
-            # Consider optional and required args as possibly better alternative
-            # But how to best specify that in an unobscured way?
+                for param in args:
+                    self.logdebug("Being checked: %s" % param)
+                    try:
+                        argspec = argspeclist[param]
+                        self.logdebug(argspec)
+                        if argspec[0] == None:
+                            return True, "No arg expected."
+                        if type(args[param]) != argspec[0]:
+                            warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
+                            self.logwarn(warning)
+                            return False, warning
+                    except Exception as e:
+                        self.logerror(e)
+                        return False, "Unknown Error %s" % e
+                return True, "All args valid."
+            elif len(argspeclist) == 1 and argspeclist.has_key('default'): # Sender sent only one "default" parameter
+                self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
+                argspec = argspeclist['default']
+                self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
 
-            for param in args:
-                self.logdebug("Being checked: %s" % param)
-                try:
-                    argspec = argspeclist[param]
-                    self.logdebug(argspec)
-                    if type(args[param]) != argspec[0]:
-                        warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
-                        self.logwarn(warning)
-                        return False, warning
-                except Exception as e:
-                    self.logerror(e)
-                    return False, "Unknown Error %s" % e
-            return True, "All args valid."
-        else: # Sender sent only one "default" parameter
-            self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
-            argspec = list(argspeclist.values())[0]
-            self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
-
-            if type(msg.arg) != argspec[0]:
-                warning = "Argument type error: %s expected." % (argspec[0])
-                self.logwarn(warning)
-                return False, warning
-            else:
-                return True, "Default arg valid."
+                if type(msg.arg) != argspec[0]:
+                    warning = "Argument type error: %s expected." % (argspec[0])
+                    self.logwarn(warning)
+                    return False, warning
+                else:
+                    return True, "Default arg valid."
 
     def handleRPC(self, msg):
         """Handles RPC requests by
@@ -181,7 +210,7 @@ class RPCComponent(BaseComponent):
         if msg.recipient == self.name:
             self.logdebug("Checking RPC request")
             pprint(self.MethodRegister)
-            if "rpc"+msg.func in self.MethodRegister:
+            if msg.func in self.MethodRegister:
                 self.logdebug("Request for method %s" % msg.func)
                 # TODO: Better get the method from self.MR
                 method = getattr(self, "rpc_" + msg.func)
@@ -208,7 +237,7 @@ class RPCComponent(BaseComponent):
     def _getComponentInfo(self):
         """Returns this component's metadescription including its MethodRegister"""
 
-        return [self.name, self.__doc__, self.MethodRegister]
+        return {'name': self.name, 'doc': self.__doc__, 'methods': self.MethodRegister}
 
     def __buildArgSpec3(self, method):
         return inspect.getfullargspec(method[1]).annotations
@@ -247,7 +276,7 @@ class RPCComponent(BaseComponent):
                 self.logdebug("Parameters for '%s': '%s'" % (method[0], params))
 
                 # TODO: Check for other stuff and log it accurately.
-                if params: # This might become more complex
+                if isinstance(params, dict): # This might become more complex
                     doc = inspect.getdoc(method[1])
                     self.MethodRegister[name] = {"args": params, "doc": doc}
                 else:
@@ -256,17 +285,17 @@ class RPCComponent(BaseComponent):
         return True
 
     def __init__(self):
-        """Initializes this RPC Component. Don't forget to call super(RPCComponent, self).__init__()"""
-        super(RPCComponent, self).__init__()
+        """Initializes this RPC Component. Don't forget to call super(YourComponent, self).__init__() when overwriting."""
 
         # Python 2.x Methodregister
-        self.MR['__init__'] = [None]
-        self.MR['rpc_updateComponentInfo'] = [None]
-        self.MR['rpc_getComponentInfo'] = [None]
-        self.MR['rpc_getConfiguration'] = [None]
-        self.MR['rpc_writeConfiguration'] = [None]
-        self.MR['rpc_readConfiguration'] = [None]
-        self.MR['rpc_hasConfiguration'] = [None]
+        self.MR['__init__'] = {}
+        self.MR['rpc_getComponentInfo'] = {}
+        self.MR['rpc_updateComponentInfo'] = {}
+        self.MR['rpc_getComponentInfo'] = {}
+        self.MR['rpc_getConfiguration'] = {}
+        self.MR['rpc_writeConfiguration'] = {}
+        self.MR['rpc_readConfiguration'] = {}
+        self.MR['rpc_hasConfiguration'] = {}
 
         self._buildMethodRegister()
 
@@ -298,7 +327,18 @@ class RPCComponent(BaseComponent):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+class RPCComponent(RPCMixin, BaseComponent):
+    def __init__(self):
+        BaseComponent.__init__(self)
+        RPCMixin.__init__(self)
+
+class RPCComponentThreaded(BaseComponentThreaded, RPCMixin):
+    def __init__(self):
+        BaseComponentThreaded.__init__(self)
+        RPCMixin.__init__(self)
+
 # TODO: These (and other baseclass components) shouldn't be listed unless being tested
 # * ConfigurableComponent
 # * Dispatcher
 ComponentTemplates["RPCComponent"] = [RPCComponent, "RPC capable Component"]
+ComponentTemplates["RPCComponentThreaded"] = [RPCComponent, "RPC capable Component - Threaded"]

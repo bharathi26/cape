@@ -20,7 +20,7 @@
 
 from ANRV.System import Registry
 from ANRV.System import RPCComponent
-from ANRV.Messages import Message
+import ANRV.Messages
 from ANRV.System import  Identity
 from ANRV.System.LoggableComponent import LoggableComponent
 
@@ -40,6 +40,8 @@ except NameError:
 
 import jsonpickle
 
+from pprint import pprint
+
 class TkAdmin2(TkWindow, LoggableComponent):
     def __init__(self):
         self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
@@ -50,6 +52,8 @@ class TkAdmin2(TkWindow, LoggableComponent):
         # TODO: Don't we need a central InvisibleWindow thats kept inbetween destruction of tkinterfaces?
         self._invisibleRoot = tkInvisibleWindow().activate()
 #        self.clearInput = tkinter.BooleanVar()
+        self.componentlist = {}
+
         super(TkAdmin2, self).__init__()
 
     def __on_ButtonClear_Press(self,Event=None):
@@ -66,6 +70,17 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__FrameInput['bg'] = self.defaultcolors['bg']
 #        self.__EntryInput['fg'] = self.defaultcolors['fg']
 
+    def scanregistry(self):
+        msg = ANRV.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents", arg=None)
+        self.send(msg, "outbox")
+
+    def scancomponent(self, name):
+        self.logdebug("Looking for component '%s'." % name)
+        print(self.componentlist)
+        if name in self.componentlist:
+            self.loginfo("Scanning component '%s'." % name)
+            msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
+            self.send(msg, "outbox")
 
     def transmit(self):
         message = self.__EntryInput.get()
@@ -80,8 +95,13 @@ class TkAdmin2(TkWindow, LoggableComponent):
                 msg.sender = self.name
             self.loginfo("Transmitting message '%s'" % msg)
             self.send(msg, "outbox")
+            self.__FrameInput['bg'] = self.defaultcolors['bg']
         except ValueError as e:
             errmsg = 'Invalid JSON:\n%s' % e
+            print(e)
+            if "column" in errmsg:
+                col = errmsg.split("(char ")[1].split(")")[0]
+                self.__EntryInput.icursor(col)
             self.logwarning(errmsg)
             self.__FrameInput['bg'] = 'red'
 #            self.__FrameInput['fg'] = 'yellow'
@@ -89,6 +109,43 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
         if self.autoclear.get():
             self.clearEntry()
+
+    def _handleMsg(self, msg):
+        if isinstance(msg, ANRV.Messages.Message):
+            if msg.sender == self.systemregistry:
+                self.loginfo("Message from Registry: Method '%s'." % msg.func)
+                if msg.func == "listRegisteredComponents":
+                    self.loginfo("Got a list of registered components. Parsing.")
+                    if isinstance(msg.arg, tuple):
+                        success, result = msg.arg
+                        if success:
+                            for comp in result:
+                                ComponentMenu = Menu(self.__MenuComponents)
+                                ComponentMenu.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
+                                self.__MenuComponents.add_cascade(label=comp, menu=ComponentMenu)
+                                self.componentlist[comp] = ComponentMenu
+#                        self.__ComponentMenu.append(ComponentMenu)
+            elif msg.func == "getComponentInfo":
+                if isinstance(msg.arg, tuple):
+                    success, result = msg.arg
+                    if success:
+                        if msg.sender not in self.componentlist:
+                            if self.autoscan:
+                                self.loginfo("Unknown component '%s'. Rescanning registry." % msg.sender)
+                                self.scanregistry()
+                            else:
+                                self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
+                        else:
+                            self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                            pprint(result)
+                            for meth in result['methods']:
+                                self.loginfo("Got method '%s'." % meth)
+                                self.componentlist[msg.sender].add_command(label=meth)
+
+
+    def _filteredMsg(self, msg):
+        return False
+
 
     def quit(self):
         Axon.Scheduler.scheduler.run.stop()
@@ -108,11 +165,15 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__Menu = Menu(self.window)
         self.__MenuFile = Menu(self.__Menu)
         self.__MenuEdit = Menu(self.__Menu)
+        self.__MenuComponents = Menu(self.__Menu)
         self.__Menu.add_cascade(menu=self.__MenuFile, label="File")
         self.__Menu.add_cascade(menu=self.__MenuEdit, label="Edit")
+        self.__Menu.add_cascade(menu=self.__MenuComponents, label="Components")
         self.window.config(menu=self.__Menu)
 
         self.__MenuFile.add_command(label="Quit", command=self.quit)
+
+        self.__MenuComponents.add_command(label="Scan", command=self.scanregistry)
 
         self.__FrameOutput = Frame(self.window)
         self.__FrameOutput.pack(side='top',fill='both',expand='yes')
@@ -153,9 +214,9 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__Frame1 = Frame(self.__FrameInput)
         self.__Frame1.pack(expand='yes',fill='x',side='left')
 
-        self.__EntryInput = Entry(self.__Frame1)
+        self.__EntryInput = Entry(self.__Frame1, foreground="white")
         self.__EntryInput.pack(expand='yes',fill='both',side='top')
-        self.__EntryInput.bind('<Control-Enter>',self.__on_EntryInput_Enter__C)
+        self.__EntryInput.bind('<Control-Return>',self.__on_EntryInput_Enter__C)
 
         self.__FrameTransmitButton = Frame(self.__FrameInput)
         self.__FrameTransmitButton.pack(anchor='w',side='left')
@@ -236,7 +297,9 @@ class TkAdmin2(TkWindow, LoggableComponent):
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
                 self.logdebug("Received message '%s'" % msg)
-                self.__TextResponses.insert(tkinter.END, msg)
+                self._handleMsg(msg)
+                if not self._filteredMsg(msg):
+                    self.__TextResponses.insert(END, "%s\n" % msg)
             self.tkupdate()
 
 Registry.ComponentTemplates['TkAdmin2'] = [TkAdmin2, "Simple Second revision Admin GUI providing message relaying and log viewing."]

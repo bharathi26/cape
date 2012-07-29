@@ -23,6 +23,12 @@ from ANRV.System import RPCComponent
 from ANRV.Messages import Message
 
 class SimpleEngine(RPCComponent.RPCComponent):
+    """
+    = Simple Engine Component =
+
+    Used mainly to control the motorship 0's 3,7kW engine via Maestro controller.
+    """
+
     address = 0x01
     upper = 1616
     lower = 1408
@@ -46,20 +52,23 @@ class SimpleEngine(RPCComponent.RPCComponent):
 #          (It has to talk back with the Maestro and await its response before it can reliably give the requesting
 #           party a response)
 
-        if isinstance(newthrust, float): # TODO: Bad, we should do argument typechecking at a higher (RPC) level!
-            target = (self.center + (self.delta / 2) * msg.arg)
-            #print(("\n\n\n##### ENGINE TARGET: ", target))
+        target = (self.center + (self.delta / 2) * msg.arg)
+        #print(("\n\n\n##### ENGINE TARGET: ", target))
 
-            # Construct the bytes to send to the maestro
-            byte[0] = 0x84
-            byte[1] = self.address
-            byte[2] = (target*4) & 0x7f
-            byte[3] = ((target*4) >> 7) & 0x7F
-            #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
+        # Construct the bytes to send to the maestro
+        byte[0] = 0x84
+        byte[1] = self.address
+        byte[2] = (target*4) & 0x7f
+        byte[3] = ((target*4) >> 7) & 0x7F
+        #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
-            self.send(Message(self.name, "MAESTRO", "Write", byte))
-            return True
-        else:
-            return (False, "WRONG ARGUMENT")
+        self.send(Message(self.name, "MAESTRO", "Write", byte))
+
+        # TODO: Instead of this, we should enter a state here and await a response before returning our OK.
+        return (True, "New thrust set.")
+
+    def __init__(self):
+        self.MR['rpc_setThrust'] = {'default': [float, "New thrust as float. Range [-1;0;1]."]}
+        super(SimpleEngine, self).__init__()
 
 Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]
