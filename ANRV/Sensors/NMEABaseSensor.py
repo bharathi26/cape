@@ -62,6 +62,11 @@ class NMEABaseSensor(RPCComponent):
 
         The nmea data is parsed and further handling can happen.
         """
+        if not "$G" in nmeasentence:
+            err = "Non NMEA0183 data received!"
+            self.logwarn(err)
+            return False, err
+
         sen_time = time() # TODO: This is late due to message traversal etc.
         # We'd like to get our hands on the message's time, somehow
         sen_type = nmeasentence.split(',')[0].lstrip('$')

@@ -55,7 +55,7 @@ class SerialPort(RPCComponentThreaded):
             return (False, "Port not connected.")
 
     def mainthread(self):
-        if self.Port.isOpen() and self.listening:
+        if self.Port and self.Port.isOpen() and self.listening:
             if self.Configuration['readline']:
                 self.buf = self.buf + self.Port.read(self.Port.inWaiting())
                 if '\n' in self.buf:
@@ -89,7 +89,8 @@ class SerialPort(RPCComponentThreaded):
         self.listening = True
         self.buf = ""
 
-        self._connect()
+        if self.Configuration.has_key('autoconnect') and self.Configuration['autoconnect']:
+            self._connect()
 
     def _write(self, args):
         self.loginfo("Writing to SerialPort: '%s'" % args)

@@ -38,7 +38,8 @@ class RegistryComponent(RPCComponent):
         args = {'templatename': [str, 'Name of new component template']}
 
         # TODO: The next check is somewhat ugly.
-        if "Dispatcher" in Registry.Components:
+        # TODO: This revision isn't better.
+        if self.dispatcher: # "Dispatcher" in Registry.Components:
             if templatename in Registry.ComponentTemplates:
                 # TODO: Better addressing without too much added trouble
                 # TODO: Initialize parameters correctly (How?)
@@ -50,8 +51,7 @@ class RegistryComponent(RPCComponent):
                 Registry.Components[realname] = newcomponent
 
                 self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
-                Dispatcher = Registry.Components["Dispatcher"]
-                Dispatcher.RegisterComponent(newcomponent)
+                self.dispatcher.RegisterComponent(newcomponent)
                 return True
             else:
                 self.logwarning("Cannot instantiate component %s. It is not registered as template." % templatename)
@@ -72,17 +72,13 @@ class RegistryComponent(RPCComponent):
         self.logdebug(list(Registry.ComponentTemplates.keys()))
         return (True, list(Registry.ComponentTemplates.keys())) # TODO: See above
 
-    def rpc_test(self, foo, bar):
-        print(foo, bar)
-        return (True, (bar, foo))
-
-    def __init__(self):
+    def __init__(self, dispatcher):
+        self.dispatcher = dispatcher
         self.MR['rpc_createComponent'] = {'default': [str, 'Name of new component template']}
         self.MR['rpc_listRegisteredComponents'] = {}
         self.MR['rpc_listRegisteredTemplates'] = {}
-        self.MR['rpc_test'] = {'foo': [int, 'foo int arg'],
-                               'bar': [float, 'bar float arg']}
         super(RegistryComponent, self).__init__()
+
 
 
     # TODO:

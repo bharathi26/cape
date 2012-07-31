@@ -193,7 +193,6 @@ class RPCMixin():
                 if argspeclist.has_key('default'): # Sender sent only one "default" parameter
                     self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
                     argspec = argspeclist['default']
-                    pprint(argspec)
                     self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
                     if isinstance(msg.arg, dict):
                         arg = msg.arg['default']

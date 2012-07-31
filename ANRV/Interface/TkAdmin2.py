@@ -123,7 +123,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.send(msg, "outbox")
 
     def callSimpleMethod(self, name, func):
-        self.loginfo("Calling '%s'@'%s'." % (name, func))
+        self.loginfo("Calling '%s'@'%s'." % (func, name))
         msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
         self.send(msg, "outbox")
 
@@ -143,7 +143,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
             self.__FrameInput['bg'] = self.defaultcolors['bg']
         except ValueError as e:
             errmsg = 'Invalid JSON:\n%s' % e
-            print(e)
+            self.logerror(e)
             if "column" in errmsg:
                 col = errmsg.split("(char ")[1].split(")")[0]
                 self.__EntryInput.icursor(col)
@@ -179,7 +179,6 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
                 for meth in mr:
                     self.logdebug("Got method '%s'." % meth)
-                    pprint(result['methods'][meth])
                     if len(mr[meth]['args']) > 0:
                         MenuSubComponent.add_command(label=meth, command=lambda (name,meth,argspec)=(msg.sender,meth,mr[meth]['args']): self.callComplexMethod(name,meth,argspec))
                     else:
@@ -208,7 +207,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
                         if success:
                             __handleRegisteredComponents(msg)
 
-            elif msg.func == "getComponentInfo":
+            if msg.func == "getComponentInfo":
                 if isinstance(msg.arg, tuple):
                     success, result = msg.arg
                     if success:
@@ -277,10 +276,10 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__LabelStatus = Label(self.__FrameStatusbar,text='Ready.')
         self.__LabelStatus.pack(anchor='w',expand='yes',side='top') # ,fill='both'
 
-        self.__FrameResponses = Frame(self.__PageResponses, background="blue")
+        self.__FrameResponses = Frame(self.__PageResponses)
         self.__FrameResponses.pack(expand=1, fill="both")
 
-        self.__FrameResponsesHeader = Frame(self.__FrameResponses, background="yellow")
+        self.__FrameResponsesHeader = Frame(self.__FrameResponses)
         self.__FrameResponsesHeader.pack(anchor='n',expand='yes', fill='x', side='top')
 
         self.__LabelResponses = Label(self.__FrameResponsesHeader,text='Responses')
@@ -292,10 +291,10 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__TextResponses = Pmw.ScrolledText(self.__FrameResponses)
         self.__TextResponses.pack(expand=1, fill='both')
 
-        self.__FrameLog = Frame(self.__PageLog, background="red")
+        self.__FrameLog = Frame(self.__PageLog)
         self.__FrameLog.pack(side='left', expand=1, fill="both")
 
-        self.__FrameLogHeader = Frame(self.__FrameLog, background="yellow")
+        self.__FrameLogHeader = Frame(self.__FrameLog)
         self.__FrameLogHeader.pack(anchor='n',expand='yes', fill='x', side='top')
 
         self.__LabelLog = Label(self.__FrameLogHeader,text='Log')
@@ -309,13 +308,13 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
         self.__NotebookOutput.setnaturalsize()
 
-        self.__FrameInputEntry = Frame(self.__FrameInput, background="Yellow")
+        self.__FrameInputEntry = Frame(self.__FrameInput)
         self.__FrameInputEntry.pack(side='left')
 
         self.__LabelInput = Label(self.__FrameInputEntry,text='Input')
         self.__LabelInput.pack(anchor='w',expand='yes',fill='both',side='left')
 
-        self.__Frame1 = Frame(self.__FrameInput, background="Orange")
+        self.__Frame1 = Frame(self.__FrameInput)
         self.__Frame1.pack(expand='yes',fill='x',side='left')
 
         self.__EntryInput = Entry(self.__Frame1, foreground="White")

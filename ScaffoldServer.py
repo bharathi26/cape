@@ -57,12 +57,10 @@ def main(args):
 
     Logging.systeminfo("Instantiating Dispatcher")
     dispatcher = Dispatcher.Dispatcher()
-    Registry.Components['Dispatcher'] = dispatcher
-
     dispatcher.activate()
 
     Logging.systeminfo("Instantiating Registry")
-    registrycomponent = RegistryComponent.RegistryComponent()
+    registrycomponent = RegistryComponent.RegistryComponent(dispatcher)
     dispatcher.RegisterComponent(registrycomponent)
 
     registrycomponent.activate()
