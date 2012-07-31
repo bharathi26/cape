@@ -28,9 +28,13 @@ from ANRV.Communication import JSONServer
 from ANRV.Communication import WSGIGateway
 from ANRV.Communication import Echo
 
+from ANRV.Communication import SerialPort
+
 from ANRV.Controls import Engine
 from ANRV.Controls import Rudder
 from ANRV.Controls import Timer
+
+from ANRV.Sensors import NMEABaseSensor
 
 from ANRV.Interface import TkAdmin2
 
@@ -78,6 +82,12 @@ def main(args):
 
     Logging.systeminfo("Requesting creation of WSGIGateway")
     registrycomponent.rpc_createComponent("WSGIGateway")
+
+    Logging.systeminfo("Requesting creation of SerialPort")
+    registrycomponent.rpc_createComponent("SerialPort")
+
+    Logging.systeminfo("Requesting creation of NMEABaseSensor")
+    registrycomponent.rpc_createComponent("NMEABaseSensor")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

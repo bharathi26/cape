@@ -20,7 +20,7 @@
 
 import Axon
 #from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.Configuration import Configuration
+from ANRV.System.Configuration import Configuration as ConfigurationDB
 from configobj import ConfigObj
 
 from pprint import pprint
@@ -37,7 +37,6 @@ class ConfigurableComponent():
     * RPC related stuff, later in the tree
     """
 
-    Configuration = ConfigObj()
 
     def __init__(self):
         """Initializes this Configurable Component.
@@ -45,12 +44,15 @@ class ConfigurableComponent():
             super(ConfigurableComponent, self).__init__()
         if you overwrite this.
         """
+        self.Configuration = ConfigObj()
 
     def HasConfiguration(self):
         # TODO: This one should probably validate an integrated configuration automatically
         # We need a defined configuration set per component, to enable that.
         # So, for now we just check for our BaseComponent's attributes.. which is kind of lame
-        uuid = sysname = hname = hdesc = "Not found"
+
+        # TODO: Sort these everywhere
+        uuid = name = sysname = hname = hdesc = "Not found"
         try:
             c = self.Configuration
             uuid = c['uuid']
@@ -84,13 +86,13 @@ class ConfigurableComponent():
         c['hdesc'] = self.hdesc
         c['systemname'] = self.systemname
         self.logdebug("Writing config.")
-        Configuration[self.name] = c
+        ConfigurationDB[self.name] = c
         return True
 
     def ReadConfiguration(self):
         """Tries to obtain a configuration from the System's configuration database"""
         try:
-            self.Configuration = Configuration[self.name]
+            self.Configuration = ConfigurationDB[self.name]
             return True
         except KeyError as e:
             errormsg = "No configuration found for '%s'" % self.name

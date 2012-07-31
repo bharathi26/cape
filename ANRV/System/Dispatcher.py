@@ -87,7 +87,7 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
                     self.logcritical('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
                     #response = msg.response((False, "Not available."))
                 else:
-                    self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s' % msg)
+                    self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
                     #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False, "Recipient not found."))
                     # TODO: maybe we should include the original timestamp, look in ANRV/Messages.py for more on that topic.
                 if response:

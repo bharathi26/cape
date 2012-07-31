@@ -132,9 +132,16 @@ class RPCMixin():
         """RPC wrapper for ConfigurableComponent"""
         return self.HasConfiguration()
 
+    def rpc_subscribe(self, name, function):
+        """
+        Adds sender to the subscription list of our incoming data.
+        """
+        self.loginfo("New subscription: '%s'@'%s'" % (function, name))
+        self.subscribers[name] = function
+        return None
+
     def _callMethod(self, method, msg):
         argspeclist = self.MethodRegister[msg.func]['args']
-        pprint(argspeclist)
         if len(argspeclist) > 1:
             return method(**msg.arg)
         elif len(argspeclist) == 1:
@@ -148,11 +155,13 @@ class RPCMixin():
         # * Better checking and error reporting
         # * Needs moar secure handling and logical checking of args etc.
 
+        self.logdebug("Checking arguments.")
         argspeclist = self.MethodRegister[msg.func]['args']
-        self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
+        #self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
 
         if isinstance(argspeclist, dict):
             if len(argspeclist) == 0: # Method has no arguments
+                # TODO: Maybe warn upon unexpected arguments
                 self.loginfo("Method '%s' (no args) called." % msg.func)
                 return True, 'No args.'
             elif len(argspeclist) > 1: # Call requires possibly more than one argument
@@ -164,13 +173,14 @@ class RPCMixin():
                 # Consider optional and required args as possibly better alternative
                 # But how to best specify that in an unobscured way?
 
+                if not args or len(args) != len(argspeclist):
+                    return False, 'Incorrect number of arguments.'
                 for param in args:
                     self.logdebug("Being checked: %s" % param)
+                    # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
                     try:
                         argspec = argspeclist[param]
                         self.logdebug(argspec)
-                        if argspec[0] == None:
-                            return True, "No arg expected."
                         if type(args[param]) != argspec[0]:
                             warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
                             self.logwarn(warning)
@@ -179,17 +189,29 @@ class RPCMixin():
                         self.logerror(e)
                         return False, "Unknown Error %s" % e
                 return True, "All args valid."
-            elif len(argspeclist) == 1 and argspeclist.has_key('default'): # Sender sent only one "default" parameter
-                self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
-                argspec = argspeclist['default']
-                self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
-
-                if type(msg.arg) != argspec[0]:
-                    warning = "Argument type error: %s expected." % (argspec[0])
-                    self.logwarn(warning)
-                    return False, warning
+            elif len(argspeclist) == 1:
+                if argspeclist.has_key('default'): # Sender sent only one "default" parameter
+                    self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
+                    argspec = argspeclist['default']
+                    pprint(argspec)
+                    self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
+                    if isinstance(msg.arg, dict):
+                        arg = msg.arg['default']
+                    else:
+                        arg = msg.arg
+                    if type(arg) != argspec[0]:
+                        warning = "Argument type error: %s expected." % (argspec[0])
+                        self.logwarn(warning)
+                        return False, warning
+                    else:
+                        return True, "Default arg valid."
                 else:
-                    return True, "Default arg valid."
+                    error = "Argument specification is wrong: '%s'" % (argspec)
+                    self.logerror(error)
+                    return False, error
+        else:
+            self.logerror("Argument specification bad: '%s'" % argspeclist)
+            return False, "Argument Specification is bad."
 
     def handleRPC(self, msg):
         """Handles RPC requests by
@@ -208,19 +230,24 @@ class RPCMixin():
         # TODO: Grand unified error responses everywhere, needs a well documented standard.
 
         if msg.recipient == self.name:
+            self.logdebug(msg)
             self.logdebug("Checking RPC request")
-            pprint(self.MethodRegister)
             if msg.func in self.MethodRegister:
                 self.logdebug("Request for method %s" % msg.func)
                 # TODO: Better get the method from self.MR
                 method = getattr(self, "rpc_" + msg.func)
 
                 if method:
+                    # TODO: Bug here, that gives strange traceback, when a default handler 
+                    # method is called but wrongly declared with "non default" in MR
                     argtestresult, log = self._checkArgs(msg)
                     if argtestresult:
                         self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
                         # Deliver the final result
-                        return msg.response(self._callMethod(method, msg))
+                        result = self._callMethod(method, msg)
+                        if result:
+                            return msg.response(result)
+                        else: return
                     else:
                         self.logwarning("Supplied args were invalid: '%s'" % log)
                         return msg.response((False, log))
@@ -266,11 +293,8 @@ class RPCMixin():
             ArgSpecBuilder = self.__buildArgSpec3
 
         for method in inspect.getmembers(self):
-            if method[0].startswith("rpc_") or method[0] == "__init__":
-                if method[0] == "__init__":
-                    name = "initialization"
-                else:
-                    name = method[0][4:]
+            if method[0].startswith("rpc_"):
+                name = method[0][4:]
 
                 params = ArgSpecBuilder(method)
                 self.logdebug("Parameters for '%s': '%s'" % (method[0], params))
@@ -284,11 +308,17 @@ class RPCMixin():
 
         return True
 
+    def rpc_argtest(self, arg1, arg2, arg3):
+        return (True, [arg1, arg2, arg3])
+
     def __init__(self):
         """Initializes this RPC Component. Don't forget to call super(YourComponent, self).__init__() when overwriting."""
 
+        self.MR['rpc_argtest'] = {'arg1': [int, "a"],
+                                  'arg2': [int, "b"],
+                                  'arg3': [str, "c"]}
+
         # Python 2.x Methodregister
-        self.MR['__init__'] = {}
         self.MR['rpc_getComponentInfo'] = {}
         self.MR['rpc_updateComponentInfo'] = {}
         self.MR['rpc_getComponentInfo'] = {}
@@ -296,8 +326,19 @@ class RPCMixin():
         self.MR['rpc_writeConfiguration'] = {}
         self.MR['rpc_readConfiguration'] = {}
         self.MR['rpc_hasConfiguration'] = {}
+        self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"], # TODO: Uh oh. Anyone can subscribe anything?
+                                    'function': [str, "Name of function call to use"]}
+
+        self.subscribers = {}
 
         self._buildMethodRegister()
+
+    def main_prepare(self):
+        """
+        Method that is executed prior entering mainloop.
+        Overwrite if necessary.
+        """
+        pass
 
 
     def main(self):
@@ -305,6 +346,9 @@ class RPCMixin():
         Manually (currently) process each RPC request and call the appropriate function.
         Send back the response of the function call as RPC answer.
         """
+        self.main_prepare()
+
+        self.loginfo("Entering main loop.")
         while True:
             while not self.anyReady():
                 yield 1
@@ -332,13 +376,59 @@ class RPCComponent(RPCMixin, BaseComponent):
         BaseComponent.__init__(self)
         RPCMixin.__init__(self)
 
-class RPCComponentThreaded(BaseComponentThreaded, RPCMixin):
+class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
     def __init__(self):
         BaseComponentThreaded.__init__(self)
         RPCMixin.__init__(self)
 
-# TODO: These (and other baseclass components) shouldn't be listed unless being tested
+        self.runsynchronized = True
+
+    def mainthread(self):
+        """
+        Overwrite this method with your blocking instructions.
+
+        The call chain is thus:
+        * Sync (if self.runsynchronized)
+        * Your mainthread
+        * RPC handling
+         * In
+         * Out
+        * Rinse, repeat
+        """
+        pass
+
+    def main(self):
+        """
+        Start the already initialized component and wait for messages.
+        Manually (currently) process each RPC request and call the appropriate function.
+        Send back the response of the function call as RPC answer.
+
+        The threaded variant doesn't yield, it runs in its own thread.
+        To not waste cycles, the component can decide to run in sync with the rest.
+        """
+
+        # TODO:
+        # * Most of the common parts could be grouped together in the RPCMixin for clearance.
+        # * As it seems any threaded component may NEVER ever yield, they wouldn't even start otherwise
+        self.loginfo("Entering main loop.")
+        while True:
+            if self.runsynchronized:
+                self.sync()
+
+            self.mainthread()
+
+            msg = None
+            response = None
+
+            if self.dataReady("inbox"):
+                self.logdebug("Handling incoming rpc messages.")
+                msg = self.recv("inbox")
+                response = self.handleRPC(msg)
+            if response:
+                self.logdebug("Sending response '%s' to '%s'" % (response, response.recipient))
+                self.send(response, "outbox")
+
 # * ConfigurableComponent
 # * Dispatcher
 ComponentTemplates["RPCComponent"] = [RPCComponent, "RPC capable Component"]
-ComponentTemplates["RPCComponentThreaded"] = [RPCComponent, "RPC capable Component - Threaded"]
+ComponentTemplates["RPCComponentThreaded"] = [RPCComponentThreaded, "RPC capable Component - Threaded"]

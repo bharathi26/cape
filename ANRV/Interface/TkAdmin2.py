@@ -42,6 +42,40 @@ import jsonpickle
 
 from pprint import pprint
 
+class TkRPCArgDialog(TkWindow):
+    def __init__(self, parent, callback, argspec, compname, compfunc):
+        top = self.top = Toplevel(parent)
+        self.argspec = argspec
+        self.callback = callback
+        self.compname = compname
+        self.compfunc = compfunc
+        self.argFrames = self.argLabels = self.argEntrys = {}
+
+        for arg in argspec:
+            frame = Frame(top)
+            myLabel = Label(frame, text="%s (%s)" % (arg, argspec[arg][0]))
+            myLabel.pack(side="left")
+
+            myEntryBox = Entry(frame)
+            myEntryBox.pack(side="right", anchor="e")
+            self.argFrames[arg] = frame
+            self.argLabels[arg] = myLabel
+            self.argEntrys[arg] = myEntryBox
+
+            frame.pack()
+
+        self.mySubmitButton = Button(top, text='Submit', command=self.send)
+        self.mySubmitButton.pack()
+
+    def send(self):
+        arguments = {}
+        for args in self.argEntrys:
+            arguments[args] = self.argspec[args][0](self.argEntrys[args].get())
+        self.callback(self.compname, self.compfunc, arguments)
+        self.top.destroy()
+
+
+
 class TkAdmin2(TkWindow, LoggableComponent):
     def __init__(self):
         self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
@@ -75,12 +109,23 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.send(msg, "outbox")
 
     def scancomponent(self, name):
-        self.logdebug("Looking for component '%s'." % name)
-        print(self.componentlist)
-        if name in self.componentlist:
-            self.loginfo("Scanning component '%s'." % name)
-            msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
-            self.send(msg, "outbox")
+        self.loginfo("Scanning component '%s'." % name)
+        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
+        self.send(msg, "outbox")
+
+    def callComplexMethod(self, name, func, argspec):
+        self.loginfo("Preparing call to '%s'@'%s'. with %i args" % (func, name, len(argspec)))
+        InputDialog = TkRPCArgDialog(self.window, self.callComplexMethodFinal, argspec, name, func)
+
+    def callComplexMethodFinal(self, name, func, args):
+        self.loginfo("Finally calling func '%s'@'%s' with args '%s'" % (func, name, args))
+        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=args)
+        self.send(msg, "outbox")
+
+    def callSimpleMethod(self, name, func):
+        self.loginfo("Calling '%s'@'%s'." % (name, func))
+        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
+        self.send(msg, "outbox")
 
     def transmit(self):
         message = self.__EntryInput.get()
@@ -110,38 +155,64 @@ class TkAdmin2(TkWindow, LoggableComponent):
         if self.autoclear.get():
             self.clearEntry()
 
+
     def _handleMsg(self, msg):
+        def __handleComponentInfo(msg):
+            if msg.sender not in self.componentlist:
+                if self.autoscan.get():
+                    self.loginfo("Unknown component '%s'. Rescanning registry." % msg.sender)
+                    self.scanregistry()
+                else:
+                    self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
+            else:
+                self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                #pprint(result)
+
+                success, result = msg.arg
+                comp = msg.sender
+
+                self.componentlist[comp]["Info"] = result
+                MenuSubComponent = self.componentlist[comp]["Menu"]
+                MenuSubComponent.delete(3, END)
+
+                mr = result['methods']
+
+                for meth in mr:
+                    self.logdebug("Got method '%s'." % meth)
+                    pprint(result['methods'][meth])
+                    if len(mr[meth]['args']) > 0:
+                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth,argspec)=(msg.sender,meth,mr[meth]['args']): self.callComplexMethod(name,meth,argspec))
+                    else:
+                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(msg.sender,meth): self.callSimpleMethod(name,meth))
+
+        def __handleRegisteredComponents(msg):
+           self.loginfo("Got a list of registered components. Parsing.")
+           success, result = msg.arg
+           self.componentlist = {}
+           self.__MenuComponents.delete(4,END)
+           for comp in result:
+               if self.autoscan.get() and comp not in self.componentlist:
+                   self.scancomponent(comp)
+               MenuSubComponent = Menu(self.__MenuComponents)
+               MenuSubComponent.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
+               MenuSubComponent.add_separator()
+
+               self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
+               self.componentlist[comp] = {"Menu": MenuSubComponent, "Info": None}
+
         if isinstance(msg, ANRV.Messages.Message):
             if msg.sender == self.systemregistry:
-                self.loginfo("Message from Registry: Method '%s'." % msg.func)
                 if msg.func == "listRegisteredComponents":
-                    self.loginfo("Got a list of registered components. Parsing.")
                     if isinstance(msg.arg, tuple):
                         success, result = msg.arg
                         if success:
-                            for comp in result:
-                                ComponentMenu = Menu(self.__MenuComponents)
-                                ComponentMenu.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
-                                self.__MenuComponents.add_cascade(label=comp, menu=ComponentMenu)
-                                self.componentlist[comp] = ComponentMenu
-#                        self.__ComponentMenu.append(ComponentMenu)
+                            __handleRegisteredComponents(msg)
+
             elif msg.func == "getComponentInfo":
                 if isinstance(msg.arg, tuple):
                     success, result = msg.arg
                     if success:
-                        if msg.sender not in self.componentlist:
-                            if self.autoscan:
-                                self.loginfo("Unknown component '%s'. Rescanning registry." % msg.sender)
-                                self.scanregistry()
-                            else:
-                                self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
-                        else:
-                            self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
-                            pprint(result)
-                            for meth in result['methods']:
-                                self.loginfo("Got method '%s'." % meth)
-                                self.componentlist[msg.sender].add_command(label=meth)
-
+                        __handleComponentInfo(msg)
 
     def _filteredMsg(self, msg):
         return False
@@ -153,6 +224,9 @@ class TkAdmin2(TkWindow, LoggableComponent):
     def setupWindow(self):
         self.logdebug("Setting up TkAdmin GUI")
 
+        import Pmw
+        Pmw.initialise(self.window)
+
         self.window.title(self.title)
 
 
@@ -161,25 +235,41 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__FrameMenu = Frame(self.window)
         self.__FrameMenu.pack(anchor='n',side='top')
 
-        print(self.window.__dict__)
         self.__Menu = Menu(self.window)
         self.__MenuFile = Menu(self.__Menu)
         self.__MenuEdit = Menu(self.__Menu)
-        self.__MenuComponents = Menu(self.__Menu)
         self.__Menu.add_cascade(menu=self.__MenuFile, label="File")
         self.__Menu.add_cascade(menu=self.__MenuEdit, label="Edit")
-        self.__Menu.add_cascade(menu=self.__MenuComponents, label="Components")
         self.window.config(menu=self.__Menu)
 
         self.__MenuFile.add_command(label="Quit", command=self.quit)
 
+        self.autoscan = BooleanVar()
+        self.autoscan.set(True)
+
+        self.__MenuComponents = Menu(self.__Menu)
+        self.__MenuComponents.add_checkbutton(label="Autoscan", onvalue=True, offvalue=False, variable=self.autoscan)
         self.__MenuComponents.add_command(label="Scan", command=self.scanregistry)
+        self.__MenuComponents.add_separator()
+
+        self.__Menu.add_cascade(menu=self.__MenuComponents, label="Components")
+
+
+        ##############
 
         self.__FrameOutput = Frame(self.window)
         self.__FrameOutput.pack(side='top',fill='both',expand='yes')
 
+        self.__NotebookOutput = Pmw.NoteBook(self.__FrameOutput)
+        self.__NotebookOutput.pack(fill='both', expand=1)
+
+        self.__PageResponses = self.__NotebookOutput.add('Responses')
+        self.__PageLog = self.__NotebookOutput.add('Log')
+
+        self.__NotebookOutput.tab('Responses').focus_set()
+
         self.__FrameInput = Frame(self.window, borderwidth=2)
-        self.__FrameInput.pack(anchor='s',expand='yes',fill='both',side='top')
+        self.__FrameInput.pack(anchor='s',expand='no',fill='x',side='top')
 
         self.__FrameStatusbar = Frame(self.window, relief='raised')
         self.__FrameStatusbar.pack(anchor='sw',side='top') # ,fill='x'
@@ -187,34 +277,48 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__LabelStatus = Label(self.__FrameStatusbar,text='Ready.')
         self.__LabelStatus.pack(anchor='w',expand='yes',side='top') # ,fill='both'
 
-        self.__FrameResponses = Frame(self.__FrameOutput)
-        self.__FrameResponses.pack(anchor='w',expand='yes',side='left')
+        self.__FrameResponses = Frame(self.__PageResponses, background="blue")
+        self.__FrameResponses.pack(expand=1, fill="both")
 
-        self.__LabelResponses = Label(self.__FrameResponses,text='Responses')
-        self.__LabelResponses.pack(anchor='n',expand='yes',fill='x',side='top')
+        self.__FrameResponsesHeader = Frame(self.__FrameResponses, background="yellow")
+        self.__FrameResponsesHeader.pack(anchor='n',expand='yes', fill='x', side='top')
 
-        self.__TextResponses = Text(self.__FrameResponses)
-        self.__TextResponses.pack(side='top', expand='yes',fill='both')
+        self.__LabelResponses = Label(self.__FrameResponsesHeader,text='Responses')
+        self.__LabelResponses.pack(anchor='e',side='right', fill='both')
 
-        self.__FrameLog = Frame(self.__FrameOutput)
-        self.__FrameLog.pack(anchor='e',side='left')
+        self.__ButtonClearResponses = Button(self.__FrameResponsesHeader, text='Clear')
+        self.__ButtonClearResponses.pack(anchor='w',side='left')
 
-        self.__LabelLog = Label(self.__FrameLog,text='Log')
-        self.__LabelLog.pack(anchor='n',expand='yes',fill='x',side='top')
+        self.__TextResponses = Pmw.ScrolledText(self.__FrameResponses)
+        self.__TextResponses.pack(expand=1, fill='both')
 
-        self.__TextLog = Text(self.__FrameLog)
-        self.__TextLog.pack(expand='yes',fill='both',side='top')
+        self.__FrameLog = Frame(self.__PageLog, background="red")
+        self.__FrameLog.pack(side='left', expand=1, fill="both")
 
-        self.__FrameInputEntry = Frame(self.__FrameInput)
+        self.__FrameLogHeader = Frame(self.__FrameLog, background="yellow")
+        self.__FrameLogHeader.pack(anchor='n',expand='yes', fill='x', side='top')
+
+        self.__LabelLog = Label(self.__FrameLogHeader,text='Log')
+        self.__LabelLog.pack(anchor='e',side='right', fill='both')
+
+        self.__ButtonClearLog = Button(self.__FrameLogHeader, text='Clear')
+        self.__ButtonClearLog.pack(anchor='w',side='left')
+
+        self.__TextLog = Pmw.ScrolledText(self.__FrameLog)
+        self.__TextLog.pack(expand=1,fill='both')
+
+        self.__NotebookOutput.setnaturalsize()
+
+        self.__FrameInputEntry = Frame(self.__FrameInput, background="Yellow")
         self.__FrameInputEntry.pack(side='left')
 
         self.__LabelInput = Label(self.__FrameInputEntry,text='Input')
         self.__LabelInput.pack(anchor='w',expand='yes',fill='both',side='left')
 
-        self.__Frame1 = Frame(self.__FrameInput)
+        self.__Frame1 = Frame(self.__FrameInput, background="Orange")
         self.__Frame1.pack(expand='yes',fill='x',side='left')
 
-        self.__EntryInput = Entry(self.__Frame1, foreground="white")
+        self.__EntryInput = Entry(self.__Frame1, foreground="White")
         self.__EntryInput.pack(expand='yes',fill='both',side='top')
         self.__EntryInput.bind('<Control-Return>',self.__on_EntryInput_Enter__C)
 
