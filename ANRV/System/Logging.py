@@ -20,7 +20,7 @@
 
 import logging as _logging
 
-import Axon
+#import Axon
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 

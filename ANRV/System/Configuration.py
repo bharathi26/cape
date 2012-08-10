@@ -44,7 +44,7 @@ ModulePaths = []
 
 Configuration = configobj.ConfigObj()
 
-def _getConfigFilename(filename):
+def _getConfigFilename(filename=DefaultConfigFilename):
     # TODO: This is stupid. Either read ONE configfile (which?) or read them one after another;
     # The latter would allow overwriting by the user.
     # Currently only the last one found will be inspected, wich works during development and testing
@@ -53,7 +53,7 @@ def _getConfigFilename(filename):
 
     # TODO: Like this, using a dict with preference value is useless. Needs config segmentation or clearing.
     for key in Paths:
-        name = Paths[key] + ConfigFilename
+        name = Paths[key] + filename
         Logging.systemdebug("Trying %s." % name)
         if os.path.exists(name):
             Logging.systemdebug("Works")
@@ -61,7 +61,7 @@ def _getConfigFilename(filename):
 
     return configfile
 
-def _getModulePath(Path):
+def _getModulePath(path=DefaultModulePath):
     modulepaths = []
 
     for key in Paths:
@@ -73,22 +73,26 @@ def _getModulePath(Path):
 
     return modulepaths
 
-def _readConfig(filename):
-    if not filename:
-        newconfig = configobj.ConfigObj()
-        # TODO: Fill in defaults or what?
-        Logging.systemerror("Couldn't open configuration file '%s'" % filename)
-    else:
-        try:
-            newconfig = configobj.ConfigObj(filename, unrepr=True)
-        except configobj.UnknownType as error:
-            Logging.systemerror("Couldn't read configuration: '%s'" % error)
+def _readConfig(filename=DefaultConfigFilename):
+    global Configuration
+    try:
+        newconfig = configobj.ConfigObj(filename, unrepr=True)
+        Configuration = newconfig
         Logging.systeminfo("Successfully read configuration file '%s'" % filename)
-#    try:
-#        newconfig = configobj.ConfigObj()
-#        newconfig.read(filename)
-#    except: # TODO: Catch more specific!!!
-    return newconfig
+        return True
+    except configobj.UnknownType as error:
+        Logging.systemerror("Couldn't read configuration: '%s'" % error)
+
+def _reloadConfig():
+    global Configuration
+    Configuration.reload()
+    return True
+
+def _writeConfig():
+    global Configuration
+    Logging.systeminfo("Configuration: \n%s" % Configuration)
+    Configuration.write()
+    return True
 
 def test():
     """N/A: Should test the configuration system."""
@@ -97,8 +101,10 @@ def test():
 
 Logging.systeminfo("Determining configuration filename")
 Filename = _getConfigFilename(ConfigFilename)
+
 Logging.systeminfo("Loading configuration from '%s'" % Filename)
-Configuration = _readConfig(Filename)
+_readConfig(Filename)
+
 Logging.systeminfo("Checking module paths")
 ModulePaths = _getModulePath(ModulePath)
 Logging.systeminfo("Found module paths: %s" % ModulePaths)

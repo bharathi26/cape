@@ -37,10 +37,12 @@ from ANRV.Controls import Timer
 from ANRV.Sensors import NMEABaseSensor
 
 from ANRV.Interface import TkAdmin2
+from ANRV.Interface import MapRenderer
 
 # STATIC PREPARATION
 
 def main(args):
+    print(Configuration.Configuration)
     if 'SERVER' in Configuration.Configuration.sections:
         ServerConfig = Configuration.Configuration['SERVER']
     else:
@@ -62,6 +64,9 @@ def main(args):
     Logging.systeminfo("Instantiating Registry")
     registrycomponent = RegistryComponent.RegistryComponent(dispatcher)
     dispatcher.RegisterComponent(registrycomponent)
+
+    Registry.Components[dispatcher.name] = dispatcher
+    Registry.Components[registrycomponent.name] = registrycomponent
 
     registrycomponent.activate()
 
@@ -86,6 +91,9 @@ def main(args):
 
     Logging.systeminfo("Requesting creation of NMEABaseSensor")
     registrycomponent.rpc_createComponent("NMEABaseSensor")
+
+    Logging.systeminfo("Requesting creation of MapRenderer")
+    registrycomponent.rpc_createComponent("MapRenderer")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

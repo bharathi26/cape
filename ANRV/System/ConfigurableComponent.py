@@ -44,7 +44,7 @@ class ConfigurableComponent():
             super(ConfigurableComponent, self).__init__()
         if you overwrite this.
         """
-        self.Configuration = ConfigObj()
+        self.Configuration = {}
 
     def HasConfiguration(self):
         # TODO: This one should probably validate an integrated configuration automatically
@@ -74,13 +74,13 @@ class ConfigurableComponent():
     def SetConfiguration(self, NewConfiguration):
         """Sets the local Configuration to a new Dictionary"""
         # TODO: Validation, Backup?
-        self.Configuration = NewConfiguration
+        self.Configuration.update(NewConfiguration)
 
     def WriteConfiguration(self):
         """Stores this components configuration back in to the System's configuration database"""
         self.logdebug("Generating new configuration.")
         c = self.Configuration
-        c['uuid'] = self.uuid
+        c['uuid'] = str(self.uuid)
         c['name'] = self.name
         c['hname'] = self.hname
         c['hdesc'] = self.hdesc

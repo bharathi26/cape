@@ -132,6 +132,10 @@ class RPCMixin():
         """RPC wrapper for ConfigurableComponent"""
         return self.HasConfiguration()
 
+    def rpc_setConfiguration(self, config):
+        """RPC wrapper for ConfigurableComponent"""
+        return self.SetConfiguration(config)
+
     def rpc_subscribe(self, name, function):
         """
         Adds sender to the subscription list of our incoming data.
@@ -205,7 +209,7 @@ class RPCMixin():
                     else:
                         return True, "Default arg valid."
                 else:
-                    error = "Argument specification is wrong: '%s'" % (argspec)
+                    error = "Argument specification is wrong: '%s'" % (argspeclist)
                     self.logerror(error)
                     return False, error
         else:
@@ -325,6 +329,7 @@ class RPCMixin():
         self.MR['rpc_writeConfiguration'] = {}
         self.MR['rpc_readConfiguration'] = {}
         self.MR['rpc_hasConfiguration'] = {}
+        self.MR['rpc_setConfiguration'] = {'default': [dict, "Configuration updates"]}
         self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"], # TODO: Uh oh. Anyone can subscribe anything?
                                     'function': [str, "Name of function call to use"]}
 

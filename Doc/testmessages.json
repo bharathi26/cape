@@ -52,6 +52,13 @@
 {"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "FOOBAR", "arg": "BAZQUX", "recipient": "ANRV.Interface.TkAdmin.TkAdmin_11"}
 
 
+= Serial =
+== Configuration ==
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "writeConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "readConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "hasConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
+{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
+
 
 
 = EVIL DEBUG MESSAGES =

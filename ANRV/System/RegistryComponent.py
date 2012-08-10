@@ -20,6 +20,7 @@
 #
 
 from ANRV.System import Registry
+from ANRV.System import Configuration
 from ANRV.System.RPCComponent import RPCComponent
 
 class RegistryComponent(RPCComponent):
@@ -32,6 +33,10 @@ class RegistryComponent(RPCComponent):
     More (like finding all available but not loaded components) will follow.
     """
 
+    def rpc_storeConfigDB(self):
+        """Instructs the configuration system to write back its DB."""
+        self.loginfo("Storing configuration database.")
+        return Configuration._writeConfig()
 
     def rpc_createComponent(self, templatename):
         """Creates a new component and registers it with a dispatcher."""
@@ -77,6 +82,7 @@ class RegistryComponent(RPCComponent):
         self.MR['rpc_createComponent'] = {'default': [str, 'Name of new component template']}
         self.MR['rpc_listRegisteredComponents'] = {}
         self.MR['rpc_listRegisteredTemplates'] = {}
+        self.MR['rpc_storeConfigDB'] = {}
         super(RegistryComponent, self).__init__()
 
 

@@ -42,8 +42,11 @@ class NMEABaseSensor(RPCComponent):
         self.MR['rpc_connect'] = {}
         self.MR['rpc_disconnect'] = {}
         self.MR['rpc_nmeainput'] = {'default': [str, "NMEA raw data"]}
-        self.MR['rpc_getNMEALog'] = {'oldest': [float, "Begin of data collection."],
-                                     'newest': [float, "End of data collection. (0 = now)"]}
+        self.MR['rpc_getNMEADeltaLog'] = {'oldest': [float, "Begin of data collection."],
+                                          'newest': [float, "End of data collection. (0 = now)", 0]}
+        self.MR['rpc_getNMEATimeLog'] = {'eventtime': [float, "Begin of data collection."],
+                                         'maxdeviation': [float, "Maximum time deviation in seconds.", 10]}
+
         super(NMEABaseSensor, self).__init__()
         self.Configuration.update({'SerialPort': 'ANRV.Communication.SerialPort.SerialPort_14',
                                   })
@@ -77,7 +80,19 @@ class NMEABaseSensor(RPCComponent):
                                       'type': sen_type,
                                       'obj': nmeaobject}
 
-    def rpc_getNMEALog(self, oldest, newest=0):
+    def rpc_getNMEATimeLog(self, eventtime, maxdeviation=10):
+        if eventtime < 0:
+            eventtime = time() - eventtime
+        minimum, maximum = eventtime - maxdeviation, eventtime + maxdeviation
+        print((minimum, maximum))
+        reqdict = {}
+        for key in self.nmeaLog.keys():
+            print(key)
+            if key > minimum and key < maximum:
+                reqdict[key] = self.nmeaLog[key]
+        return True, reqdict
+
+    def rpc_getNMEADeltaLog(self, oldest, newest=0):
         if newest == 0:
             newest = time()
         if oldest < 0:
@@ -90,7 +105,7 @@ class NMEABaseSensor(RPCComponent):
         for key in reqkeys:
             if key > oldest and key < newest:
                 reqdict[key] = self.nmeaLog[key]
-        return (True, reqdict)
+        return True, reqdict
 
     def rpc_connect(self):
         """

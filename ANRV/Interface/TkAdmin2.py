@@ -23,10 +23,16 @@ from ANRV.System import RPCComponent
 import ANRV.Messages
 from ANRV.System import  Identity
 from ANRV.System.LoggableComponent import LoggableComponent
+from ANRV.System.RPCComponent import RPCComponent
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
 import Axon
+
+import PIL
+import PIL.Image
+import PIL.ImageTk
+import mapnik2 as mapnik
 
 try:
     unicode
@@ -39,11 +45,43 @@ except NameError:
     import tkinter.messagebox as messagebox
 
 import jsonpickle
+import json
 
 from pprint import pprint
 
-class TkRPCArgDialog(TkWindow):
+
+class TkMessageDialog(TkWindow, LoggableComponent):
+    def __init__(self, parent, msg):
+        # TODO:
+        # * interaction!
+        # * integrate TkArgsDialog
+        top = self.top = Toplevel(parent)
+        self.msg = msg
+
+        self.frame = fr = Frame(top)
+        self._labelTimestamp = Label(fr, text=msg.timestamp)
+        self._labelTimestamp.pack()
+
+        self._labelSender = Label(fr, text=msg.sender)
+        self._labelSender.pack()
+
+        self._labelRecipient = Label(fr, text=msg.recipient)
+        self._labelRecipient.pack()
+
+        self._labelFunc = Label(fr, text=msg.func)
+        self._labelFunc.pack()
+
+        self._labelArg = Label(fr, text=msg.arg)
+        self._labelArg.pack()
+
+        fr.pack()
+
+class TkRPCArgDialog(TkWindow, LoggableComponent):
     def __init__(self, parent, callback, argspec, compname, compfunc):
+        # TODO:
+        # * Clean up (ownerships etc)
+        # * parsing of args and interaction with them (export etc)
+
         top = self.top = Toplevel(parent)
         self.argspec = argspec
         self.callback = callback
@@ -66,17 +104,24 @@ class TkRPCArgDialog(TkWindow):
 
         self.mySubmitButton = Button(top, text='Submit', command=self.send)
         self.mySubmitButton.pack()
+        super(TkRPCArgDialog, self).__init__()
 
     def send(self):
         arguments = {}
         for args in self.argEntrys:
-            arguments[args] = self.argspec[args][0](self.argEntrys[args].get())
+            self.logdebug("Checking '%s' against '%s'" % (args, self.argspec[args]))
+            if self.argspec[args][0] == dict:
+                arguments[args] = json.loads(self.argEntrys[args].get())
+            else:
+                arguments[args] = self.argspec[args][0](self.argEntrys[args].get())
+        if len(arguments) == 1:
+            arguments = arguments['default']
         self.callback(self.compname, self.compfunc, arguments)
         self.top.destroy()
 
 
 
-class TkAdmin2(TkWindow, LoggableComponent):
+class TkAdmin2(TkWindow, RPCComponent):
     def __init__(self):
         self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
 
@@ -87,6 +132,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self._invisibleRoot = tkInvisibleWindow().activate()
 #        self.clearInput = tkinter.BooleanVar()
         self.componentlist = {}
+        self.messages = []
 
         super(TkAdmin2, self).__init__()
 
@@ -99,6 +145,46 @@ class TkAdmin2(TkWindow, LoggableComponent):
     def __on_EntryInput_Enter__C(self,Event=None):
         self.transmit()
 
+    def showMessage(self, ev):
+        msglb = self.__MessageLog._listbox
+        sel = msglb.curselection()
+        if len(sel) > 1:
+            self.logwarning("Multiple messages selected to display. Can't.")
+        msg = self.messages[int(sel[0])]
+        msgdialog = TkMessageDialog(self.window, msg)
+
+    def showHistory(self):
+        # TODO:
+        # * delete me, messages tab is way more powerful already
+        print(self.messages)
+        self.HistoryDialog = Pmw.ComboBoxDialog(self.window,
+            title = 'Message History',
+            buttons = ('OK', 'Cancel'),
+            defaultbutton = 'OK',
+            combobox_labelpos = 'n',
+            label_text = 'Previously sent messages:',
+            scrolledlist_items = self.messages,
+            command=self.sendPickedHistory)
+#        for item in self.messages:
+#            self.HistoryDialog.scrolledlist.insert(END, item)
+#        self.dialog.withdraw()
+
+
+#        print(result)
+
+    def sendPickedHistory(self, ev):
+        # TODO: Integrate with TkMessageDialog
+        if ev == 'Cancel':
+            self.HistoryDialog.destroy()
+        if ev == 'OK':
+            message = self.HistoryDialog.get()
+            try:
+                self.transmit(jsonpickle.decode(message))
+            except:
+                print("Couldn't decode message from history: '%s'" % message)
+
+
+
     def clearEntry(self):
         self.__EntryInput.delete(0,END)
         self.__FrameInput['bg'] = self.defaultcolors['bg']
@@ -106,12 +192,12 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
     def scanregistry(self):
         msg = ANRV.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents", arg=None)
-        self.send(msg, "outbox")
+        self.transmit(msg)
 
     def scancomponent(self, name):
         self.loginfo("Scanning component '%s'." % name)
         msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
-        self.send(msg, "outbox")
+        self.transmit(msg)
 
     def callComplexMethod(self, name, func, argspec):
         self.loginfo("Preparing call to '%s'@'%s'. with %i args" % (func, name, len(argspec)))
@@ -120,14 +206,33 @@ class TkAdmin2(TkWindow, LoggableComponent):
     def callComplexMethodFinal(self, name, func, args):
         self.loginfo("Finally calling func '%s'@'%s' with args '%s'" % (func, name, args))
         msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=args)
-        self.send(msg, "outbox")
+        self.transmit(msg)
 
     def callSimpleMethod(self, name, func):
         self.loginfo("Calling '%s'@'%s'." % (func, name))
         msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
+        self.transmit(msg)
+
+    def transmit(self, msg):
+        self.recordMessage(msg)
         self.send(msg, "outbox")
 
-    def transmit(self):
+    def recordMessage(self, msg):
+        self.messages.append(msg)
+        self.updateMessageLog()
+
+    def updateMessageLog(self):
+        loglistbox = self.__MessageLog._listbox
+        loglistbox.delete(0,END) # GAH. Addition should be sufficient. CHANGE!
+
+        for msg in sorted(self.messages, key=lambda msg: msg.timestamp):
+            loglistbox.insert(END,msg)
+            if msg.recipient == self.name:
+                loglistbox.itemconfig(END, bg='green',fg='black')
+            else:
+                loglistbox.itemconfig(END, bg='red',fg='black')
+
+    def usertransmit(self):
         message = self.__EntryInput.get()
 
         if len(message) <= 1:
@@ -139,7 +244,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
             if msg.sender != self.name:
                 msg.sender = self.name
             self.loginfo("Transmitting message '%s'" % msg)
-            self.send(msg, "outbox")
+            self.transmit(msg)
             self.__FrameInput['bg'] = self.defaultcolors['bg']
         except ValueError as e:
             errmsg = 'Invalid JSON:\n%s' % e
@@ -157,6 +262,8 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
 
     def _handleMsg(self, msg):
+        self.recordMessage(msg)
+
         def __handleComponentInfo(msg):
             if msg.sender not in self.componentlist:
                 if self.autoscan.get():
@@ -199,6 +306,7 @@ class TkAdmin2(TkWindow, LoggableComponent):
                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
                self.componentlist[comp] = {"Menu": MenuSubComponent, "Info": None}
 
+
         if isinstance(msg, ANRV.Messages.Message):
             if msg.sender == self.systemregistry:
                 if msg.func == "listRegisteredComponents":
@@ -206,16 +314,38 @@ class TkAdmin2(TkWindow, LoggableComponent):
                         success, result = msg.arg
                         if success:
                             __handleRegisteredComponents(msg)
-
+            print(msg.sender)
             if msg.func == "getComponentInfo":
                 if isinstance(msg.arg, tuple):
                     success, result = msg.arg
                     if success:
                         __handleComponentInfo(msg)
+            if msg.func == "renderMap":
+                if isinstance(msg.arg, tuple):
+                    success, result = msg.arg
+                    if success:
+                        try:
+                            f = open("/tmp/map.png", "w")
+                            f.write(result)
+                            f.close()
+                        except:
+                            print("FAIL")
+                        import StringIO
+                        buf = StringIO.StringIO()
+                        buf.write(result)
+                        buf.seek(0)
+                        pilim = PIL.Image.open(buf)
+                        print("YUP, map now PIL'd'")
+                        tk_im = PIL.ImageTk.PhotoImage(pilim)
+                        print("YUP, map now TK'd'")
+                        self.__MapCanvas.create_image(0,0, image=tk_im)
 
     def _filteredMsg(self, msg):
         return False
 
+    def scanlinetest(self):
+        polygon = [[50,5],[100,270],[150,270],[220,30]]
+        ScanlineTestDialog = TkScanlineTestDialog(self.window, polygon)
 
     def quit(self):
         Axon.Scheduler.scheduler.run.stop()
@@ -237,11 +367,18 @@ class TkAdmin2(TkWindow, LoggableComponent):
         self.__Menu = Menu(self.window)
         self.__MenuFile = Menu(self.__Menu)
         self.__MenuEdit = Menu(self.__Menu)
+        self.__MenuTests = Menu(self.__Menu)
         self.__Menu.add_cascade(menu=self.__MenuFile, label="File")
         self.__Menu.add_cascade(menu=self.__MenuEdit, label="Edit")
+        self.__Menu.add_cascade(menu=self.__MenuTests, label="Tests")
         self.window.config(menu=self.__Menu)
 
+        self.__MenuFile.add_command(label="History", command=self.showHistory)
+        self.__MenuFile.add_command(label="Update Message Log", command=self.updateMessageLog)
         self.__MenuFile.add_command(label="Quit", command=self.quit)
+        
+        self.__MenuTests.add_command(label="Scanlinetest", command=self.scanlinetest)
+
 
         self.autoscan = BooleanVar()
         self.autoscan.set(True)
@@ -264,6 +401,12 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
         self.__PageResponses = self.__NotebookOutput.add('Responses')
         self.__PageLog = self.__NotebookOutput.add('Log')
+        self.__PageMap = self.__NotebookOutput.add('Map')
+        self.__PageMessages = self.__NotebookOutput.add('Messages')
+
+        self.__MessageLog = Pmw.ScrolledListBox(self.__PageMessages)
+        self.__MessageLog._listbox.bind("<Double-Button-1>", self.showMessage)
+        self.__MessageLog.pack(expand='yes', fill='both')
 
         self.__NotebookOutput.tab('Responses').focus_set()
 
@@ -305,6 +448,9 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
         self.__TextLog = Pmw.ScrolledText(self.__FrameLog)
         self.__TextLog.pack(expand=1,fill='both')
+
+        self.__MapCanvas = Canvas(self.__PageMap)
+        self.__MapCanvas.pack(expand=1, fill='both')
 
         self.__NotebookOutput.setnaturalsize()
 
@@ -390,6 +536,10 @@ class TkAdmin2(TkWindow, LoggableComponent):
 
         Must regularly call self.tkupdate() to ensure tk event processing happens.
         """
+
+        if self.Configuration.has_key('autoscan') and self.Configuration['autoscan'] == True:
+            self.scanregistry()
+
         while not self.isDestroyed():
             yield 1
             if self.dataReady("control"):
