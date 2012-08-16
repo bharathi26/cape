@@ -4,6 +4,51 @@ This Readme is WiP!
 This is the Readme file for the ANRV Software.
 ANRV stands for "Autonomous Naval Robotic Vehicle".
 
+= Installation =
+
+== Debian ==
+=== MongoDB on armhf ===
+If you're installing dependencies on debian's armhf port, you'll
+notice mongodb missing. This is because the non-x86 port of mongodb 
+isn't yet debian-packaged.
+
+So you will need to install and build mongodb from hand here.
+This document describes the procedure quite well:
+
+https://github.com/mongodb/mongo/blob/master/docs/building.debian.etch.ec2.md
+
+Mind you, there is no need to use gcc4.1 in sid or wheezy, so skip
+that part.
+
+=== Dependencies ===
+As root:
+
+apt-get install python-setuptools python-serial python-jsonpickle \
+                python-configobj python-pmw python-pynongo \
+                python-imaging python-imaging-tk python-mapnik2 \
+                mongodb \
+                mercurial
+
+svn checkout http://kamaelia.googlecode.com/svn/trunk/ kamaelia
+cd kamaelia/Code/Python/Axon
+python setup.py install
+cd ../Kamaelia
+python setup.py install
+cd ../../../../
+
+=== RAIN ===
+
+hg clone https://www.hackerfleet.org/hg/ms0x00
+cd ms0x00
+python setup.py install
+
+== Running & Tests ==
+Now you should be ready to start the temporary Scaffold Server script with:
+
+python ScaffoldServer
+
+Tests haven't been written, yet. This is going to be funny. Very.
+
 = Documentation =
 Try pydoc ANRV
 

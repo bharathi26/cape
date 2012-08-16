@@ -24,6 +24,7 @@ import ANRV.Messages
 from ANRV.System import  Identity
 from ANRV.System.LoggableComponent import LoggableComponent
 from ANRV.System.RPCComponent import RPCComponent
+from ANRV.Interface.TkMapDialog import TkMapDialog
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
@@ -81,8 +82,8 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
         # TODO:
         # * Clean up (ownerships etc)
         # * parsing of args and interaction with them (export etc)
+        super(TkRPCArgDialog, self).__init__()
 
-        top = self.top = Toplevel(parent)
         self.argspec = argspec
         self.callback = callback
         self.compname = compname
@@ -90,7 +91,7 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
         self.argFrames = self.argLabels = self.argEntrys = {}
 
         for arg in argspec:
-            frame = Frame(top)
+            frame = Frame(self.window)
             myLabel = Label(frame, text="%s (%s)" % (arg, argspec[arg][0]))
             myLabel.pack(side="left")
 
@@ -102,9 +103,8 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
 
             frame.pack()
 
-        self.mySubmitButton = Button(top, text='Submit', command=self.send)
+        self.mySubmitButton = Button(self.window, text='Submit', command=self.send)
         self.mySubmitButton.pack()
-        super(TkRPCArgDialog, self).__init__()
 
     def send(self):
         arguments = {}
@@ -117,11 +117,19 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
         if len(arguments) == 1:
             arguments = arguments['default']
         self.callback(self.compname, self.compfunc, arguments)
-        self.top.destroy()
+        self.window.destroy()
 
 
 
 class TkAdmin2(TkWindow, RPCComponent):
+    """
+    Development graphical user interface for RAIN systems.
+    """
+
+    # TODO:
+    # * Clean up user interface
+    # * Develop interaction elements for all primitives
+
     def __init__(self):
         self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
 
@@ -133,6 +141,7 @@ class TkAdmin2(TkWindow, RPCComponent):
 #        self.clearInput = tkinter.BooleanVar()
         self.componentlist = {}
         self.messages = []
+        self.MapViewer = None
 
         super(TkAdmin2, self).__init__()
 
@@ -320,32 +329,22 @@ class TkAdmin2(TkWindow, RPCComponent):
                     success, result = msg.arg
                     if success:
                         __handleComponentInfo(msg)
-            if msg.func == "renderMap":
+            if msg.func in ("renderArea", "renderCoord"):
                 if isinstance(msg.arg, tuple):
                     success, result = msg.arg
                     if success:
-                        try:
-                            f = open("/tmp/map.png", "w")
-                            f.write(result)
-                            f.close()
-                        except:
-                            print("FAIL")
-                        import StringIO
-                        buf = StringIO.StringIO()
-                        buf.write(result)
-                        buf.seek(0)
-                        pilim = PIL.Image.open(buf)
-                        print("YUP, map now PIL'd'")
-                        tk_im = PIL.ImageTk.PhotoImage(pilim)
-                        print("YUP, map now TK'd'")
-                        self.__MapCanvas.create_image(0,0, image=tk_im)
+                        if self.MapViewer:
+                            self.MapViewer.drawMap(result)
+                        else:
+                            self.MapViewer = TkMapDialog(result)
+                            self.MapViewer.activate()
 
     def _filteredMsg(self, msg):
         return False
 
     def scanlinetest(self):
         polygon = [[50,5],[100,270],[150,270],[220,30]]
-        ScanlineTestDialog = TkScanlineTestDialog(self.window, polygon)
+        ScanlineTestDialog = TkScanlineTestDialog(polygon)
 
     def quit(self):
         Axon.Scheduler.scheduler.run.stop()

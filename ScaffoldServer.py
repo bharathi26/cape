@@ -15,29 +15,13 @@ from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore
 #from Kamaelia.Util.Introspector import Introspector
 
 from ANRV import Version
-from ANRV.System import Identity
-from ANRV.System import Configuration
-from ANRV.System import Registry
-from ANRV.System import Dispatcher
-from ANRV.System import Idler
-from ANRV.System import RegistryComponent
-from ANRV.System import ConfigurableComponent
-from ANRV.System import RPCComponent
 
-from ANRV.Communication import JSONServer
-from ANRV.Communication import WSGIGateway
-from ANRV.Communication import Echo
+from ANRV.System import *
+from ANRV.Interface import *
+from ANRV.Controls import *
+from ANRV.Sensors import *
+from ANRV.Communication import *
 
-from ANRV.Communication import SerialPort
-
-from ANRV.Controls import Engine
-from ANRV.Controls import Rudder
-from ANRV.Controls import Timer
-
-from ANRV.Sensors import NMEABaseSensor
-
-from ANRV.Interface import TkAdmin2
-from ANRV.Interface import MapRenderer
 
 # STATIC PREPARATION
 

@@ -311,15 +311,8 @@ class RPCMixin():
 
         return True
 
-    def rpc_argtest(self, arg1, arg2, arg3):
-        return (True, [arg1, arg2, arg3])
-
     def __init__(self):
         """Initializes this RPC Component. Don't forget to call super(YourComponent, self).__init__() when overwriting."""
-
-        self.MR['rpc_argtest'] = {'arg1': [int, "a"],
-                                  'arg2': [int, "b"],
-                                  'arg3': [str, "c"]}
 
         # Python 2.x Methodregister
         self.MR['rpc_getComponentInfo'] = {}

@@ -43,7 +43,7 @@ else:
         SystemUUID = DefaultSystemUUID
         Logging.systemwarn("No configured name. You might want to configure this.", facility="IDENTITY")
     else:
-        SystemName = DefaultSystemClass + DefaultName
+        SystemName = DefaultSystemClass + DefaultSystemName
         SystemClass = DefaultSystemClass
         SystemUUID = DefaultSystemUUID
         Logging.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
