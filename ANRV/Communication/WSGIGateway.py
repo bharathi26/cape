@@ -5,12 +5,12 @@
 import bottle
 
 from ANRV.System.Registry import ComponentTemplates
-#from ANRV.System.RPCComponent import RPCComponent
+from ANRV.System.RPCComponent import RPCComponentThreaded
 from ANRV.System.LoggableComponent import LoggableComponent
 
 import Axon
 
-class WSGIGateway(Axon.ThreadedComponent.threadedcomponent, LoggableComponent):
+class WSGIGateway(RPCComponentThreaded):
     def __init__(self):
         super(WSGIGateway, self).__init__()
         self.app = bottle.Bottle()
@@ -25,15 +25,8 @@ class WSGIGateway(Axon.ThreadedComponent.threadedcomponent, LoggableComponent):
         # Add route
         self.app.router.add("/pseudowsgi/<path>", "GET", pseudoroute)
 
-        # Calling this results in a 500 internal error
-        self.app.router.add("/hello", "GET", self.hello)
-
         # The following, it doesn't work. :(
-        self.app.route('/hello/<url>', self.hello)
         self.app.route('/pseudowsgi/<path>', self.pseudowsgi)
-
-    def hello(self, url):
-        return "World tried to call my '%s'." % url
 
     def pseudowsgi(self, **kwargs):
         print(bottle.request.url)

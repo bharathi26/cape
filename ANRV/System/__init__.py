@@ -9,4 +9,5 @@ __all__ = ['Identity',
            'Recorder',
            'RegistryComponent',
            'LoggerComponent',
+           'MongoComponent',
            ]

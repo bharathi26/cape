@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 ANRV Operating Software
-#      - Tk Admin Interface (providing Message relaying and log display)
+#      - Tk Admin Interface (Map Dialog)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
