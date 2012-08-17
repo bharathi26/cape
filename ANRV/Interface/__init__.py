@@ -1,1 +1,1 @@
-__all__ = ['TkAdmin2', 'TkMapDialog', 'MapRenderer', 'SerialLCD']
+__all__ = ['TkAdmin', 'TkMapDialog', 'MapRenderer', 'SerialLCD']
