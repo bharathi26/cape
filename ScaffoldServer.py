@@ -65,7 +65,7 @@ def main(args):
     registrycomponent.rpc_createComponent("Timer")
 
     Logging.systeminfo("Requesting creation of TkAdmin")
-    registrycomponent.rpc_createComponent("TkAdmin2")
+    registrycomponent.rpc_createComponent("TkAdmin")
 
     Logging.systeminfo("Requesting creation of WSGIGateway")
     registrycomponent.rpc_createComponent("WSGIGateway")

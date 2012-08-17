@@ -94,7 +94,7 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
         self.callback(self.compname, self.compfunc, arguments)
         self.window.destroy()
 
-class TkAdmin2(TkWindow, RPCComponent):
+class TkAdmin(TkWindow, RPCComponent):
     """
     Development graphical user interface for RAIN systems.
     """
@@ -105,7 +105,7 @@ class TkAdmin2(TkWindow, RPCComponent):
 
     def __init__(self):
         self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
-        super(TkAdmin2, self).__init__()
+        super(TkAdmin, self).__init__()
 
         self.Configuration['fixsender'] = False
         self.Configuration['autoclear'] = True
@@ -474,4 +474,4 @@ class TkAdmin2(TkWindow, RPCComponent):
                     self.__TextResponses.insert(END, "%s\n" % msg)
             self.tkupdate()
 
-Registry.ComponentTemplates['TkAdmin2'] = [TkAdmin2, "Simple Second revision Admin GUI providing message relaying and log viewing."]
+Registry.ComponentTemplates['TkAdmin'] = [TkAdmin, "Simple Second revision Admin GUI providing message relaying and log viewing."]
