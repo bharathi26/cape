@@ -24,7 +24,7 @@ that part.
 As root:
 
 apt-get install python-setuptools python-serial python-jsonpickle \
-                python-configobj python-pmw python-pynongo \
+                python-configobj python-pmw python-pymongo \
                 python-imaging python-imaging-tk python-mapnik2 \
                 mongodb \
                 mercurial

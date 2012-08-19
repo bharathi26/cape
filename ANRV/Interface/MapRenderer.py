@@ -41,71 +41,29 @@ class MapRenderer(RPCComponent.RPCComponent):
 
     def rpc_renderCoord(self, lat, lon, zoom):
         im = mapnik.Image(self.mapsize[0], self.mapsize[1])
-        
+
         center = mapnik.Coord(lat,lon)
         transform = mapnik.ProjTransform(self.longlat, self.merc)
         merc_center = transform.forward(center)
 
-        dx = (20037508.34 * 2 * (self.mapsize[0] / 2)) / (256 * (2 ** (zoom)))
+        dx = ((20037508.34*2*(self.mapsize[0]/2)))/(256*(2 ** (zoom)))  #(20037508.34 * 2 * (self.mapsize[0] / 2)) / (256 * (2 ** (zoom)))
+        self.loginfo("Center: %f:%f DX: %f" % (merc_center.x, merc_center.y, dx))
         minx = merc_center.x - dx
         maxx = merc_center.x + dx
+        self.loginfo("minX: %f maxX: %f" % (minx, maxx))
 
         self.rendermap.aspect_fix_mode = mapnik.aspect_fix_mode.ADJUST_BBOX_HEIGHT
 
-        merc_bbox = mapnik.Box2d(minx, merc_center.y - 1, maxx, merc_center.y + 1)
+        merc_bbox = mapnik.Box2d(minx, merc_center.y - 10, maxx, merc_center.y + 10)
         self.rendermap.zoom_to_box(merc_bbox)
         mapnik.render(self.rendermap, im)
         Map = im.tostring('png')
 
         return (True, Map)
 
-    def rpc_renderCoordOld(self, lat, lon, zoom):
-        """
-        Renders a map for the given coordinates.
-        """
-        Map = None
-
-        LandmassShapefile = 'ANRV/Interface/ne_110m_admin_0_countries.shp'
-
-        im = mapnik.Image(self.mapsize[0], self.mapsize[1])
-        m = mapnik.Map(self.mapsize[0], self.mapsize[1])
-
-        m.background = mapnik.Color(self.backgroundColor)
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        polygon_symbolizer = mapnik.PolygonSymbolizer(mapnik.Color(self.foregroundColor))
-        r.symbols.append(polygon_symbolizer)
-        line_symbolizer = mapnik.LineSymbolizer(mapnik.Color('rgb(50%,50%,50%)'),0.1)
-        r.symbols.append(line_symbolizer)
-        s.rules.append(r)
-        m.append_style('My Style',s)
-
-        ds = mapnik.Shapefile(file=LandmassShapefile)
-        layer = mapnik.Layer('world')
-        layer.datasource = ds
-        layer.styles.append('My Style')
-        m.layers.append(layer)
-
-        center = mapnik.Coord(lat,lon)
-        transform = mapnik.ProjTransform(self.longlat, self.merc)
-        merc_center = transform.forward(center)
-
-        dx = (20037508.34 * 2 * (self.mapsize[0] / 2)) / (256 * (2 ** (zoom)))
-        minx = merc_center.x - dx
-        maxx = merc_center.x + dx
-
-        m.aspect_fix_mode = mapnik.aspect_fix_mode.ADJUST_BBOX_HEIGHT
-
-        merc_bbox = mapnik.Box2d(minx, merc_center.y - 1, maxx, merc_center.y + 1)
-        m.zoom_to_box(merc_bbox)
-        mapnik.render(m, im)
-        Map = im.tostring('png')
-
-        return (True, Map)
-
     def rpc_renderArea(self, minlat, minlon, maxlat, maxlon):
         """
-        Renders a map for the given coordin
+        Renders a map for the boundary box defined by the given coordinates
         """
         Map = None
 
@@ -119,24 +77,8 @@ class MapRenderer(RPCComponent.RPCComponent):
         # can also be constructed as:
         #longlat = mapnik.Projection('+init=epsg:4326')
 
-        im = mapnik.Image(self.mapsize)
-        m = mapnik.Map(self.mapsize)
-
-        m.background = mapnik.Color(self.backgroundColor)
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        polygon_symbolizer = mapnik.PolygonSymbolizer(mapnik.Color(self.foregroundColor))
-        r.symbols.append(polygon_symbolizer)
-        line_symbolizer = mapnik.LineSymbolizer(mapnik.Color('rgb(50%,50%,50%)'),0.1)
-        r.symbols.append(line_symbolizer)
-        s.rules.append(r)
-        m.append_style('My Style',s)
-
-        ds = mapnik.Shapefile(file=LandmassShapefile)
-        layer = mapnik.Layer('world')
-        layer.datasource = ds
-        layer.styles.append('My Style')
-        m.layers.append(layer)
+        im = mapnik.Image(self.mapsize[0], self.mapsize[1])
+        m = self.rendermap
 
         m.srs = merc.params()
         bbox = mapnik.Box2d(minlat, minlon, maxlat, maxlon)
@@ -150,14 +92,14 @@ class MapRenderer(RPCComponent.RPCComponent):
         return (True, Map)
 
     def __init__(self):
-        self.MR['rpc_renderArea'] = {'minlat': [float, "Minimal latitude of map."],
-                                     'minlon': [float, "Minimal longitude of map."],
-                                     'maxlat': [float, "Maximal latitude of map."],
-                                     'maxlon': [float, "Maximal longitude of map."],
+        self.MR['rpc_renderArea'] = {'minlat': [float, "Minimal latitude of map"],
+                                     'minlon': [float, "Minimal longitude of map"],
+                                     'maxlat': [float, "Maximal latitude of map"],
+                                     'maxlon': [float, "Maximal longitude of map"],
                                     }
-        self.MR['rpc_renderCoord'] = {'lat': [float, "Minimal latitude of map."],
-                                      'lon': [float, "Minimal longitude of map."],
-                                      'zoom': [float, "Maximal longitude of map."],
+        self.MR['rpc_renderCoord'] = {'lat': [float, "Latitude for center of map"],
+                                      'lon': [float, "Longitude for center of map"],
+                                      'zoom': [float, "Zoomlevel (0-20)"],
                                      }
 
         self.rendermap = mapnik.Map(self.mapsize[0], self.mapsize[1])
