@@ -120,24 +120,8 @@ class MapRenderer(RPCComponent.RPCComponent):
         #longlat = mapnik.Projection('+init=epsg:4326')
 
         im = mapnik.Image(self.mapsize)
-        m = mapnik.Map(self.mapsize)
 
-        m.background = mapnik.Color(self.backgroundColor)
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        polygon_symbolizer = mapnik.PolygonSymbolizer(mapnik.Color(self.foregroundColor))
-        r.symbols.append(polygon_symbolizer)
-        line_symbolizer = mapnik.LineSymbolizer(mapnik.Color('rgb(50%,50%,50%)'),0.1)
-        r.symbols.append(line_symbolizer)
-        s.rules.append(r)
-        m.append_style('My Style',s)
-
-        ds = mapnik.Shapefile(file=LandmassShapefile)
-        layer = mapnik.Layer('world')
-        layer.datasource = ds
-        layer.styles.append('My Style')
-        m.layers.append(layer)
-
+        m = self.rendermap
         m.srs = merc.params()
         bbox = mapnik.Box2d(minlat, minlon, maxlat, maxlon)
         transform = mapnik.ProjTransform(longlat, merc)
