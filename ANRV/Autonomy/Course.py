@@ -25,8 +25,8 @@ from time import time
 class CourseController(RPCComponent):
 
     def __init__(self):
-        self.MR['rpc_setCourse'] = {'default': [float, 'New course bearing (0-360)']}
-        self.MR['rpc_getRudderAngle'] = {'default': [float, 'Current heading']}
+        self.MR['rpc_setCourse'] = {'newCourse': [float, 'New course bearing (0-360)']}
+        self.MR['rpc_getRudderAngle'] = {'currentHeading': [float, 'Current heading']}
         super(CourseController, self).__init__()
         self.Configuration.update({
             'ProportionalGain': 0.1,

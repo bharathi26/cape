@@ -76,7 +76,7 @@ class SerialPort(RPCComponentThreaded):
     def __init__(self, device="/dev/ttyACM0", autodetect=True, verbosity=1):
         self.MR['rpc_connect'] = {}
         self.MR['rpc_disconnect'] = {}
-        self.MR['rpc_write'] = {'default': [str, "String to send."]} # TODO: Strings are BAD HERE.
+        self.MR['rpc_write'] = {'args': [str, "String to send."]} # TODO: Strings are BAD HERE.
         super(SerialPort, self).__init__()
         self.Configuration.update({'verbosity': 1, # TODO: Make use of all these...
                           'device': "/dev/ttyACM0",

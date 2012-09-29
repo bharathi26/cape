@@ -100,7 +100,7 @@ class RegistryComponent(RPCComponent):
 
     def __init__(self, dispatcher):
         self.dispatcher = dispatcher
-        self.MR['rpc_createComponent'] = {'default': [str, 'Name of new component template']}
+        self.MR['rpc_createComponent'] = {'templatename': [str, 'Name of new component template']}
         self.MR['rpc_listRegisteredComponents'] = {}
         self.MR['rpc_listRegisteredTemplates'] = {}
         self.MR['rpc_storeConfigDB'] = {}

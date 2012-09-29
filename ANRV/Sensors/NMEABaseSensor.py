@@ -41,7 +41,7 @@ class NMEABaseSensor(RPCComponent):
     def __init__(self):
         self.MR['rpc_connect'] = {}
         self.MR['rpc_disconnect'] = {}
-        self.MR['rpc_nmeainput'] = {'default': [str, "NMEA raw data"]}
+        self.MR['rpc_nmeainput'] = {'nmeasentence': [str, "NMEA raw data"]}
         self.MR['rpc_getNMEADeltaLog'] = {'oldest': [float, "Begin of data collection."],
                                           'newest': [float, "End of data collection. (0 = now)", 0]}
         self.MR['rpc_getNMEATimeLog'] = {'eventtime': [float, "Begin of data collection."],

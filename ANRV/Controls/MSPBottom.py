@@ -61,8 +61,8 @@ class MSPBottom(RPCComponent.RPCComponent):
 
     def __init__(self):
         self.MR['rpc_init'] = {}
-        self.MR['rpc_write'] = {'default': [(bool, tuple), "Errorcodes from the serial device."]}
-        self.MR['rpc_connect'] = {'default': [(bool, tuple), "Errorcodes from the serial device."]}
+        self.MR['rpc_write'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
+        self.MR['rpc_connect'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
         self.MR['rpc_serialsubscription'] = {'default': [str, "Responses from the serial device."]}
 
         super(MSPBottom, self).__init__()

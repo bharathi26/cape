@@ -83,13 +83,13 @@ class MSPTop(RPCComponent.RPCComponent):
     def __init__(self):
         self.MR['rpc_init'] = {}
         self.MR['rpc_measureHygro'] = {}
-        self.MR['rpc_setLights'] = {'default': [int, "Lightmode [0: off, 1: Steerboard on, 2: Port on, 3: Both on"]}
+        self.MR['rpc_setLights'] = {'mode': [int, "Lightmode [0: off, 1: Steerboard on, 2: Port on, 3: Both on"]}
         self.MR['rpc_blinkLight'] = {'light': [int, "Which light to blink."],
                                      'count': [int, "How many times to blink."],
                                     }
-        self.MR['rpc_write'] = {'default': [(bool, tuple), "Errorcodes from the serial device."]}
-        self.MR['rpc_connect'] = {'default': [(bool, tuple), "Errorcodes from the serial device."]}
-        self.MR['rpc_serialsubscription'] = {'default': [str, "Responses from the serial device."]}
+        self.MR['rpc_write'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
+        self.MR['rpc_connect'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
+        self.MR['rpc_serialsubscription'] = {'data': [str, "Responses from the serial device."]}
 
         super(MSPTop, self).__init__()
         self.Configuration['SerialPort'] = "ANRV.Communication.SerialPort.SerialPort_14" # TODO: For development purposes

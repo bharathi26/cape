@@ -286,7 +286,7 @@ class RPCMixin():
         self.MR['rpc_writeConfiguration'] = {}
         self.MR['rpc_readConfiguration'] = {}
         self.MR['rpc_hasConfiguration'] = {}
-        self.MR['rpc_setConfiguration'] = {'default': [dict, "Configuration updates"]}
+        self.MR['rpc_setConfiguration'] = {'config': [dict, "Configuration updates"]}
         self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"], # TODO: Uh oh. Anyone can subscribe anything?
                                     'function': [str, "Name of function call to use"]}
 

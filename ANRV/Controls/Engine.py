@@ -68,7 +68,7 @@ class SimpleEngine(RPCComponent.RPCComponent):
         return (True, "New thrust set.")
 
     def __init__(self):
-        self.MR['rpc_setThrust'] = {'default': [float, "New thrust as float. Range [-1;0;1]."]}
+        self.MR['rpc_setThrust'] = {'newthrust': [float, "New thrust as float. Range [-1;0;1]."]}
         super(SimpleEngine, self).__init__()
 
 Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]
