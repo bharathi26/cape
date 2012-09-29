@@ -41,8 +41,6 @@ class Timer(RPCComponent.RPCComponent):
         """
         Stores a timed message.
         """
-        args = {'usec': [float, 'Time when to fire message (Microseconds since 1970)'],
-                'message': [Message, 'What message to send.']}
         if time.time() > usec:
             return (False, "Past events can't be handled")
         else:
@@ -60,9 +58,6 @@ class Timer(RPCComponent.RPCComponent):
         """
         Calculates the time, when a given countdown runs out and stores a message.
         """
-        args = {'usec': [float, 'Countdowntime'],
-                'message': [Message, 'What message to send']}
-
         now = time.time()
         return self.rpc_addTimer(usec, message)
 
