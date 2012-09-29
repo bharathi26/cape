@@ -64,7 +64,7 @@ class NMEABaseSensor(RPCComponent):
 
         The nmea data is parsed and further handling can happen.
         """
-        if not "$G" in nmeasentence:
+        if not nmeasentence[0] == "$":
             err = "Non NMEA0183 data received!"
             self.logwarn(err)
             return False, err
