@@ -21,6 +21,7 @@ from ANRV.Interface import *
 from ANRV.Controls import *
 from ANRV.Sensors import *
 from ANRV.Communication import *
+from ANRV.Autonomy import *
 
 
 # STATIC PREPARATION
