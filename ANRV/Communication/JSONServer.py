@@ -47,8 +47,8 @@ class JSONHandler(Axon.Component.component, LoggableComponent):
 
     def __init__(self):
         super(JSONHandler, self).__init__()
-        Dispatcher = Registry.Components["Dispatcher"]
-        Dispatcher.RegisterComponent(self)
+#        Dispatcher = Registry.Components["Dispatcher"]
+#        Dispatcher.RegisterComponent(self)
 
     def main(self):
         protocol_running = True

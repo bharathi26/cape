@@ -64,11 +64,11 @@ import socket
 import sys
 import getopt
 
-from .Colors import *
+from Colors import *
 
 
 class App:
-    def __init__(self,ip="127.0.0.1",port=55555):
+    def __init__(self,ip="192.168.1.23",port=55555):
         pygame.init()
 
         pygame.display.set_caption("ANRV Joystick Prototype")
@@ -180,8 +180,14 @@ class App:
         freq = 60
         # TODO: Needs a default for unknown joysticks!
         # print JoystickDB
-        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
-   
+
+#        if "Logitech Logitech Extreme 3D Pro" not in self.joystick_names:
+#           print "Connect a supported joystick!"
+#           sys.exit
+
+#        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
+        JoystickConf = JoystickDB['Logitech Logitech Extreme 3D Pro']
+
         if JoystickConf:
             Correction = JoystickConf['correction']
             AxesConf = JoystickConf['axes']
