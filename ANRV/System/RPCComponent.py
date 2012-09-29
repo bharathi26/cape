@@ -144,15 +144,6 @@ class RPCMixin():
         self.subscribers[name] = function
         return None
 
-    def _callMethod(self, method, msg):
-        argspeclist = self.MethodRegister[msg.func]['args']
-        if len(argspeclist) > 1:
-            return method(**msg.arg)
-        elif len(argspeclist) == 1:
-            return method(msg.arg)
-        else:
-            return method()
-
     def _checkArgs(self, msg):
         # TODO:
         # * This needs reverse testing. Supplying superfluous args isn't healthy.
@@ -250,7 +241,8 @@ class RPCMixin():
                     if argtestresult:
                         self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
                         # Deliver the final result
-                        result = self._callMethod(method, msg)
+                        args = msg.arg if msg.arg is not None else {}
+                        result = method(**args)
                         if result:
                             return msg.response(result)
                         else: return
