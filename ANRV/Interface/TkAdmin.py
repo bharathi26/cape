@@ -118,8 +118,6 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
                 arguments[args] = json.loads(self.argEntries[args]['Entry'].get())
             else:
                 arguments[args] = self.argspec[args][0](self.argEntries[args]['Entry'].get())
-        if len(arguments) == 1:
-            arguments = arguments['default']
         self.callback(self.componentname, self.methodname, arguments)
 
     def close(self):

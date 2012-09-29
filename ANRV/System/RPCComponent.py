@@ -154,61 +154,30 @@ class RPCMixin():
         argspeclist = self.MethodRegister[msg.func]['args']
         #self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
 
-        if isinstance(argspeclist, dict):
-            if len(argspeclist) == 0: # Method has no arguments
-                # TODO: Maybe warn upon unexpected arguments
-                self.loginfo("Method '%s' (no args) called." % msg.func)
-                return True, 'No args.'
-            elif len(argspeclist) > 1: # Call requires possibly more than one argument
-                # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
-                args = msg.arg
-                self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
+        # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
+        args = msg.arg if msg.arg is not None else {}
+        self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
 
-                # TODO: with this, specified args HAVE to be supplied AND named.
-                # Consider optional and required args as possibly better alternative
-                # But how to best specify that in an unobscured way?
+        # TODO: with this, specified args HAVE to be supplied AND named.
+        # Consider optional and required args as possibly better alternative
+        # But how to best specify that in an unobscured way?
 
-                if not args or len(args) != len(argspeclist):
-                    return False, 'Incorrect number of arguments.'
-                for param in args:
-                    self.logdebug("Being checked: %s" % param)
-                    # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
-                    try:
-                        argspec = argspeclist[param]
-                        self.logdebug(argspec)
-                        if type(args[param]) != argspec[0]:
-                            warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
-                            self.logwarn(warning)
-                            return False, warning
-                    except Exception as e:
-                        self.logerror(e)
-                        return False, "Unknown Error %s" % e
-                return True, "All args valid."
-            elif len(argspeclist) == 1:
-                if argspeclist.has_key('default'): # Sender sent only one "default" parameter
-                    self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
-                    argspec = argspeclist['default']
-                    self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
-                    if isinstance(msg.arg, dict):
-                        arg = msg.arg['default']
-                    else:
-                        arg = msg.arg
-                    if type(argspec[0]) == type:
-                        if type(arg) == argspec[0]:
-                            return True, "Default arg valid."
-                    elif type(argspec[0]) == tuple:
-                        if type(arg) in argspec[0]:
-                            return True, "Default arg valid."
-                    warning = "Argument type error: %s expected." % (argspec[0])
+        if len(args) != len(argspeclist):
+            return False, 'Incorrect number of arguments. Got %d, expected %d' % (len(args), len(argspeclist))
+        for param in args:
+            self.logdebug("Being checked: %s" % param)
+            # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
+            try:
+                argspec = argspeclist[param]
+                self.logdebug(argspec)
+                if type(args[param]) != argspec[0]:
+                    warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
                     self.logwarn(warning)
                     return False, warning
-                else:
-                    error = "Argument specification is wrong: '%s'" % (argspeclist)
-                    self.logerror(error)
-                    return False, error
-        else:
-            self.logerror("Argument specification bad: '%s'" % argspeclist)
-            return False, "Argument Specification is bad."
+            except Exception as e:
+                self.logerror(e)
+                return False, "Unknown Error %s" % e
+        return True, "All args valid."
 
     def handleRPC(self, msg):
         """Handles RPC requests by
