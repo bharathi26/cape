@@ -48,8 +48,7 @@ class NMEABaseSensor(RPCComponent):
                                          'maxdeviation': [float, "Maximum time deviation in seconds.", 10]}
 
         super(NMEABaseSensor, self).__init__()
-        self.Configuration.update({'SerialPort': 'ANRV.Communication.SerialPort.SerialPort_14',
-                                  })
+        self.Configuration.update({'SerialPort': 'ANRV.Communication.SerialPort.SerialPort_15'})
 
         self.nmeaLog = {}
         self.nmeaAcceptedSentences = ()

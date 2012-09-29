@@ -54,6 +54,15 @@ def main(args):
 
     registrycomponent.activate()
 
+    # CRUFT CRUFT CRUFT CRUFT CRUFT 
+    TransducerPort = SerialPort.SerialPort()
+    TransducerPort.Configuration.update({'device':'/dev/ttyUSB0', 'speed': 4800, 'readline': False})
+    dispatcher.RegisterComponent(TransducerPort)
+    Registry.Components[TransducerPort.name] = TransducerPort
+    # CRUFT CRUFT CRUFT CRUFT CRUFT 
+
+    Logging.systeminfo("Requesting creation of SerialPort")
+    registrycomponent.rpc_createComponent("SerialPort")
 
     Logging.systeminfo("Requesting creation of Idler")
     registrycomponent.rpc_createComponent("Idler")
@@ -70,14 +79,15 @@ def main(args):
     Logging.systeminfo("Requesting creation of WSGIGateway")
     registrycomponent.rpc_createComponent("WSGIGateway")
 
-    Logging.systeminfo("Requesting creation of SerialPort")
-    registrycomponent.rpc_createComponent("SerialPort")
 
     Logging.systeminfo("Requesting creation of NMEABaseSensor")
     registrycomponent.rpc_createComponent("NMEABaseSensor")
 
     Logging.systeminfo("Requesting creation of MapRenderer")
     registrycomponent.rpc_createComponent("MapRenderer")
+
+    Logging.systeminfo("Requesting creation of MSPTop")
+    registrycomponent.rpc_createComponent("MSPTop")
 
     Logging.systeminfo("Setting up JSONServer on port 55555")
     jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)

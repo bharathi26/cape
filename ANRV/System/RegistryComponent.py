@@ -22,6 +22,7 @@
 from ANRV.System import Registry
 from ANRV.System import Configuration
 from ANRV.System.RPCComponent import RPCComponent
+from ANRV.System.BaseComponent import BaseComponent
 
 class RegistryComponent(RPCComponent):
     """
@@ -33,14 +34,30 @@ class RegistryComponent(RPCComponent):
     More (like finding all available but not loaded components) will follow.
     """
 
+    def initFromConfig(self):
+        config = Configuration.Configuration
+        for sectionitem in config:
+            section = config[sectionitem]
+            print section
+            if section.has_key("type"):
+                newcomponent = self._createComponent(section["type"], sectionitem)
+                newcomponent.ReadConfiguration()
+
     def rpc_storeConfigDB(self):
         """Instructs the configuration system to write back its DB."""
         self.loginfo("Storing configuration database.")
         return Configuration._writeConfig()
 
     def rpc_createComponent(self, templatename):
+        "RPC Wrapper"
+        component = self._createComponent(templatename)
+        if isinstance(component, BaseComponent):
+            return True
+        else:
+            return component
+
+    def _createComponent(self, templatename, name=None):
         """Creates a new component and registers it with a dispatcher."""
-        args = {'templatename': [str, 'Name of new component template']}
 
         # TODO: The next check is somewhat ugly.
         # TODO: This revision isn't better.
@@ -51,13 +68,17 @@ class RegistryComponent(RPCComponent):
                 newcomponent = Registry.ComponentTemplates[templatename][0]()
                 newcomponent.systemregistry = self.name
 
+                if name:
+                    newcomponent.name = name
+
                 realname = newcomponent.name
 
                 Registry.Components[realname] = newcomponent
 
                 self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                 self.dispatcher.RegisterComponent(newcomponent)
-                return True
+
+                return newcomponent
             else:
                 self.logwarning("Cannot instantiate component %s. It is not registered as template." % templatename)
                 return (False, "Component not found in templates")

@@ -202,12 +202,15 @@ class RPCMixin():
                         arg = msg.arg['default']
                     else:
                         arg = msg.arg
-                    if type(arg) != argspec[0]:
-                        warning = "Argument type error: %s expected." % (argspec[0])
-                        self.logwarn(warning)
-                        return False, warning
-                    else:
-                        return True, "Default arg valid."
+                    if type(argspec[0]) == type:
+                        if type(arg) == argspec[0]:
+                            return True, "Default arg valid."
+                    elif type(argspec[0]) == tuple:
+                        if type(arg) in argspec[0]:
+                            return True, "Default arg valid."
+                    warning = "Argument type error: %s expected." % (argspec[0])
+                    self.logwarn(warning)
+                    return False, warning
                 else:
                     error = "Argument specification is wrong: '%s'" % (argspeclist)
                     self.logerror(error)
