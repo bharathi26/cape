@@ -29,7 +29,7 @@ class MapRenderer(RPCComponent.RPCComponent):
     """
 
     mapsize = 1024,768
-    mapfile = "/home/riot/src/ms0x00/ANRV/Static/world_boundaries.xml"
+    mapfile = "./ANRV/Static/world_boundaries.xml"
     backgroundColor = '#114B7F'
     foregroundColor = '#6494BF'
     # long/lat in degrees, aka ESPG:4326 and "WGS 84" 
