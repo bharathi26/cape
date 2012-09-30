@@ -1,0 +1,63 @@
+#!/usr/bin/python
+
+import serial
+import os
+import sys
+from time import sleep
+import glob
+
+outfile = open("/tmp/serialprobe", "w")
+outfile.write("Starting Log.")
+
+def log(msg):
+    global outfile
+    outfile.write(msg)
+
+def getports():
+    devs = glob.glob("/dev/ttyACM*")
+    return devs
+
+def probeport(method, word, port, speed, databits, parity, stopbits):
+    ser = serial.Serial(port, timeout=1, baudrate=speed, bytesize=databits, parity=parity, stopbits=stopbits)
+    ser.flush()
+
+    print "Probing %s for %s." % (port, word)
+
+    if method == "probe":
+        print "Writing %s" % word
+        ser.writelines(word)
+
+    recv = ser.readline()
+    print recv
+    ser.close()
+
+    if recv == word:
+        log("%s is the one we looked for." % (port))
+
+def main():
+    args = sys.argv
+    ports = getports()
+    
+    PortSettings = {'Launchpad': {'speed': 9600, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1},
+                    'GPS':       {'speed': 9600, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1},
+                    'Transducer':{'speed': 4800, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1}
+                   }
+
+    devicelist = {'MSPTop':     {'method': 'probe', 'word': "MSPTop", 'port': PortSettings['Launchpad']},
+                  'MSPBottom':  {'method': 'probe', 'word': "MSPBottom", 'port': PortSettings['Launchpad']},
+                  'GPS':        {'method': 'listen', 'word': "$GPG", 'port': PortSettings['GPS']},
+                  'Transducer': {'method': 'listen', 'word': "$SD", 'port': PortSettings['Transducer']}
+                 }
+
+    print "Beginning probing."
+    for device, settings in devicelist.items():
+        print "Checking %s" % device
+        for port in ports:
+            probeport(settings['method'], settings['word'], port, **settings['port'])
+
+
+if __name__ == '__main__':
+    main()
+    
+    
+outfile.close()
