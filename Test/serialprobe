@@ -1,63 +1,28 @@
 #!/usr/bin/python
 
 import serial
-import os
 import sys
-from time import sleep
-import glob
 
-outfile = open("/tmp/serialprobe", "w")
-outfile.write("Starting Log.")
+portname = sys.argv[1]
 
-def log(msg):
-    global outfile
-    outfile.write(msg)
+defaults = dict(bytesize=8, parity=serial.PARITY_NONE, stopbits=1)
 
-def getports():
-    devs = glob.glob("/dev/ttyACM*")
-    return devs
+devices = dict(
+    msp_top = dict(write='hello', read='MSPTop', settings=dict(baudrate=9600, **defaults)),
+    msp_bottom = dict(write='hello', read='MSPBottom', settings=dict(baudrate=9600, **defaults)),
+    gps = dict(read='$GP', settings=dict(baudrate=9600, **defaults)),
+    transducer = dict(read='$SD', settings=dict(baudrate=4800, **defaults)))
 
-def probeport(method, word, port, speed, databits, parity, stopbits):
-    ser = serial.Serial(port, timeout=1, baudrate=speed, bytesize=databits, parity=parity, stopbits=stopbits)
-    ser.flush()
+def probeport(name, settings, read, write=None):
+    port = serial.Serial(name, timeout=1, **settings)
+    port.flush()
+    if write:
+        port.write("\n%s\n" % write)
+    recv = port.readline().rstrip('\r\n')
+    port.close()
+    return recv == read
 
-    print "Probing %s for %s." % (port, word)
-
-    if method == "probe":
-        print "Writing %s" % word
-        ser.writelines(word)
-
-    recv = ser.readline()
-    print recv
-    ser.close()
-
-    if recv == word:
-        log("%s is the one we looked for." % (port))
-
-def main():
-    args = sys.argv
-    ports = getports()
-    
-    PortSettings = {'Launchpad': {'speed': 9600, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1},
-                    'GPS':       {'speed': 9600, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1},
-                    'Transducer':{'speed': 4800, 'databits': 8, 'parity': serial.PARITY_NONE, 'stopbits': 1}
-                   }
-
-    devicelist = {'MSPTop':     {'method': 'probe', 'word': "MSPTop", 'port': PortSettings['Launchpad']},
-                  'MSPBottom':  {'method': 'probe', 'word': "MSPBottom", 'port': PortSettings['Launchpad']},
-                  'GPS':        {'method': 'listen', 'word': "$GPG", 'port': PortSettings['GPS']},
-                  'Transducer': {'method': 'listen', 'word': "$SD", 'port': PortSettings['Transducer']}
-                 }
-
-    print "Beginning probing."
-    for device, settings in devicelist.items():
-        print "Checking %s" % device
-        for port in ports:
-            probeport(settings['method'], settings['word'], port, **settings['port'])
-
-
-if __name__ == '__main__':
-    main()
-    
-    
-outfile.close()
+for device, params in devices.items():
+    if probeport(portname, **params):
+        print device
+        break
