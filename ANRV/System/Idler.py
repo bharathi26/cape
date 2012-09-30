@@ -24,33 +24,30 @@ from ANRV.Primitives import Frequency
 from time import sleep
 
 class Idler(RPCComponent):
-    def __init__(self, frequency=Frequency("IdlerFreq", 200), realtime=False):
-        args = {'frequency':[Frequency, 'Period to wait'],
-                'realtime' :[bool, 'Initial realtime setting.']}
+    def __init__(self, frequency=200, realtime=False):
+        self.MR['rpc_setFreq']     = {'frequency':[float, 'Frequency to run with (Hz)']}
+        self.MR['rpc_setRealtime'] = {'realtime' :[bool, 'If on, run as fast as possible (Idler deactivated).']}
+
         super(Idler, self).__init__()
-        self.frequency = frequency
-        self.realtime = realtime
+        self.Configuration.update({
+            'frequency': frequency,
+            'realtime': realtime})
 
-    def rpc_setFreq(self, arg):
-        if isinstance(arg, Frequency):
-            self.frequency = arg
-            return True
-        else: return (False, "Wrong Argument")
+    def rpc_setFreq(self, frequency):
+        self.Configuration['frequency'] = frequency
+        return True
 
-    def rpc_setRealtime(self, arg):
-        args = {'arg': [bool, 'Set to true to run system in Realtime']}
-        if isinstance(arg, bool):
-            self.realtime = arg
-            return True
-        else: return (False, "Wrong Argument")
+    def rpc_setRealtime(self, realtime):
+        self.Configuration['realtime'] = realtime
+        return True
 
     def main(self):
         """Mainloop copied over from RPCComponent, since we need to wait here to achieve our idletime.
         """
         while True:
             while not self.anyReady():
-                if not self.realtime:
-                    sleep(self.frequency.Period())
+                if not self.Configuration['realtime']:
+                    sleep(1.0 / self.Configuration['frequency'])
                 yield 1
             msg = None
             response = None
