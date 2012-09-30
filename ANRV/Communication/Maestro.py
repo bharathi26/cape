@@ -20,19 +20,13 @@
 
 import Axon
 
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
-
-from ..Messages import Message
+from ANRV.System.Registry import ComponentTemplates
+from ANRV.System.RPCComponent import RPCComponent
+from ANRV.Messages import Message
 
 import serial
 
-class Maestro(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Maestro"}
-    Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Maestro"}
+class Maestro(RPCComponent):
     verbosity = 1
     protocol = "SSC"
     device = "/dev/ttyACM0"
@@ -46,52 +40,29 @@ class Maestro(Axon.Component.component):
                 self.maestro.write(chr(0xAA))
                 self.maestro.flush()
         except Exception as error:
-            print(("DEBUG.MAESTRO._connect: Failed to open device: %s" % error))
+            self.logerror("Failed to open device: %s" % error)
             self.maestro = None
 
-    def __init__(self, device="/dev/ttyACM0", autodetect=True, protocol="SSC", verbosity=1):
-        super(Maestro, self).__init__(self)
-        self.device = device
-        self.autodetect = autodetect
-        self.protocol = protocol
-        self.verbosity = verbosity
-
-        self._connect()
-
-    def write(self, args):
-        print(("DEBUG.MAESTRO.Write: Writing to Maestro: %s" % args))
+    def rpc_write(self, args):
+        self.logdebug("Writing to Maestro '%s'" % args)
         try:
             for byte in args:
                 self.maestro.write(chr(byte))
             return True
         except Exception as error:
-            print(("DEBUG.MAESTRO.Write: Failed to write: %s" % error))
-            return False, error 
+            self.logerror("Failed to write '%s'" % error)
+            return (False, error)
             # TODO: Maybe not a good idea to return the exception itself. Traceback might help
 
-    def main(self):
-        while True:
-            while not self.anyReady():
-                # Thumb twiddling.
-                self.pause()
-                yield 1
-            
-            response = None
-            if self.dataReady("inbox"):
-                msg = self.recv("inbox")
-                if msg.recipient == "MAESTRO":
-                    if msg.func == "Write":
-                        response = msg.response(arg=self.write(msg.arg))
-                    elif msg.func == "SetVerbosity":
-                        self.verbosity = int(msg.arg)
-                        response = msg.response(True)
-            if response:
-                self.send(response, "outbox")
-            yield 1
+    def __init__(self):
+        self.MR['rpc_write'] = {'args': [str, "Message to send"]}
+        super(Maestro, self).__init__()
+        self.Configuration.update({
+            'device': "/dev/ttyACM0",
+            'autodetect': True,
+            'protocol': "SSC",
+            'verbosity': 0
+        })
+        self._connect()
 
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
-
+ComponentTemplates["Maestro"] = [Maestro, "Violated copy of a SerialPort."]

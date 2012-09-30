@@ -87,8 +87,8 @@ class RegistryComponent(RPCComponent):
                     self.dispatcher.RegisterComponent(newcomponent)
 
                     return newcomponent
-                except TypeError:
-                    msg = "Unsupported initialization found in component '%s'." % templatename
+                except TypeError as e:
+                    msg = "Unsupported initialization found in component '%s' - error: '%s'." % (templatename, e)
                     self.logerror(msg)
                     return msg
 
