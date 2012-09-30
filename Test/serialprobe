@@ -5,7 +5,7 @@ import sys
 
 portname = sys.argv[1]
 
-defaults = dict(bytesize=8, parity=serial.PARITY_NONE, stopbits=1)
+defaults = dict(bytesize=8, parity=serial.PARITY_NONE, stopbits=1, rtscts=1)
 
 devices = dict(
     msp_top = dict(write='hello', read='MSPTop', settings=dict(baudrate=9600, **defaults)),
@@ -15,6 +15,7 @@ devices = dict(
 
 def probeport(name, settings, read, write=None):
     port = serial.Serial(name, timeout=1, **settings)
+    port.readlines()
     port.flush()
     if write:
         port.write("\n%s\n" % write)
