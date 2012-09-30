@@ -58,10 +58,11 @@ class ConfigurableComponent():
             uuid = c['uuid']
             name = c['name']
             sysname = c['systemname']
+            template = c['template']
             hname = c['hname']
             hdesc = c['hdesc']
         except KeyError as err:
-            errmsg = "%s '%s@%s (%s)': '%s' '%s'" % (err, name, sysname, uuid, hname, hdesc)
+            errmsg = "%s '%s@%s (%s of %s)': '%s' '%s'" % (err, name, sysname, uuid, template, hname, hdesc)
             self.logerror(errmsg)
             return (False, errmsg)
         self.logdebug("Configuration found.")
@@ -82,9 +83,10 @@ class ConfigurableComponent():
         c = self.Configuration
         c['uuid'] = str(self.uuid)
         c['name'] = self.name
+        c['systemname'] = self.systemname
+        c['template'] = self.template
         c['hname'] = self.hname
         c['hdesc'] = self.hdesc
-        c['systemname'] = self.systemname
         self.logdebug("Writing config.")
         ConfigurationDB[self.name] = c
         return True
