@@ -47,22 +47,13 @@ class MSPBottom(RPCComponent.RPCComponent):
             self.loginfo("Initialized MSPBottom successfully.")
             self._setLights(0)
 
-    def rpc_connect(self, errorcode):
-        "Return calls only."
-        self.logdebug(errorcode)
-
-    def rpc_write(self, errorcode):
-        "Return calls only."
-        self.logdebug(errorcode)
-        if errorcode == (False, "Not connected."): # TODO: WHAT THE HECK. Not like this.
+    def handleResponse(self, response):
+        if response.error == "Not connected.": # TODO: WHAT THE HECK. Not like this.
             self.logwarning("Serialport not connected. Trying to connect.")
             self.send(Message(self.name, self.Configuration['SerialPort'], "connect"))
 
-
     def __init__(self):
         self.MR['rpc_init'] = {}
-        self.MR['rpc_write'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
-        self.MR['rpc_connect'] = {'errorcode': [(bool, tuple), "Errorcodes from the serial device."]}
         self.MR['rpc_serialsubscription'] = {'default': [str, "Responses from the serial device."]}
 
         super(MSPBottom, self).__init__()

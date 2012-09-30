@@ -258,7 +258,7 @@ class TkAdmin(TkWindow, RPCComponent):
             self.clearEntry()
 
 
-    def _handleMsg(self, msg):
+    def handleResponse(self, msg):
         self.recordMessage(msg)
 
         def __handleComponentInfo(msg):
@@ -270,10 +270,9 @@ class TkAdmin(TkWindow, RPCComponent):
                     self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
             else:
                 self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
-                #pprint(result)
 
-                success, result = msg.arg
                 comp = msg.sender
+                result = msg.arg
 
                 self.componentlist[comp]["info"] = result
                 MenuSubComponent = self.componentlist[comp]["Menu"]
@@ -288,12 +287,11 @@ class TkAdmin(TkWindow, RPCComponent):
                     else:
                         MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(comp,meth): self.callSimpleMethod(name,meth))
 
-        def __handleRegisteredComponents(msg):
+        def __handleRegisteredComponents(components):
            self.loginfo("Got a list of registered components. Parsing.")
-           success, result = msg.arg
            self.componentlist = {}
            self.__MenuComponents.delete(4,END)
-           for comp in result:
+           for comp in components:
                if self.autoscan.get() and comp not in self.componentlist:
                    self.scancomponent(comp)
                MenuSubComponent = Menu(self.__MenuComponents)
@@ -303,28 +301,21 @@ class TkAdmin(TkWindow, RPCComponent):
                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
                self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
 
-
         if isinstance(msg, ANRV.Messages.Message):
             if msg.sender == self.systemregistry:
                 if msg.func == "listRegisteredComponents":
-                    if isinstance(msg.arg, tuple):
-                        success, result = msg.arg
-                        if success:
-                            __handleRegisteredComponents(msg)
+                    if not msg.error:
+                        __handleRegisteredComponents(msg.arg)
             if msg.func == "getComponentInfo":
-                if isinstance(msg.arg, tuple):
-                    success, result = msg.arg
-                    if success:
-                        __handleComponentInfo(msg)
+                if not msg.error:
+                    __handleComponentInfo(msg)
             if msg.func in ("renderArea", "renderCoord"):
-                if isinstance(msg.arg, tuple):
-                    success, result = msg.arg
-                    if success:
-                        if self.MapViewer:
-                            self.MapViewer.drawMap(result)
-                        else:
-                            self.MapViewer = TkMapDialog(result)
-                            self.MapViewer.activate()
+                if not msg.error:
+                    if self.MapViewer:
+                        self.MapViewer.drawMap(msg.arg)
+                    else:
+                        self.MapViewer = TkMapDialog(msg.arg)
+                        self.MapViewer.activate()
 
     def scanlinetest(self):
         polygon = [[50,5],[100,270],[150,270],[220,30]]
@@ -498,7 +489,7 @@ class TkAdmin(TkWindow, RPCComponent):
             if self.dataReady("inbox"):
                 msg = self.recv("inbox")
                 self.logdebug("Received message '%s'" % msg)
-                self._handleMsg(msg)
+                self.handleRPC(msg)
                 if self.showresponses.get():
                     self.__TextResponses.insert(END, "%s\n" % msg)
             self.tkupdate()

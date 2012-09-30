@@ -28,7 +28,7 @@ class MapRenderer(RPCComponent.RPCComponent):
     """
     """
 
-    mapsize = 800,600
+    mapsize = 1024,768
     mapfile = "./ANRV/Static/world_boundaries.xml"
     backgroundColor = '#114B7F'
     foregroundColor = '#6494BF'

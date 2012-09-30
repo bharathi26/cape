@@ -60,17 +60,16 @@ class SimpleEngine(RPCComponent.RPCComponent):
         self.logdebug(byte)
         #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
-        self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": [byte]}))
+        self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": byte}))
 
         # TODO: Instead of this, we should enter a state here and await a response before returning our OK.
         return (True, "New thrust set.")
 
-    def rpc_write(self, errorcode):
+    def handleResponse(self, response):
         return True
 
     def __init__(self):
         self.MR['rpc_setThrust'] = {'newthrust': [float, "New thrust as float. Range [-1;0;1]."]}
-        self.MR['rpc_write'] = {'returncode': [(bool, tuple), "Errorcodes from the Maestro"]}
 
         super(SimpleEngine, self).__init__()
         self.Configuration.update({

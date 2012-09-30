@@ -51,8 +51,7 @@ class Maestro(RPCComponent):
             return True
         except Exception as error:
             self.logerror("Failed to write '%s'" % error)
-            return (False, error)
-            # TODO: Maybe not a good idea to return the exception itself. Traceback might help
+            return (False, str(error))
 
     def __init__(self):
         self.MR['rpc_write'] = {'args': [str, "Message to send"]}

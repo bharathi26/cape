@@ -171,8 +171,9 @@ class RPCMixin():
             self.logdebug(argspeclist)
             argspec = argspeclist[param]
             self.logdebug(argspec)
-            if type(args[param]) != argspec[0]:
-                warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
+            typespec = argspec[0]
+            if not isinstance(args[param], typespec):
+                warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), typespec)
                 self.logwarn(warning)
                 return False, warning
 #            except Exception as e:
@@ -199,33 +200,40 @@ class RPCMixin():
         if msg.recipient == self.name:
             self.logdebug(msg)
             self.logdebug("Checking RPC request")
-            if msg.func in self.MethodRegister:
-                self.logdebug("Request for method %s" % msg.func)
-                # TODO: Better get the method from self.MR
-                method = getattr(self, "rpc_" + msg.func)
-
-                if method:
-                    # TODO: Bug here, that gives strange traceback, when a default handler 
-                    # method is called but wrongly declared with "non default" in MR
-                    argtestresult, log = self._checkArgs(msg)
-                    if argtestresult:
-                        self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
-                        # Deliver the final result
-                        args = msg.arg if msg.arg is not None else {}
-                        result = method(**args)
-                        if result:
-                            return msg.response(result)
-                        else: return
+            if msg.msg_type == 'request':
+                if msg.func in self.MethodRegister:
+                    self.logdebug("Request for method %s" % msg.func)
+                    # TODO: Better get the method from self.MR
+                    method = getattr(self, "rpc_" + msg.func)
+                    if method:
+                        argtestresult, log = self._checkArgs(msg)
+                        if argtestresult:
+                            self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
+                            # Deliver the final result
+                            args = msg.arg if msg.arg is not None else {}
+                            result = method(**args)
+                            if result:
+                                return msg.response(result)
+                            else: return
+                        else:
+                            self.logwarning("Supplied args were invalid: '%s'" % log)
+                            return msg.response((False, log))
                     else:
-                        self.logwarning("Supplied args were invalid: '%s'" % log)
-                        return msg.response((False, log))
+                        self.logerror("Requested Method in register, but not implemented/found.")
+                        return msg.response((False, "Method not found."))
                 else:
-                    self.logerror("Requested Method in register, but not implemented/found.")
+                    # Clients should look up the requested method at least once, but may use e.g. caching
+                    self.logwarning("Requested Method not found: %s" % msg.func)
                     return msg.response((False, "Method not found."))
+            elif msg.msg_type == 'response':
+                self.logdebug("Response from call to %s" % msg.func)
+                if hasattr(self, 'handleResponse'):
+                    self.logdebug("Calling response handler")
+                    self.handleResponse(msg)
+                else:
+                    self.logwarning("Response handler not implemented")
             else:
-                # Clients should look up the requested method at least once, but may use e.g. caching
-                self.logwarning("Requested Method not found: %s" % msg.func)
-                return msg.response((False, "Method not found."))
+                self.logerror("Unknown message type %s" % msg.msg_type)
         else:
             self.logerror("Received a message without being the recipient!")
 

@@ -50,31 +50,46 @@ class Message():
     #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
 
-    __slots__ = ['sender', 'recipient', 'timestamp', 'func', 'arg']
-    def __init__(self, sender="", recipient="", func="", arg=""):
+    __slots__ = ['sender', 'recipient', 'timestamp', 'type', 'func', 'arg', 'error']
+    def __init__(self, sender="", recipient="", func="", arg="", error="", msg_type="request"):
         self.timestamp = time()
         self.sender = sender
         self.recipient = recipient
+        self.msg_type = msg_type
         self.func = func
         self.arg = arg
+        self.error = error
 
     def __str__(self):
         # TODO:
         # * check who calls this. Message apparently gets converted to string WAY too offen.
         argstring = str(self.arg)
+        errstring = str(self.error)
 
         if len(argstring) > 1024:
             argstring = "Too large to display (%i bytes)" % len(argstring)
 
-        result = "%f - [%10s] -> [%10s] %15s (%s)" %(self.timestamp, self.sender, self.recipient, self.func, argstring)
+        result = "%f - [%10s] -> [%10s] %s %15s (%s)" %(self.timestamp, self.sender, self.recipient,
+            self.msg_type, self.func, argstring if not self.error else str(self.error))
         return result
 
-    def response(self, arg=None):
-        result = deepcopy(self)
-        result.sender, result.recipient = result.recipient, result.sender
-        if arg:
-            result.arg = arg
-        return result
+    def response(self, args):
+        response = deepcopy(self)
+        response.sender, response.recipient = response.recipient, response.sender
+        response.msg_type = "response"
+        if isinstance(args, tuple):
+            success, result = args
+        elif isinstance(args, bool):
+            success = args
+            result = ""
+        else:
+            success = True
+            result = args
+        if success:
+            response.arg = result
+        else:
+            response.error = result
+        return response
 
     def jsondecode(self, jsonstring):
 #        print "Trying to parse json"
