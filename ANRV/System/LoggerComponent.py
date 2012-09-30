@@ -36,4 +36,4 @@ class LoggerComponent(RPCComponent):
         """Initializes this RPC Component. Don't forget to call super(RPCComponent, self).__init__()"""
         super(RPCComponent, self).__init__()
 
-ComponentTemplates["LoggerComponent"] = [LoggerComponent, "Not yet implemented! Log Service Component"]
+#ComponentTemplates["LoggerComponent"] = [LoggerComponent, "Not yet implemented! Log Service Component"]

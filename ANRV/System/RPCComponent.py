@@ -142,7 +142,7 @@ class RPCMixin():
         """
         self.loginfo("New subscription: '%s'@'%s'" % (function, name))
         self.subscribers[name] = function
-        return None
+        return True
 
     def _checkArgs(self, msg):
         # TODO:
@@ -167,16 +167,17 @@ class RPCMixin():
         for param in args:
             self.logdebug("Being checked: %s" % param)
             # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
-            try:
-                argspec = argspeclist[param]
-                self.logdebug(argspec)
-                if type(args[param]) != argspec[0]:
-                    warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
-                    self.logwarn(warning)
-                    return False, warning
-            except Exception as e:
-                self.logerror(e)
-                return False, "Unknown Error %s" % e
+#            try:
+            self.logdebug(argspeclist)
+            argspec = argspeclist[param]
+            self.logdebug(argspec)
+            if type(args[param]) != argspec[0]:
+                warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
+                self.logwarn(warning)
+                return False, warning
+#            except Exception as e:
+#                self.logerror(e)
+#                return False, "Unknown Error %s" % e
         return True, "All args valid."
 
     def handleRPC(self, msg):

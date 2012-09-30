@@ -78,6 +78,9 @@ class NMEABaseSensor(RPCComponent):
             self.nmeaLog[sen_time] = {'raw': nmeasentence,
                                       'type': sen_type,
                                       'obj': nmeaobject}
+            for recipient in subscribers:
+                msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=(sen_type, nmeaobject))
+                self.send(msg, "outbox")
 
     def rpc_getNMEATimeLog(self, eventtime, maxdeviation=10):
         if eventtime < 0:

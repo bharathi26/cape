@@ -41,7 +41,7 @@ class SimpleRudder(RPCComponent.RPCComponent):
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
 
-        target = (self.center + (self.delta / 2) * msg.arg)
+        target = (self.center + (self.delta / 2) * newangle)
         #print(("\n\n\n##### ENGINE TARGET: ", target))
 
         # Construct the bytes to send to the maestro

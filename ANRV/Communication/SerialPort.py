@@ -69,8 +69,8 @@ class SerialPort(RPCComponentThreaded):
             else:
                 for recipient in self.subscribers:
                     msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=self.buf)
-                    self.buf = ""
                     self.send(msg, "outbox")
+                self.buf = ""
 
 
     def __init__(self, device="/dev/ttyACM0", autodetect=True, verbosity=1):

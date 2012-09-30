@@ -51,23 +51,30 @@ class SimpleEngine(RPCComponent.RPCComponent):
 #          (It has to talk back with the Maestro and await its response before it can reliably give the requesting
 #           party a response)
 
-        target = (self.center + (self.delta / 2) * msg.arg)
+        target = int(self.center + (self.delta / 2) * newthrust)
         #print(("\n\n\n##### ENGINE TARGET: ", target))
 
         # Construct the bytes to send to the maestro
-        byte[0] = 0x84
-        byte[1] = self.address
-        byte[2] = (target*4) & 0x7f
-        byte[3] = ((target*4) >> 7) & 0x7F
+        byte = chr(0x84) + chr(self.address) + chr((target*4) & 0x7f) + chr(((target*4) >> 7) & 0x7F)
+        self.logdebug("#################################")
+        self.logdebug(byte)
         #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
-        self.send(Message(self.name, "MAESTRO", "Write", byte))
+        self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": [byte]}))
 
         # TODO: Instead of this, we should enter a state here and await a response before returning our OK.
         return (True, "New thrust set.")
 
+    def rpc_write(self, errorcode):
+        return True
+
     def __init__(self):
         self.MR['rpc_setThrust'] = {'newthrust': [float, "New thrust as float. Range [-1;0;1]."]}
+        self.MR['rpc_write'] = {'returncode': [(bool, tuple), "Errorcodes from the Maestro"]}
+
         super(SimpleEngine, self).__init__()
+        self.Configuration.update({
+            'Maestro': 'ANRV.Maestro'
+        })
 
 Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]
