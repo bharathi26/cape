@@ -49,6 +49,6 @@ class Tracker(RPCComponent):
         deg_length = 3 if direction in 'EW' else 2
         degrees = int(value[:deg_length])
         minutes = float(value[deg_length:])
-        return (degrees + minutes * 60) * (1 if direction in 'NE' else -1)
+        return (degrees + minutes / 60) * (1 if direction in 'NE' else -1)
 
 Registry.ComponentTemplates['Tracker'] = [Tracker, "Position & Course Tracker"]
