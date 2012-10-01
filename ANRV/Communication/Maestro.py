@@ -46,8 +46,7 @@ class Maestro(RPCComponent):
     def rpc_write(self, args):
         self.logdebug("Writing to Maestro '%s'" % args)
         try:
-            for byte in args:
-                self.maestro.write(chr(byte))
+            self.maestro.write(args)
             return True
         except Exception as error:
             self.logerror("Failed to write '%s'" % error)
