@@ -37,13 +37,19 @@ class Tracker(RPCComponent):
 
     def rpc_gpsinput(self, args):
         sen_type, sen = args
-        if sen_type in ('GPGGA', 'GPGLL'):
+        if sen_type == 'GPGGA':
             latitude = self._decode(sen.latitude, sen.lat_direction)
             longitude = self._decode(sen.longitude, sen.lon_direction)
-            for subscriber, function in self.subscribers.items():
-                message = Message(sender=self.name, recipient=subscriber,
-                    func=function, arg={'latitude': latitude, 'longitude': longitude})
-                self.send(message, "outbox")
+        elif sen_type == 'GPGLL':
+            latitude = self._decode(sen.lat, sen.lat_direction)
+            longitude = self._decode(sen.lon, sen.lon_direction)
+        else:
+            return
+
+        for subscriber, function in self.subscribers.items():
+            message = Message(sender=self.name, recipient=subscriber,
+                func=function, arg={'latitude': latitude, 'longitude': longitude})
+            self.send(message, "outbox")
 
     def _decode(self, value, direction):
         deg_length = 3 if direction in 'EW' else 2
