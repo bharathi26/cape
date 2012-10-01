@@ -30,10 +30,10 @@ class Tracker(RPCComponent):
         super(Tracker, self).__init__()
 
     def main_prepare(self):
-        self.latitude = float('nan')
-        self.longitude = float('nan')
-        self.track = float('nan')
-        self.speed = float('nan')
+        self.latitude = 0.0
+        self.longitude = 0.0
+        self.track = 0.0
+        self.speed = 0.0
         self.loginfo("Subscribing to NMEA data")
         request = Message(sender=self.name, recipient=self.Configuration['gps'],
             func="subscribe", arg={'function': 'gpsinput', 'name': self.name})
