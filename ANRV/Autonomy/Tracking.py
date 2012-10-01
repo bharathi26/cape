@@ -52,9 +52,9 @@ class Tracker(RPCComponent):
             self.send(message, "outbox")
 
     def _decode(self, value, direction):
-        deg_length = 3 if direction in 'EW' else 2
+        deg_length = 3 if direction[0] in 'EW' else 2
         degrees = int(value[:deg_length])
         minutes = float(value[deg_length:])
-        return (degrees + minutes / 60) * (1 if direction in 'NE' else -1)
+        return (degrees + minutes / 60) * (1 if direction[0] in 'NE' else -1)
 
 Registry.ComponentTemplates['Tracker'] = [Tracker, "Position & Course Tracker"]
