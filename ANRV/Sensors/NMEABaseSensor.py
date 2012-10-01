@@ -41,7 +41,7 @@ class NMEABaseSensor(RPCComponent):
     def __init__(self):
         self.MR['rpc_connect'] = {}
         self.MR['rpc_disconnect'] = {}
-        self.MR['rpc_nmeainput'] = {'nmeasentence': [str, "NMEA raw data"]}
+        self.MR['rpc_nmeainput'] = {'line': [str, "NMEA raw data"]}
         self.MR['rpc_getNMEADeltaLog'] = {'oldest': [float, "Begin of data collection."],
                                           'newest': [float, "End of data collection. (0 = now)", 0]}
         self.MR['rpc_getNMEATimeLog'] = {'eventtime': [float, "Begin of data collection."],
@@ -58,28 +58,28 @@ class NMEABaseSensor(RPCComponent):
         request = Message(sender=self.name, recipient=self.Configuration['SerialPort'], func="subscribe", arg={'function': 'nmeainput', 'name': self.name})
         self.send(request, "outbox")
 
-    def rpc_nmeainput(self, nmeasentence):
+    def rpc_nmeainput(self, line):
         """
         Called when a publisher sends a new nmea sentence to this sensor.
 
         The nmea data is parsed and further handling can happen.
         """
-        if not nmeasentence[0] == "$":
+        if not line[0] == "$":
             err = "Non NMEA0183 data received!"
             self.logwarn(err)
             return False, err
 
         sen_time = time() # TODO: This is late due to message traversal etc.
         # We'd like to get our hands on the message's time, somehow
-        sen_type = nmeasentence.split(',')[0].lstrip('$')
+        sen_type = line.split(',')[0].lstrip('$')
         if len(self.nmeaAcceptedSentences) == 0 or sen_type in self.nmeaAcceptedSentences:
             sen_mod = __import__('ANRV.Sensors.nmea', fromlist=[sen_type])
             nmeaobject = getattr(sen_mod, sen_type, None)
-            self.nmeaLog[sen_time] = {'raw': nmeasentence,
+            self.nmeaLog[sen_time] = {'raw': line,
                                       'type': sen_type,
                                       'obj': nmeaobject}
-            for recipient in subscribers:
-                msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=(sen_type, nmeaobject))
+            for recipient, func in self.subscribers.items():
+                msg = Message(sender=self.name, recipient=recipient, func=func, arg={'args': (sen_type, nmeaobject)})
                 self.send(msg, "outbox")
 
     def rpc_getNMEATimeLog(self, eventtime, maxdeviation=10):

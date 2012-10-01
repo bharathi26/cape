@@ -64,7 +64,7 @@ class SerialPort(RPCComponentThreaded):
                     self.buf = lines[-1]
                     self.logdebug(line)
                     for recipient in self.subscribers:
-                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=line)
+                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg={'line': line})
                         self.send(msg, "outbox")
             else:
                 for recipient in self.subscribers:
