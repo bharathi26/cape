@@ -59,6 +59,7 @@ class Tracker(RPCComponent):
             return
 
         for subscriber, function in self.subscribers.items():
+            self.loginfo("Sending tracker data to subscriber %s" % subscriber)
             message = Message(sender=self.name, recipient=subscriber,
                 func=function, arg={'latitude': self.latitude, 'longitude': self.longitude,
                     'track': self.track, 'speed': self.speed})

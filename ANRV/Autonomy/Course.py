@@ -43,6 +43,7 @@ class CourseController(RPCComponent):
         self.previousTime = None
 
     def main_prepare(self):
+        self.loginfo("Controller subscribing to tracker")
         request = Message(sender=self.name, recipient=self.Configuration['tracker'],
             func="subscribe", arg={'name': self.name, 'function': 'updateControls'})
         self.send(request, "outbox")
