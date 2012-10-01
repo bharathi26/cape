@@ -26,6 +26,7 @@ from ANRV.System.RPCComponent import RPCComponent
 from ANRV.Messages import Message
 
 import serial, string
+from pynmea.streamer import NMEAStream
 
 from time import time
 
@@ -51,7 +52,7 @@ class NMEABaseSensor(RPCComponent):
         self.Configuration.update({'SerialPort': 'ANRV.Communication.SerialPort.SerialPort_15'})
 
         self.nmeaLog = {}
-        self.nmeaAcceptedSentences = ()
+        self.streamer = NMEAStream()
 
     def main_prepare(self):
         self.loginfo("Subscribing to configured SerialPort")
@@ -64,22 +65,14 @@ class NMEABaseSensor(RPCComponent):
 
         The nmea data is parsed and further handling can happen.
         """
-        if not line[0] == "$":
-            err = "Non NMEA0183 data received!"
-            self.logwarn(err)
-            return False, err
-
         sen_time = time() # TODO: This is late due to message traversal etc.
-        # We'd like to get our hands on the message's time, somehow
-        sen_type = line.split(',')[0].lstrip('$')
-        if len(self.nmeaAcceptedSentences) == 0 or sen_type in self.nmeaAcceptedSentences:
-            sen_mod = __import__('ANRV.Sensors.nmea', fromlist=[sen_type])
-            nmeaobject = getattr(sen_mod, sen_type, None)
+        for sentence in self.streamer.get_objects(line):
             self.nmeaLog[sen_time] = {'raw': line,
-                                      'type': sen_type,
-                                      'obj': nmeaobject}
-            for recipient, func in self.subscribers.items():
-                msg = Message(sender=self.name, recipient=recipient, func=func, arg={'args': (sen_type, nmeaobject)})
+                                      'type': sentence.sen_type,
+                                      'obj': sentence}
+            for recipient, func in subscribers.items():
+                msg = Message(sender=self.name, recipient=recipient, func=func,
+                        arg={'args': (sentence.sen_type, sentence))
                 self.send(msg, "outbox")
 
     def rpc_getNMEATimeLog(self, eventtime, maxdeviation=10):
