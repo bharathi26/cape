@@ -68,7 +68,7 @@ class CourseController(RPCComponent):
         elif correction < -180:
             correction += 360
         rudder = self.Configuration['rudderProportionalGain'] * correction
-        if self.previousHeading is not None:
+        if self.previousTrack is not None:
             gain = self.Configuration['rudderDerivativeGain']
             change = track - self.previousTrack
             rudder -= gain * change / interval
