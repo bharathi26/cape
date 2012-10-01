@@ -26,43 +26,66 @@ class CourseController(RPCComponent):
 
     def __init__(self):
         self.MR['rpc_setCourse'] = {'newCourse': [float, 'New course bearing (0-360)']}
-        self.MR['rpc_getRudderAngle'] = {'currentHeading': [float, 'Current heading']}
+        self.MR['rpc_setSpeed'] = {'newSpeed': [float, 'Target speed in knots']}
+        self.MR['rpc_updateControls'] = {
+            'latitude': [float, 'Current latitude'],
+            'longitude': [float, 'Current longitude'],
+            'track': [float, 'Current track'],
+            'speed': [float, 'Current speed']}
         super(CourseController, self).__init__()
         self.Configuration.update({
-            'ProportionalGain': 0.1,
-            'DerivativeGain': 0.1})
-        self.previousHeading = None
+            'rudderProportionalGain': 0.1,
+            'rudderDerivativeGain': 0.1,
+            'engineProportionalGain': 0.1,
+            'engineDerivativeGain': 0.1})
+        self.previousTrack = None
         self.previousTime = None
 
-    def rpc_setCourse(self, newCourse):
-        if isinstance(newCourse, float) and 0 <= newCourse < 360:
-            self.course = newCourse
-            return True
-        else:
-            return (False, "WRONG ARGUMENT")
+    def main_prepare(self):
+        request = Message(sender=self.name, recipient=self.Configuration['tracker'],
+            func="subscribe", arg={'function': 'updateControls'})
+        self.send(request, "outbox")
 
-    def rpc_getRudderAngle(self, currentHeading):
-        if isinstance(currentHeading, float) and 0 <= currentHeading < 360:
-            currentTime = time()
-            correction = self.course - currentHeading
-            if correction > 180:
-                correction -= 360
-            elif correction < -180:
-                correction += 360
-            rudder = self.Configuration['ProportionalGain'] * correction
-            if self.previousHeading is not None:
-                gain = self.Configuration['DerivativeGain']
-                change = currentHeading - self.previousHeading
-                interval = currentTime - self.previousTime
-                rudder -= gain * change / interval
-            if rudder < -1:
-                rudder = -1
-            elif rudder > 1:
-                rudder = 1
-            self.previousHeading = currentHeading
-            self.previousTime = currentTime
-            return (True, rudder)
-        else:
-            return (False, "WRONG ARGUMENT")
+    def rpc_setCourse(self, newCourse):
+        self.course = newCourse
+
+    def rpc_setSpeed(self, newSpeed):
+        self.speed = newSpeed
+
+    def rpc_updateControls(self, latitude, longitude, track, speed):
+        currentTime = time()
+        correction = self.course - track
+        if correction > 180:
+            correction -= 360
+        elif correction < -180:
+            correction += 360
+        rudder = self.Configuration['rudderProportionalGain'] * correction
+        if self.previousHeading is not None:
+            gain = self.Configuration['rudderDerivativeGain']
+            change = track - self.previousTrack
+            rudder -= gain * change / interval
+        if rudder < -1:
+            rudder = -1
+        elif rudder > 1:
+            rudder = 1
+        request = Message(sender=self.name, recipient=self.Configuration['rudder'],
+            func="setRudder", arg={'newangle': rudder})
+        self.send(request, "outbox")
+        correction = self.speed - speed
+        thrust = self.Configuration['thrustProportionalGain'] * correction
+        if self.previousSpeed is not None:
+            gain = self.Configuration['thrustDerivativeGain']
+            change = speed - self.previousSpeed
+            thrust -= gain * change / interval
+        if thrust < 0:
+            thrust = 0
+        elif thrust > 1:
+            thrust = 1
+        request = Message(sender=self.name, recipient=self.Configuration['engine'],
+            func="setThrust", arg={'newthrust': thrust})
+        self.send(request, "outbox")
+        self.previousTrack = track
+        self.previousSpeed = speed
+        self.previousTime = currentTime
 
 Registry.ComponentTemplates['CourseController'] = [CourseController, "Automatic Course Controller"]
