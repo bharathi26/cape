@@ -15,13 +15,13 @@ devices = dict(
 
 def probeport(name, settings, read, write=None):
     port = serial.Serial(name, timeout=1, **settings)
-    port.readlines()
-    port.flush()
+    port.flushOutput()
+    port.readline()
     if write:
         port.write("\n%s\n" % write)
-    recv = port.readline().rstrip('\r\n')
+    recv = port.readline()
     port.close()
-    return recv == read
+    return recv.startswith(read)
 
 for device, params in devices.items():
     if probeport(portname, **params):
