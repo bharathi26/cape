@@ -73,11 +73,11 @@ class CourseController(RPCComponent):
             interval = currentTime - self.previousTime
             rudder -= gain * change / interval
         if rudder < -1:
-            rudder = -1.0
+            rudder = -1
         elif rudder > 1:
-            rudder = 1.0
+            rudder = 1
         request = Message(sender=self.name, recipient=self.Configuration['rudder'],
-            func="setRudder", arg={'newangle': rudder})
+            func="setRudder", arg={'newangle': float(rudder)})
         self.send(request, "outbox")
         correction = self.speed - speed
         thrust = self.Configuration['thrustProportionalGain'] * correction
@@ -87,11 +87,11 @@ class CourseController(RPCComponent):
             interval = currentTime - self.previousTime
             thrust -= gain * change / interval
         if thrust < 0:
-            thrust = 0.0
+            thrust = 0
         elif thrust > 1:
-            thrust = 1.0
+            thrust = 1
         request = Message(sender=self.name, recipient=self.Configuration['engine'],
-            func="setThrust", arg={'newthrust': thrust})
+            func="setThrust", arg={'newthrust': float(thrust)})
         self.send(request, "outbox")
         self.previousTrack = track
         self.previousSpeed = speed
