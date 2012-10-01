@@ -309,6 +309,7 @@ class RPCMixin():
         Overwrite if necessary.
         """
         pass
+        self.main_prepare()
 
 
     def main(self):
@@ -353,6 +354,13 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
 
         self.runsynchronized = True
 
+    def main_prepare(self):
+        """
+        Method that is executed prior entering mainloop.
+        Overwrite if necessary.
+        """
+        pass
+
     def mainthread(self):
         """
         Overwrite this method with your blocking instructions.
@@ -376,6 +384,8 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
         The threaded variant doesn't yield, it runs in its own thread.
         To not waste cycles, the component can decide to run in sync with the rest.
         """
+
+        self.main_prepare()
 
         # TODO:
         # * Most of the common parts could be grouped together in the RPCMixin for clearance.
