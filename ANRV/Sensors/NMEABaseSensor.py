@@ -86,10 +86,10 @@ class NMEABaseSensor(RPCComponent):
         if eventtime < 0:
             eventtime = time() - eventtime
         minimum, maximum = eventtime - maxdeviation, eventtime + maxdeviation
-        print((minimum, maximum))
+        #print((minimum, maximum))
         reqdict = {}
         for key in self.nmeaLog.keys():
-            print(key)
+            #print(key)
             if key > minimum and key < maximum:
                 reqdict[key] = self.nmeaLog[key]
         return True, reqdict

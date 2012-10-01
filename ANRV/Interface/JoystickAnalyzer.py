@@ -170,11 +170,11 @@ class App:
 
 
     def TransmitRudder(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "SetRudder", "arg": %f, "recipient": "ANRV.Rudder"}\r\n""" % (time(), value)
+        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "ANRV.Rudder"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def TransmitThrust(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "SetThrust", "arg": %f, "recipient": "ANRV.Engine"}\r\n""" % (time(), value)
+        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "ANRV.Engine"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def main(self):

@@ -21,6 +21,7 @@
 
 ComponentTemplates = {} # Schema: {'ComponentDescriptiveName': [class, 'Description'],}
 Components = {}         # Schema: {'ComponentName': Component}
+Dispatcher = None
 Modules = {}
 
 from ANRV.System import Configuration

@@ -1,18 +1,51 @@
 #!/usr/bin/python3
 
+
+
+import sys, getopt
+
+opts = []
+config = ""
+debug = 10
+port = 55555
+introspector = False
+
+# parse command line options
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "hc:d:p:", ["help", "config", "debug", "port"])
+except getopt.error as msg: 
+    print "OptParseFail"
+    fail = True
+    sys.exit(23)
+
+
+# process options
+for o, a in opts:
+    if o in ("-h", "--help"):
+        print "-h help -c configfile -d debuglevel(0-50) -p port"
+        sys.exit(1)
+    if o in ("-c", "--config"):
+        config = a
+    if o in ("-d", "--debug"):
+        debug = int(a)
+    if o in ("-p", "--port"):
+        port = int(a)
+
 from ANRV.System import Logging
-Logging.setupLogger()
+Logging.setupLogger(debug)
 
 Logging.systeminfo("-"*42)
 Logging.systeminfo("ScaffoldServer booting.")
 
-import sys
+from ANRV.System import Configuration
+Logging.systeminfo("Loading Configuration.")
+Configuration.setupConfig(config)
 
 from Axon.Scheduler import scheduler
 from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore
-#from Kamaelia.Internet.TCPClient import TCPClient
-#from Kamaelia.Chassis.Pipeline import Pipeline
-#from Kamaelia.Util.Introspector import Introspector
+from Kamaelia.Internet.TCPClient import TCPClient
+from Kamaelia.Chassis.Pipeline import Pipeline
+from Kamaelia.Util.Introspector import Introspector
 
 from ANRV import Version
 
@@ -26,24 +59,23 @@ from ANRV.Autonomy import *
 
 # STATIC PREPARATION
 
-def main(args):
-    print(Configuration.Configuration)
+def main():
     if 'SERVER' in Configuration.Configuration.sections:
         ServerConfig = Configuration.Configuration['SERVER']
     else:
         Logging.systemcritical("No Server Configuration found. Copy the sample or create one.")
         sys.exit(23)
 
-    introspector = False
-
     if introspector:
+        Logging.systeminfo("Connecting to introspector.")
         Pipeline(
             Introspector(),
-            TCPClient(55556),
+            TCPClient("localhost", 55556),
         ).activate()
 
     Logging.systeminfo("Instantiating Dispatcher")
     dispatcher = Dispatcher.Dispatcher()
+    Registry.Dispatcher = dispatcher
     dispatcher.activate()
 
     Logging.systeminfo("Instantiating Registry")
@@ -56,9 +88,10 @@ def main(args):
     registrycomponent.activate()
     registrycomponent.initFromConfig()
 
-    Logging.systeminfo("Setting up JSONServer on port 55555")
-    jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=55555)
+    Logging.systeminfo("Setting up JSONServer on port %i" % port)
+    jsonserver = ServerCore(protocol=JSONServer.JSONProtocol, port=port)
     jsonserver.activate()
+    dispatcher.RegisterComponent(jsonserver)
 
     if ServerConfig['runserver']:
         Logging.systeminfo("Starting all threads")
@@ -70,4 +103,4 @@ def main(args):
 if __name__ == "__main__":
     Logging.systeminfo("Booting up server scaffold. SystemName: %s" % Identity.SystemName)
 
-    main(sys.argv)
+    main()

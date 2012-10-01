@@ -45,7 +45,6 @@ class RegistryComponent(RPCComponent):
         config = Configuration.Configuration
         for sectionitem in config:
             section = config[sectionitem]
-            print section
             if section.has_key("template"):
                 newcomponent = self._createComponent(section["template"], sectionitem)
                 newcomponent.ReadConfiguration()
@@ -75,6 +74,7 @@ class RegistryComponent(RPCComponent):
                 # TODO: Initialize parameters correctly (How?)
                 try:
                     newcomponent = Registry.ComponentTemplates[templatename][0]()
+                    newcomponent.template = templatename
                     newcomponent.systemregistry = self.name
                     if name:
                         newcomponent.name = name

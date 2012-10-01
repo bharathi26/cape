@@ -54,8 +54,8 @@ class ColorFormatter(_logging.Formatter):
         message   = _logging.Formatter.format(self, record)
         message   = message.replace("$RESET", RESET_SEQ)
 
-def setupLogger():
-    _logging.basicConfig(format='%(asctime)s [%(levelname)8s]:%(message)s', level=_logging.DEBUG)
+def setupLogger(lvl=_logging.DEBUG):
+    _logging.basicConfig(format='%(asctime)s [%(levelname)8s]:%(message)s', level=lvl)
 
     _logging.captureWarnings(True)
     _logging.info("Logging started.")
