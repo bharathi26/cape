@@ -44,7 +44,7 @@ class CourseController(RPCComponent):
 
     def main_prepare(self):
         request = Message(sender=self.name, recipient=self.Configuration['tracker'],
-            func="subscribe", arg={'function': 'updateControls'})
+            func="subscribe", arg={'name': self.name, 'function': 'updateControls'})
         self.send(request, "outbox")
 
     def rpc_setCourse(self, newCourse):
