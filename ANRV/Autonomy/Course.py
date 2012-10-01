@@ -42,6 +42,7 @@ class CourseController(RPCComponent):
         self.course = None
         self.speed = None
         self.previousTrack = None
+        self.previousSpeed = None
         self.previousTime = None
 
     def main_prepare(self):
