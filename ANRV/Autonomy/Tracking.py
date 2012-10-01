@@ -30,6 +30,10 @@ class Tracker(RPCComponent):
         super(Tracker, self).__init__()
 
     def main_prepare(self):
+        self.latitude = float('nan')
+        self.longitude = float('nan')
+        self.track = float('nan')
+        self.speed = float('nan')
         self.loginfo("Subscribing to NMEA data")
         request = Message(sender=self.name, recipient=self.Configuration['gps'],
             func="subscribe", arg={'function': 'gpsinput', 'name': self.name})
@@ -38,17 +42,26 @@ class Tracker(RPCComponent):
     def rpc_gpsinput(self, args):
         sen_type, sen = args
         if sen_type == 'GPGGA':
-            latitude = self._decode(sen.latitude, sen.lat_direction)
-            longitude = self._decode(sen.longitude, sen.lon_direction)
+            self.latitude = self._decode(sen.latitude, sen.lat_direction)
+            self.longitude = self._decode(sen.longitude, sen.lon_direction)
         elif sen_type == 'GPGLL':
-            latitude = self._decode(sen.lat, sen.lat_direction)
-            longitude = self._decode(sen.lon, sen.lon_direction)
+            self.latitude = self._decode(sen.lat, sen.lat_direction)
+            self.longitude = self._decode(sen.lon, sen.lon_direction)
+        elif sen_type == 'GPRMC':
+            self.latitude = self._decode(sen.lat, sen.lat_dir)
+            self.longitude = self._decode(sen.lon, sen.lon_dir)
+            self.track = float(sen.true_course)
+            self.speed = float(sen.spd_over_grnd)
+        elif sen_type == 'GPVTG':
+            self.track = float(sen.true_track)
+            self.speed = float(sen.spd_over_grnd_kts)
         else:
             return
 
         for subscriber, function in self.subscribers.items():
             message = Message(sender=self.name, recipient=subscriber,
-                func=function, arg={'latitude': latitude, 'longitude': longitude})
+                func=function, arg={'latitude': self.latitude, 'longitude': self.longitude,
+                    'track': self.track, 'speed': self.speed})
             self.send(message, "outbox")
 
     def _decode(self, value, direction):
