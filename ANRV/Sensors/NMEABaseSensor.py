@@ -70,7 +70,7 @@ class NMEABaseSensor(RPCComponent):
             self.nmeaLog[sen_time] = {'raw': line,
                                       'type': sentence.sen_type,
                                       'obj': sentence}
-            for recipient, func in subscribers.items():
+            for recipient, func in self.subscribers.items():
                 msg = Message(sender=self.name, recipient=recipient, func=func,
                         arg={'args': (sentence.sen_type, sentence)})
                 self.send(msg, "outbox")
