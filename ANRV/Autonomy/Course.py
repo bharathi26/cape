@@ -41,8 +41,6 @@ class CourseController(RPCComponent):
             'thrustDerivativeGain': 0.1})
         self.course = None
         self.speed = None
-        self.previousTrack = None
-        self.previousSpeed = None
         self.previousTime = None
 
     def main_prepare(self):
@@ -58,20 +56,21 @@ class CourseController(RPCComponent):
         self.speed = newSpeed
 
     def rpc_updateControls(self, latitude, longitude, track, speed):
+        currentTime = time()
         if self.course is None:
             return False, "Course not set"
         elif self.speed is None:
             return False, "Speed not set"
-        currentTime = time()
         correction = self.course - track
         if correction > 180:
             correction -= 360
         elif correction < -180:
             correction += 360
         rudder = self.Configuration['rudderProportionalGain'] * correction
-        if self.previousTrack is not None:
+        if self.previousTime is not None:
             gain = self.Configuration['rudderDerivativeGain']
             change = track - self.previousTrack
+            interval = currentTime - self.previousTime
             rudder -= gain * change / interval
         if rudder < -1:
             rudder = -1
@@ -82,9 +81,10 @@ class CourseController(RPCComponent):
         self.send(request, "outbox")
         correction = self.speed - speed
         thrust = self.Configuration['thrustProportionalGain'] * correction
-        if self.previousSpeed is not None:
+        if self.previousTime is not None:
             gain = self.Configuration['thrustDerivativeGain']
             change = speed - self.previousSpeed
+            interval = currentTime - self.previousTime
             thrust -= gain * change / interval
         if thrust < 0:
             thrust = 0
