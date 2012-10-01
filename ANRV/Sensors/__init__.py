@@ -1,1 +1,1 @@
-__all__ = ['NMEABaseSensor']
+__all__ = ['NMEABaseSensor', 'Magnetometer']
