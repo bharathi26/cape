@@ -37,7 +37,7 @@ class Tracker(RPCComponent):
 
     def rpc_gpsinput(self, args):
         sen_type, sen = args
-        if sen_type == 'GPGGA':
+        if sen_type in ('GPGGA', 'GPGLL'):
             latitude = self._decode(sen.latitude, sen.lat_direction)
             longitude = self._decode(sen.longitude, sen.lon_direction)
             for subscriber, function in self.subscribers.items():
