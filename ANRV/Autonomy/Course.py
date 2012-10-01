@@ -20,6 +20,7 @@
 
 from ANRV.System import Registry
 from ANRV.System.RPCComponent import RPCComponent
+from ANRV.Messages import Message
 from time import time
 
 class CourseController(RPCComponent):
