@@ -49,8 +49,8 @@ JoystickDB = {'Logitech Logitech Extreme 3D':{
                       3:THRUST},# 'Thrust'
                'correction': {0:lambda v: v,
                               1:lambda v: v,
-                              2:lambda v: v/2,
-                              3:lambda v: v}
+                              2:lambda v: v,
+                              3:lambda v: (-v/2)+0.5}
 
                }
              }
