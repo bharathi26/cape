@@ -37,8 +37,10 @@ class CourseController(RPCComponent):
         self.Configuration.update({
             'rudderProportionalGain': 0.1,
             'rudderDerivativeGain': 0.1,
-            'engineProportionalGain': 0.1,
-            'engineDerivativeGain': 0.1})
+            'thrustProportionalGain': 0.1,
+            'thrustDerivativeGain': 0.1})
+        self.course = None
+        self.speed = None
         self.previousTrack = None
         self.previousTime = None
 
@@ -55,6 +57,10 @@ class CourseController(RPCComponent):
         self.speed = newSpeed
 
     def rpc_updateControls(self, latitude, longitude, track, speed):
+        if self.course is None:
+            return False, "Course not set"
+        elif self.speed is None:
+            return False, "Speed not set"
         currentTime = time()
         correction = self.course - track
         if correction > 180:
@@ -89,5 +95,6 @@ class CourseController(RPCComponent):
         self.previousTrack = track
         self.previousSpeed = speed
         self.previousTime = currentTime
+        return True
 
 Registry.ComponentTemplates['CourseController'] = [CourseController, "Automatic Course Controller"]
