@@ -309,7 +309,6 @@ class RPCMixin():
         Overwrite if necessary.
         """
         pass
-        self.main_prepare()
 
 
     def main(self):
