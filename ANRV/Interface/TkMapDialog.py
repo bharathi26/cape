@@ -55,7 +55,7 @@ class TkMapDialog(TkWindow, LoggableComponent):
     def __init__(self, mapimage=None):
         super(TkMapDialog, self).__init__()
 
-        self.title = "Map Viewer - [%s]" % Identity.SystemName
+        self.window.title("Map Viewer - [%s]" % Identity.SystemName)
 
         self.frame = Frame(self.window)
         self.canvas = Canvas(self.frame)
@@ -79,5 +79,7 @@ class TkMapDialog(TkWindow, LoggableComponent):
         self.tk_image = PIL.ImageTk.PhotoImage(pil_image)
 
         self.logdebug("Drawing Image.")
-        self.canvas.create_image(0, 0, image=self.tk_image)
+        # TODO:
+        # * dynamic map/canvas size, not fixed crap
+        self.canvas.create_image(512, 384, image=self.tk_image)
 

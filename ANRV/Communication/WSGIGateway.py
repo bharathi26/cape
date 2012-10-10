@@ -37,7 +37,8 @@ class WSGIGateway(RPCComponentThreaded):
 
     def main(self):
         self.loginfo("Starting bottle server.")
-        bottle.run(app=self.app, host="localhost", port=8080, debug=False)
+        # TODO: Do this in a safe way (ie don't crash upon already opened port, etc)
+        bottle.run(app=self.app, host="localhost", port=5555, debug=False)
 
 
 ComponentTemplates["WSGIGateway"] = [WSGIGateway, "WSGI Gateway component"]

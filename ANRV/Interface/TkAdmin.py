@@ -53,45 +53,76 @@ from pprint import pprint
 
 
 class TkRPCArgDialog(TkWindow, LoggableComponent):
-    def __init__(self, parent, callback, argspec, compname, compfunc):
+    def __init__(self, parent, callback, componentname, methodname, methodinfo):
         # TODO:
         # * Clean up (ownerships etc)
         # * parsing of args and interaction with them (export etc)
         super(TkRPCArgDialog, self).__init__()
 
+        argspec = methodinfo['args']
+        doc = methodinfo['doc']
+
+        title = "%s@%s" % (methodname, componentname)
+        self.window.title(title)
+
         self.argspec = argspec
         self.callback = callback
-        self.compname = compname
-        self.compfunc = compfunc
-        self.argFrames = self.argLabels = self.argEntrys = {}
+        self.componentname = componentname
+        self.methodname = methodname
+
+        self._methFrame = Frame(self.window)
+        self._methLabel = Label(self._methFrame, text=title)
+        self._methLabel.pack(fill='x', expand='yes', side='top')
+        self._methDoc = Label(self._methFrame, text=doc)
+        self._methDoc.pack(fill='x', expand='yes', side='bottom')
+        self._methFrame.pack(fill='x', expand='yes', side='top')
+
+        self.argEntries = {}
+        self.argDocs = {}
+        self._argsFrame = Frame(self.window)
 
         for arg in argspec:
-            frame = Frame(self.window)
-            myLabel = Label(frame, text="%s (%s)" % (arg, argspec[arg][0]))
-            myLabel.pack(side="left")
+            argFrame = Frame(self._argsFrame)
+            argDocFrame = Frame(argFrame)
+            argDoc = Label(argDocFrame, text=argspec[arg][1], height=3)
+            argDoc.pack(fill='x', side="left")
+            argDocFrame.pack(fill="x", expand="yes")
 
-            myEntryBox = Entry(frame)
-            myEntryBox.pack(side="right", anchor="e")
-            self.argFrames[arg] = frame
-            self.argLabels[arg] = myLabel
-            self.argEntrys[arg] = myEntryBox
+            argEntry = Entry(argFrame)
+            #argEntry._textbox.config(height=1)
+            argEntry.pack(fill='x', expand="yes", side="right")
+            argLabel = Label(argFrame, text="%s (%s)" % (arg, argspec[arg][0].__name__))
+            argLabel.pack(side='left')
+            argFrame.pack(fill='x', expand='yes')
 
-            frame.pack()
 
-        self.mySubmitButton = Button(self.window, text='Submit', command=self.send)
-        self.mySubmitButton.pack()
+            self.argEntries[arg] = {'Frame': argFrame, 'Entry': argEntry, 'Doc': argDoc}
+
+        self._argsFrame.pack(expand='yes', fill='both', side="top")
+
+        self._buttonFrame = Frame(self.window)
+
+        self._submitButton = Button(self._buttonFrame, text='Submit', command=self.send)
+        self._closeButton = Button(self._buttonFrame, text='Close', command=self.close)
+        self._submitButton.pack(side="left")
+        self._closeButton.pack(side="right")
+
+        self._buttonFrame.pack(side="bottom", fill="x", expand="yes")
 
     def send(self):
         arguments = {}
-        for args in self.argEntrys:
+
+        for args in self.argEntries:
             self.logdebug("Checking '%s' against '%s'" % (args, self.argspec[args]))
             if self.argspec[args][0] == dict:
-                arguments[args] = json.loads(self.argEntrys[args].get())
+                arguments[args] = json.loads(self.argEntries[args]['Entry'].get())
             else:
-                arguments[args] = self.argspec[args][0](self.argEntrys[args].get())
+                arguments[args] = self.argspec[args][0](self.argEntries[args]['Entry'].get())
         if len(arguments) == 1:
             arguments = arguments['default']
-        self.callback(self.compname, self.compfunc, arguments)
+        self.callback(self.componentname, self.methodname, arguments)
+
+    def close(self):
         self.window.destroy()
 
 class TkAdmin(TkWindow, RPCComponent):
@@ -161,9 +192,10 @@ class TkAdmin(TkWindow, RPCComponent):
         msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
         self.transmit(msg)
 
-    def callComplexMethod(self, name, func, argspec):
-        self.loginfo("Preparing call to '%s'@'%s'. with %i args" % (func, name, len(argspec)))
-        InputDialog = TkRPCArgDialog(self.window, self.callComplexMethodFinal, argspec, name, func)
+    def callComplexMethod(self, componentname, func):
+        self.loginfo("Creating function dialog for '%s'@'%s'." % (func, componentname))
+        methodregister = self.componentlist[componentname]["info"]["methods"][func]
+        InputDialog = TkRPCArgDialog(self.window, self.callComplexMethodFinal, componentname, func, methodregister)
 
     def callComplexMethodFinal(self, name, func, args):
         self.loginfo("Finally calling func '%s'@'%s' with args '%s'" % (func, name, args))
@@ -245,7 +277,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 success, result = msg.arg
                 comp = msg.sender
 
-                self.componentlist[comp]["Info"] = result
+                self.componentlist[comp]["info"] = result
                 MenuSubComponent = self.componentlist[comp]["Menu"]
                 MenuSubComponent.delete(3, END)
 
@@ -254,9 +286,9 @@ class TkAdmin(TkWindow, RPCComponent):
                 for meth in mr:
                     self.logdebug("Got method '%s'." % meth)
                     if len(mr[meth]['args']) > 0:
-                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth,argspec)=(msg.sender,meth,mr[meth]['args']): self.callComplexMethod(name,meth,argspec))
+                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(comp,meth): self.callComplexMethod(name,meth))
                     else:
-                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(msg.sender,meth): self.callSimpleMethod(name,meth))
+                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(comp,meth): self.callSimpleMethod(name,meth))
 
         def __handleRegisteredComponents(msg):
            self.loginfo("Got a list of registered components. Parsing.")
@@ -271,7 +303,7 @@ class TkAdmin(TkWindow, RPCComponent):
                MenuSubComponent.add_separator()
 
                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
-               self.componentlist[comp] = {"Menu": MenuSubComponent, "Info": None}
+               self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
 
 
         if isinstance(msg, ANRV.Messages.Message):
@@ -281,7 +313,6 @@ class TkAdmin(TkWindow, RPCComponent):
                         success, result = msg.arg
                         if success:
                             __handleRegisteredComponents(msg)
-            print(msg.sender)
             if msg.func == "getComponentInfo":
                 if isinstance(msg.arg, tuple):
                     success, result = msg.arg
@@ -418,7 +449,7 @@ class TkAdmin(TkWindow, RPCComponent):
 
         self.__FrameInputEntry = Frame(self.__FrameInput)
 
-        self.__EntryInput = Entry(self.__FrameInput, foreground="White")
+        self.__EntryInput = Entry(self.__FrameInput)
         self.__EntryInput.pack(expand='yes',fill='both',side='left')
 
         self.__FrameTransmitButton = Frame(self.__FrameInput)

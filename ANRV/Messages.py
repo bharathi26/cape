@@ -59,7 +59,14 @@ class Message():
         self.arg = arg
 
     def __str__(self):
-        result = "%f - [%10s] -> [%10s] %15s (%s)" %(self.timestamp, self.sender, self.recipient, self.func, self.arg)
+        # TODO:
+        # * check who calls this. Message apparently gets converted to string WAY too offen.
+        argstring = str(self.arg)
+
+        if len(argstring) > 1024:
+            argstring = "Too large to display (%i bytes)" % len(argstring)
+
+        result = "%f - [%10s] -> [%10s] %15s (%s)" %(self.timestamp, self.sender, self.recipient, self.func, argstring)
         return result
 
     def response(self, arg=None):

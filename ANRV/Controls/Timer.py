@@ -27,6 +27,16 @@ import time
 class Timer(RPCComponent.RPCComponent):
     events = []
 
+    def __init__(self):
+        self.MR['rpc_addTimer'] = {'usec': [float, "Unix timestamp of event"],
+                                   'message': [Message, "Message to transmit on event"]
+                                  }
+        self.MR['rpc_addCountdown'] = {'usec': [float, "Seconds to count down"],
+                                       'message': [Message, "Message to transmit on countdown"]
+                                      }
+        self.MR['rpc_listTimers'] = {}
+        super(Timer, self).__init__()
+
     def rpc_addTimer(self, usec, message):
         """
         Stores a timed message.
