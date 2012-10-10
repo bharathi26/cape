@@ -31,12 +31,17 @@ class LoggableComponent():
     * RPC related stuff? later in the tree
     """
     def __init__(self):
-        if not self.name:
-            print("DON'T HAVE A NAME, ME SIMPLE LOGGABLE MIXIN.")
+        try:
+            self.logdebug("Beginning component logging.")
+        except AttributeError:
             self.name = "STUPIDLOGGABLE"
+            self.logdebug("DON'T HAVE A NAME, ME SIMPLE LOGGABLE MIXIN.")
 
     def _formMessage(self, msg):
-        return Logging.formMessage(self.name[self.name.rindex(".")+1:], msg)
+        try:
+            return Logging.formMessage(self.name[self.name.rindex(".")+1:], msg)
+        except AttributeError:
+            return Logging.formMessage("UNNAMED", msg)
 
     def logdebug(self, msg):
         Logging.debug(self._formMessage(msg))

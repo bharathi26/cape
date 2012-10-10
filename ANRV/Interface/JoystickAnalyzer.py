@@ -64,17 +64,18 @@ import socket
 import sys
 import getopt
 
-from .Colors import *
+from Colors import *
 
 
 class App:
-    def __init__(self,ip="127.0.0.1",port=55555):
+    def __init__(self,joynum, ip, port):
         pygame.init()
 
         pygame.display.set_caption("ANRV Joystick Prototype")
 
         # Set up the network connection
         self.socket = None
+        self.joynum = joynum
         self.hostname = ip
         self.port = port
 
@@ -92,9 +93,9 @@ class App:
 
         print(self.joystick_names)
 
-        # By default, load the first available joystick.
+        # Select the joystick
         if (len(self.joystick_names) > 0):
-            self.my_joystick = pygame.joystick.Joystick(0)
+            self.my_joystick = pygame.joystick.Joystick(joynum)
             self.my_joystick.init()
 
         max_joy = max(self.my_joystick.get_numaxes(),
@@ -169,27 +170,34 @@ class App:
 
 
     def TransmitRudder(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "SetRudder", "arg": %f, "recipient": "Rudder"}\r\n""" % (time(), value)
+        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "ANRV.Rudder"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def TransmitThrust(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "SetThrust", "arg": %f, "recipient": "Engine"}\r\n""" % (time(), value)
+        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "ANRV.Engine"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def main(self):
         freq = 60
         # TODO: Needs a default for unknown joysticks!
         # print JoystickDB
-        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
-   
+
+#        if "Logitech Logitech Extreme 3D Pro" not in self.joystick_names:
+#           print "Connect a supported joystick!"
+#           sys.exit
+
+#        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
+        JoystickConf = JoystickDB[self.joystick_names[self.joynum]]
+        print JoystickConf
         if JoystickConf:
             Correction = JoystickConf['correction']
             AxesConf = JoystickConf['axes']
             ButtonConf = JoystickConf['buttons']
         else:
             JoystickConf = None
-        axescount = self.my_joystick.get_numaxes()
-        buttoncount = self.my_joystick.get_numbuttons()
+        print Correction
+        axescount = len(AxesConf) # self.my_joystick.get_numaxes() # << wtf, returend 6 for a 4 axes logitech!?
+        buttoncount = len(ButtonConf) # self.my_joystick.get_numbuttons()
 
         axesval = [0.0] * axescount
         oldaxesval = [0.0] * axescount
@@ -233,13 +241,14 @@ class App:
                 elif (event.type == QUIT):
                     self.quit()
                     return
-            self.draw_text("Joystick Name:  %s (%s)" % (self.joystick_names[0], supported), 5, 5, joysticknamecolor)
+            self.draw_text("Joystick Name:  %s (%s)" % (self.joystick_names[self.joynum], supported), 5, 5, joysticknamecolor)
+
 
             ############################ AXES ############################
 
-            self.draw_text("Axes (%d)" % self.my_joystick.get_numaxes(), 5, 15, WHITE)
+            self.draw_text("Axes (%d)" % axescount, 5, 15, WHITE)
 
-            for i in range(self.my_joystick.get_numaxes()):
+            for i in range(axescount):
                 # Get current corrected axis value
                 axesval[i] = Correction[i](self.my_joystick.get_axis(i))
 
@@ -344,17 +353,22 @@ class App:
 
 def ParseOpts():
     opts = []
+    joynum = 0
     ip = "127.0.0.1"
     port = 55555
     
     # parse command line options
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:i:v", ["help","port", "ip", "verbose"])
+        opts, args = getopt.getopt(sys.argv[1:], "hj:p:i:v:", ["help", "joystick", "port", "ip", "verbose"])
     except getopt.error as msg:
+        print "OptParseFail"
         fail = True
+
     
     # process options
     for o, a in opts:
+        if o in ("-j", "--joystick"):
+            joynum = int(a)
         if o in ("-h", "--help"):
             print(__readme__)
             sys.exit(0)
@@ -363,12 +377,12 @@ def ParseOpts():
         if o in ("-p", "--port"):
             port = int(a)
 
-    return ip, port
+    return joynum, ip, port
 
 
 def Start():
-    ip, port = ParseOpts()
-    app = App(ip,port)
+    joynum, ip, port = ParseOpts()
+    app = App(joynum, ip, port)
     app.main()
 
 if __name__ == "__main__":

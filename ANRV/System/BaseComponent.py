@@ -41,6 +41,7 @@ class BaseMixin():
     uuid = None
     hname = ""
     hdesc = ""
+    template = ""
     systemname = SystemName
     systemregistry = ""
 

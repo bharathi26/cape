@@ -40,22 +40,28 @@ class SimpleRudder(RPCComponent.RPCComponent):
         Arranges 4 bytes to contain the control command, servo address and new target.
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
-        args = {'newangle': [float, 'New rudder angle (-1;0;1)']}
 
-        if isinstance(newangle, float): # TODO: Bad, we should do argument typechecking at a higher (RPC) level!
-            target = (self.center + (self.delta / 2) * msg.arg)
-            #print(("\n\n\n##### ENGINE TARGET: ", target))
+        target = int(self.center + (self.delta / 2) * newangle)
+        #print(("\n\n\n##### ENGINE TARGET: ", target))
 
-            # Construct the bytes to send to the maestro
-            byte[0] = 0x84
-            byte[1] = self.address
-            byte[2] = (target*4) & 0x7f
-            byte[3] = ((target*4) >> 7) & 0x7F
-            #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
+        # Construct the bytes to send to the maestro
+        byte = chr(0x84) + chr(self.address) + chr((target*4) & 0x7f) + chr(((target*4) >> 7) & 0x7F)
+        #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
-            self.send(Message(self.name, "MAESTRO", "Write", byte))
-            return True
-        else:
-            return (False, "WRONG ARGUMENT")
+        self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": byte}))
+
+        # TODO: Instead of this, we should enter a state here and await a response before returning our OK.
+        return (True, "New angle set.")
+
+    def handleResponse(self, response):
+        return True
+
+    def __init__(self):
+        self.MR['rpc_setRudder'] = {'newangle': [float, "New angle as float. Range [-1;0;1]."]}
+
+        super(SimpleRudder, self).__init__()
+        self.Configuration.update({
+            'Maestro': 'ANRV.Maestro'
+        })
 
 Registry.ComponentTemplates['SimpleRudder'] = [SimpleRudder, "Simple Rudder (Maestro Controlled) Component"]

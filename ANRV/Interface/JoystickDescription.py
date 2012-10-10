@@ -30,8 +30,7 @@ FULLSTOP = 'Fullstop'
 UNASSIGNED = 'Unassigned'
 BAD = 'Bad'
 
-JoystickDB = {('Logitech Logitech Extreme 3D Pro',
-               'Logitech Logitech Extreme 3D'):{
+JoystickDB = {'Logitech Logitech Extreme 3D':{
                 'buttons': {0:BOOST,                # 'Fire'
                             1:FULLSTOP,             # 'Thumb'
                             2:'Thumb_LowerLeft',
@@ -50,8 +49,8 @@ JoystickDB = {('Logitech Logitech Extreme 3D Pro',
                       3:THRUST},# 'Thrust'
                'correction': {0:lambda v: v,
                               1:lambda v: v,
-                              2:lambda v: v/2,
-                              3:lambda v: v}
+                              2:lambda v: v,
+                              3:lambda v: (-v/2)+0.5}
 
                }
              }

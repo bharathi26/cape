@@ -142,16 +142,7 @@ class RPCMixin():
         """
         self.loginfo("New subscription: '%s'@'%s'" % (function, name))
         self.subscribers[name] = function
-        return None
-
-    def _callMethod(self, method, msg):
-        argspeclist = self.MethodRegister[msg.func]['args']
-        if len(argspeclist) > 1:
-            return method(**msg.arg)
-        elif len(argspeclist) == 1:
-            return method(msg.arg)
-        else:
-            return method()
+        return True
 
     def _checkArgs(self, msg):
         # TODO:
@@ -163,58 +154,32 @@ class RPCMixin():
         argspeclist = self.MethodRegister[msg.func]['args']
         #self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
 
-        if isinstance(argspeclist, dict):
-            if len(argspeclist) == 0: # Method has no arguments
-                # TODO: Maybe warn upon unexpected arguments
-                self.loginfo("Method '%s' (no args) called." % msg.func)
-                return True, 'No args.'
-            elif len(argspeclist) > 1: # Call requires possibly more than one argument
-                # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
-                args = msg.arg
-                self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
+        # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
+        args = msg.arg if msg.arg is not None else {}
+        self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
 
-                # TODO: with this, specified args HAVE to be supplied AND named.
-                # Consider optional and required args as possibly better alternative
-                # But how to best specify that in an unobscured way?
+        # TODO: with this, specified args HAVE to be supplied AND named.
+        # Consider optional and required args as possibly better alternative
+        # But how to best specify that in an unobscured way?
 
-                if not args or len(args) != len(argspeclist):
-                    return False, 'Incorrect number of arguments.'
-                for param in args:
-                    self.logdebug("Being checked: %s" % param)
-                    # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
-                    try:
-                        argspec = argspeclist[param]
-                        self.logdebug(argspec)
-                        if type(args[param]) != argspec[0]:
-                            warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), argspec)
-                            self.logwarn(warning)
-                            return False, warning
-                    except Exception as e:
-                        self.logerror(e)
-                        return False, "Unknown Error %s" % e
-                return True, "All args valid."
-            elif len(argspeclist) == 1:
-                if argspeclist.has_key('default'): # Sender sent only one "default" parameter
-                    self.loginfo("Method '%s' (default parameter) called. Checking default parameter." % msg.func)
-                    argspec = argspeclist['default']
-                    self.logdebug("Spec: %s Arg: %s" % (argspec, msg.arg))
-                    if isinstance(msg.arg, dict):
-                        arg = msg.arg['default']
-                    else:
-                        arg = msg.arg
-                    if type(arg) != argspec[0]:
-                        warning = "Argument type error: %s expected." % (argspec[0])
-                        self.logwarn(warning)
-                        return False, warning
-                    else:
-                        return True, "Default arg valid."
-                else:
-                    error = "Argument specification is wrong: '%s'" % (argspeclist)
-                    self.logerror(error)
-                    return False, error
-        else:
-            self.logerror("Argument specification bad: '%s'" % argspeclist)
-            return False, "Argument Specification is bad."
+        if len(args) != len(argspeclist):
+            return False, 'Incorrect number of arguments. Got %d, expected %d' % (len(args), len(argspeclist))
+        for param in args:
+            self.logdebug("Being checked: %s" % param)
+            # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
+#            try:
+            self.logdebug(argspeclist)
+            argspec = argspeclist[param]
+            self.logdebug(argspec)
+            typespec = argspec[0]
+            if not isinstance(args[param], typespec):
+                warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), typespec)
+                self.logwarn(warning)
+                return False, warning
+#            except Exception as e:
+#                self.logerror(e)
+#                return False, "Unknown Error %s" % e
+        return True, "All args valid."
 
     def handleRPC(self, msg):
         """Handles RPC requests by
@@ -235,32 +200,40 @@ class RPCMixin():
         if msg.recipient == self.name:
             self.logdebug(msg)
             self.logdebug("Checking RPC request")
-            if msg.func in self.MethodRegister:
-                self.logdebug("Request for method %s" % msg.func)
-                # TODO: Better get the method from self.MR
-                method = getattr(self, "rpc_" + msg.func)
-
-                if method:
-                    # TODO: Bug here, that gives strange traceback, when a default handler 
-                    # method is called but wrongly declared with "non default" in MR
-                    argtestresult, log = self._checkArgs(msg)
-                    if argtestresult:
-                        self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
-                        # Deliver the final result
-                        result = self._callMethod(method, msg)
-                        if result:
-                            return msg.response(result)
-                        else: return
+            if msg.msg_type == 'request':
+                if msg.func in self.MethodRegister:
+                    self.logdebug("Request for method %s" % msg.func)
+                    # TODO: Better get the method from self.MR
+                    method = getattr(self, "rpc_" + msg.func)
+                    if method:
+                        argtestresult, log = self._checkArgs(msg)
+                        if argtestresult:
+                            self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
+                            # Deliver the final result
+                            args = msg.arg if msg.arg is not None else {}
+                            result = method(**args)
+                            if result:
+                                return msg.response(result)
+                            else: return
+                        else:
+                            self.logwarning("Supplied args were invalid: '%s'" % log)
+                            return msg.response((False, log))
                     else:
-                        self.logwarning("Supplied args were invalid: '%s'" % log)
-                        return msg.response((False, log))
+                        self.logerror("Requested Method in register, but not implemented/found.")
+                        return msg.response((False, "Method not found."))
                 else:
-                    self.logerror("Requested Method in register, but not implemented/found.")
+                    # Clients should look up the requested method at least once, but may use e.g. caching
+                    self.logwarning("Requested Method not found: %s" % msg.func)
                     return msg.response((False, "Method not found."))
+            elif msg.msg_type == 'response':
+                self.logdebug("Response from call to %s" % msg.func)
+                if hasattr(self, 'handleResponse'):
+                    self.logdebug("Calling response handler")
+                    self.handleResponse(msg)
+                else:
+                    self.logwarning("Response handler not implemented")
             else:
-                # Clients should look up the requested method at least once, but may use e.g. caching
-                self.logwarning("Requested Method not found: %s" % msg.func)
-                return msg.response((False, "Method not found."))
+                self.logerror("Unknown message type %s" % msg.msg_type)
         else:
             self.logerror("Received a message without being the recipient!")
 
@@ -322,7 +295,7 @@ class RPCMixin():
         self.MR['rpc_writeConfiguration'] = {}
         self.MR['rpc_readConfiguration'] = {}
         self.MR['rpc_hasConfiguration'] = {}
-        self.MR['rpc_setConfiguration'] = {'default': [dict, "Configuration updates"]}
+        self.MR['rpc_setConfiguration'] = {'config': [dict, "Configuration updates"]}
         self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"], # TODO: Uh oh. Anyone can subscribe anything?
                                     'function': [str, "Name of function call to use"]}
 
@@ -380,6 +353,13 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
 
         self.runsynchronized = True
 
+    def main_prepare(self):
+        """
+        Method that is executed prior entering mainloop.
+        Overwrite if necessary.
+        """
+        pass
+
     def mainthread(self):
         """
         Overwrite this method with your blocking instructions.
@@ -403,6 +383,8 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
         The threaded variant doesn't yield, it runs in its own thread.
         To not waste cycles, the component can decide to run in sync with the rest.
         """
+
+        self.main_prepare()
 
         # TODO:
         # * Most of the common parts could be grouped together in the RPCMixin for clearance.

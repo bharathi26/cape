@@ -29,10 +29,10 @@ class WSGIGateway(RPCComponentThreaded):
         self.app.route('/pseudowsgi/<path>', self.pseudowsgi)
 
     def pseudowsgi(self, **kwargs):
-        print(bottle.request.url)
-        print(bottle.response)
+        self.logdebug(bottle.request.url)
+        self.logdebug(bottle.response)
         for cookie in bottle.request.cookies:
-            print(cookie)
+            self.logdebug(cookie)
         return "FOOBAR %s" % kwargs
 
     def main(self):

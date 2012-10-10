@@ -56,25 +56,31 @@ class SerialPort(RPCComponentThreaded):
 
     def mainthread(self):
         if self.Port and self.Port.isOpen() and self.listening:
+            self.buf = self.buf + self.Port.read(self.Port.inWaiting())
             if self.Configuration['readline']:
-                self.buf = self.buf + self.Port.read(self.Port.inWaiting())
                 if '\n' in self.buf:
                     lines = self.buf.split('\n') # Guaranteed to have at least 2 entries
                     line = lines[-2]
                     self.buf = lines[-1]
                     self.logdebug(line)
                     for recipient in self.subscribers:
-                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=line)
+                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg={'line': line})
                         self.send(msg, "outbox")
+            else:
+                for recipient in self.subscribers:
+                    msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg=self.buf)
+                    self.send(msg, "outbox")
+                self.buf = ""
 
 
-    def __init__(self, device="/dev/ttyACM0", autodetect=True, protocol="SSC", verbosity=1):
+    def __init__(self, device="/dev/ttyACM0", autodetect=True, verbosity=1):
         self.MR['rpc_connect'] = {}
         self.MR['rpc_disconnect'] = {}
-        self.MR['rpc_write'] = {'default': [str, "String to send."]} # TODO: Strings are BAD HERE.
+        self.MR['rpc_write'] = {'args': [str, "String to send."]} # TODO: Strings are BAD HERE.
         super(SerialPort, self).__init__()
         self.Configuration.update({'verbosity': 1, # TODO: Make use of all these...
                           'device': "/dev/ttyACM0",
+                          'speed': 9600,
                           'bytesize': 8,
                           'parity': 'N',
                           'stopbits': 1,
@@ -97,8 +103,14 @@ class SerialPort(RPCComponentThreaded):
         if self.Port == None:
             return (False, "Not connected.")
         try:
-            for byte in args:
-                self.Port.write(byte)
+            if len(args) > 0:
+                for byte in args:
+                    self.Port.write(byte)
+                if self.Configuration["readline"] == True and args[-1] != "\n":
+                    self.logdebug("Appending newline.")
+                    self.Port.write("\n")
+            elif self.Configuration["readline"]:
+                self.Port.write("\n")
             return True
         except Exception as error:
             msg = "Failed to write: %s" % error
@@ -133,7 +145,7 @@ class SerialPort(RPCComponentThreaded):
         return
 
     def rpc_write(self, args):
-        self.loginfo("RPC Write called.")
+        self.loginfo("RPC Write called with '%s'." % args)
         return self._write(args)
 
 ComponentTemplates['SerialPort'] = [SerialPort, "Serial Port Driver"]

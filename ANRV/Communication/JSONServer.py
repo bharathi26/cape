@@ -47,7 +47,7 @@ class JSONHandler(Axon.Component.component, LoggableComponent):
 
     def __init__(self):
         super(JSONHandler, self).__init__()
-        Dispatcher = Registry.Components["Dispatcher"]
+        Dispatcher = Registry.Dispatcher
         Dispatcher.RegisterComponent(self)
 
     def main(self):
@@ -79,7 +79,7 @@ class JSONHandler(Axon.Component.component, LoggableComponent):
                 else:
                     try:
                         msg = jsonpickle.decode(data.decode("utf-8"))
-                        if type(msg) == Message:
+                        if isinstance(msg, Message):
                             # TODO: Message validation!
                             msg.sender = self.name
                             self.send(msg, "outbox")
