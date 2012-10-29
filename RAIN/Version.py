@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - Version and compatibility information -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #

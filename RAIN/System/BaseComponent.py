@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Basic Component Class
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -21,9 +21,9 @@
 import Axon
 import uuid
 
-from ANRV.System.Identity import SystemName
-from ANRV.System.LoggableComponent import LoggableComponent
-from ANRV.System.ConfigurableComponent import ConfigurableComponent
+from RAIN.System.Identity import SystemName
+from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.System.ConfigurableComponent import ConfigurableComponent
 
 class BaseMixin():
     """

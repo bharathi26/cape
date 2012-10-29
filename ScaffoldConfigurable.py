@@ -31,13 +31,13 @@ for o, a in opts:
     if o in ("-p", "--port"):
         port = int(a)
 
-from ANRV.System import Logging
+from RAIN.System import Logging
 Logging.setupLogger(debug)
 
 Logging.systeminfo("-"*42)
 Logging.systeminfo("ScaffoldServer booting.")
 
-from ANRV.System import Configuration
+from RAIN.System import Configuration
 Logging.systeminfo("Loading Configuration.")
 Configuration.setupConfig(config)
 
@@ -47,14 +47,14 @@ from Kamaelia.Internet.TCPClient import TCPClient
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Util.Introspector import Introspector
 
-from ANRV import Version
+from RAIN import Version
 
-from ANRV.System import *
-from ANRV.Interface import *
-from ANRV.Controls import *
-from ANRV.Sensors import *
-from ANRV.Communication import *
-from ANRV.Autonomy import *
+from RAIN.System import *
+from RAIN.Interface import *
+from RAIN.Controls import *
+from RAIN.Sensors import *
+from RAIN.Communication import *
+from RAIN.Autonomy import *
 
 
 # STATIC PREPARATION

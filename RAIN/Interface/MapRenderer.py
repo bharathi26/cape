@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #      Simple Thrust Control Virtual Component (SRCVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,9 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System import Registry
-from ANRV.System import RPCComponent
-from ANRV.Messages import Message
+from RAIN.System import Registry
+from RAIN.System import RPCComponent
+from RAIN.Messages import Message
 
 import mapnik2 as mapnik
 
@@ -29,7 +29,7 @@ class MapRenderer(RPCComponent.RPCComponent):
     """
 
     mapsize = 1024,768
-    mapfile = "./ANRV/Static/world_boundaries.xml"
+    mapfile = "./RAIN/Static/world_boundaries.xml"
     backgroundColor = '#114B7F'
     foregroundColor = '#6494BF'
     # long/lat in degrees, aka ESPG:4326 and "WGS 84" 
@@ -65,7 +65,7 @@ class MapRenderer(RPCComponent.RPCComponent):
         """
         Map = None
 
-        LandmassShapefile = 'ANRV/Interface/ne_110m_admin_0_countries.shp'
+        LandmassShapefile = 'RAIN/Interface/ne_110m_admin_0_countries.shp'
 
         im = mapnik.Image(self.mapsize[0], self.mapsize[1])
         m = mapnik.Map(self.mapsize[0], self.mapsize[1])
@@ -109,7 +109,7 @@ class MapRenderer(RPCComponent.RPCComponent):
         """
         Map = None
 
-        LandmassShapefile = 'ANRV/Interface/ne_110m_admin_0_countries.shp'
+        LandmassShapefile = 'RAIN/Interface/ne_110m_admin_0_countries.shp'
 
 
         merc = mapnik.Projection('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over')

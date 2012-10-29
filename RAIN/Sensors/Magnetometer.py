@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #    Magnetometer
 #    Copyright (C) 2012 Martin Ling <martin-hf@earth.li>
 #
@@ -18,9 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.RPCComponent import RPCComponentThreaded
-from ANRV.Messages import Message
+from RAIN.System.Registry import ComponentTemplates
+from RAIN.System.RPCComponent import RPCComponentThreaded
+from RAIN.Messages import Message
 
 from smbus import SMBus
 from time import sleep

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - RegistryComponent
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -19,10 +19,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ANRV.System import Registry
-from ANRV.System import Configuration
-from ANRV.System.RPCComponent import RPCComponent
-from ANRV.System.BaseComponent import BaseComponent
+from RAIN.System import Registry
+from RAIN.System import Configuration
+from RAIN.System.RPCComponent import RPCComponent
+from RAIN.System.BaseComponent import BaseComponent
 
 class RegistryComponent(RPCComponent):
     """

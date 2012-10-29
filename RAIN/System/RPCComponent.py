@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Basic RPC Component Class
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -24,11 +24,11 @@ import inspect
 
 from pprint import pprint
 
-from ANRV.System.Registry import ComponentTemplates
-#from ANRV.System.ConfigurableComponent import ConfigurableComponent
-from ANRV.System.BaseComponent import BaseComponent, BaseComponentThreaded
+from RAIN.System.Registry import ComponentTemplates
+#from RAIN.System.ConfigurableComponent import ConfigurableComponent
+from RAIN.System.BaseComponent import BaseComponent, BaseComponentThreaded
 
-from ANRV.Messages import Message
+from RAIN.Messages import Message
 
 class RPCMixin():
     """

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #      Simple Thrust Control Virtual Component (SRCVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,9 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System import Registry
-from ANRV.System import RPCComponent
-from ANRV.Messages import Message
+from RAIN.System import Registry
+from RAIN.System import RPCComponent
+from RAIN.Messages import Message
 
 class SimpleRudder(RPCComponent.RPCComponent):
     """
@@ -61,7 +61,7 @@ class SimpleRudder(RPCComponent.RPCComponent):
 
         super(SimpleRudder, self).__init__()
         self.Configuration.update({
-            'Maestro': 'ANRV.Maestro'
+            'Maestro': 'RAIN.Maestro'
         })
 
 Registry.ComponentTemplates['SimpleRudder'] = [SimpleRudder, "Simple Rudder (Maestro Controlled) Component"]

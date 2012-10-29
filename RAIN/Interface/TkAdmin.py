@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Tk Admin Interface (providing Message relaying and log display)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -22,15 +22,15 @@
 # * Needs cleanup and standardization
 # * Move RPCArgDialog out of this file
 
-from ANRV.System import Registry
-from ANRV.System import RPCComponent
-import ANRV.Messages
-from ANRV.System import  Identity
-from ANRV.System.LoggableComponent import LoggableComponent
-from ANRV.System.RPCComponent import RPCComponent
+from RAIN.System import Registry
+from RAIN.System import RPCComponent
+import RAIN.Messages
+from RAIN.System import  Identity
+from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.System.RPCComponent import RPCComponent
 
-from ANRV.Interface.TkMapDialog import TkMapDialog
-from ANRV.Interface.TkMessageDialog import TkMessageDialog
+from RAIN.Interface.TkMapDialog import TkMapDialog
+from RAIN.Interface.TkMessageDialog import TkMessageDialog
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
@@ -133,7 +133,7 @@ class TkAdmin(TkWindow, RPCComponent):
     # * Develop interaction elements for all primitives
 
     def __init__(self):
-        self.title = "ANRV TkAdmin - [%s]" % Identity.SystemName
+        self.title = "RAIN TkAdmin - [%s]" % Identity.SystemName
         super(TkAdmin, self).__init__()
 
         self.Configuration['fixsender'] = False
@@ -182,12 +182,12 @@ class TkAdmin(TkWindow, RPCComponent):
 #        self.__EntryInput['fg'] = self.defaultcolors['fg']
 
     def scanregistry(self):
-        msg = ANRV.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents", arg=None)
+        msg = RAIN.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents", arg=None)
         self.transmit(msg)
 
     def scancomponent(self, name):
         self.loginfo("Scanning component '%s'." % name)
-        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
+        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
         self.transmit(msg)
 
     def callComplexMethod(self, componentname, func):
@@ -197,12 +197,12 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def callComplexMethodFinal(self, name, func, args):
         self.loginfo("Finally calling func '%s'@'%s' with args '%s'" % (func, name, args))
-        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=args)
+        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func=func, arg=args)
         self.transmit(msg)
 
     def callSimpleMethod(self, name, func):
         self.loginfo("Calling '%s'@'%s'." % (func, name))
-        msg = ANRV.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
+        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
         self.transmit(msg)
 
     def transmit(self, msg):
@@ -301,7 +301,7 @@ class TkAdmin(TkWindow, RPCComponent):
                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
                self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
 
-        if isinstance(msg, ANRV.Messages.Message):
+        if isinstance(msg, RAIN.Messages.Message):
             if msg.sender == self.systemregistry:
                 if msg.func == "listRegisteredComponents":
                     if not msg.error:

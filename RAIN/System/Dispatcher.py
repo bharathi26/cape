@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Dispatcher Component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -24,10 +24,10 @@ import logging
 from Kamaelia.Chassis.Pipeline import Pipeline
 from Kamaelia.Chassis.Graphline import Graphline
 
-from ANRV.System.LoggableComponent import LoggableComponent
-from ANRV.System import Registry
-from ANRV.Messages import Message
-from ANRV.System import Logging
+from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.System import Registry
+from RAIN.Messages import Message
+from RAIN.System import Logging
 
 
 class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableComponent):
@@ -89,7 +89,7 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
                 else:
                     self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
                     #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False, "Recipient not found."))
-                    # TODO: maybe we should include the original timestamp, look in ANRV/Messages.py for more on that topic.
+                    # TODO: maybe we should include the original timestamp, look in RAIN/Messages.py for more on that topic.
                 if response:
                     if response.recipient in self.inboxes:
                         self.logdebug("Responding to '%s'" % response.recipient)

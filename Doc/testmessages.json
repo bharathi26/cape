@@ -1,70 +1,70 @@
 = Idler =
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0}, "recipient": "ANRV.System.Idler.Idler_7"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 1000}, "recipient": "ANRV.System.Idler.Idler_7"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 2}, "recipient": "ANRV.System.Idler.Idler_7"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "RAIN.Primitives.Frequency", "name": "Freq 0", "value": 0}, "recipient": "RAIN.System.Idler.Idler_7"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "RAIN.Primitives.Frequency", "name": "Freq 0", "value": 1000}, "recipient": "RAIN.System.Idler.Idler_7"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "RAIN.Primitives.Frequency", "name": "Freq 0", "value": 2}, "recipient": "RAIN.System.Idler.Idler_7"}
 
 = Ping =
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setVerbosity", "arg": 3, "recipient": "Ping"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "ANRV.Primitives.Frequency", "name": "Freq 0", "value": 0.5}, "recipient": "Ping"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "setVerbosity", "arg": 3, "recipient": "Ping"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "setFreq", "arg": {"py/object": "RAIN.Primitives.Frequency", "name": "Freq 0", "value": 0.5}, "recipient": "Ping"}
 
 = LCD =
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "This is a large string.", "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "Hello World!", "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Write", "arg": "This is a very large string spanning at least over two displayfulls.", "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Clear", "arg": "", "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0, "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.05, "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.1, "recipient": "LCD"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 1.0, "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "This is a large string.", "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Text", "arg": "Hello World!", "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Write", "arg": "This is a very large string spanning at least over two displayfulls.", "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Clear", "arg": "", "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0, "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.05, "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 0.1, "recipient": "LCD"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.CLI", "timestamp": 1330702718.642987, "func": "Brightness", "arg": 1.0, "recipient": "LCD"}
 
 = Engine =
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_8"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "RAIN.Controls.Engine.SimpleEngine_8"}
 
 == Configuration ==
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "writeConfiguration", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_8"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "readConfiguration", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_8"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "hasConfiguration", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_8"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getConfiguration", "arg": "", "recipient": "ANRV.Controls.Engine.SimpleEngine_8"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "writeConfiguration", "arg": "", "recipient": "RAIN.Controls.Engine.SimpleEngine_8"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "readConfiguration", "arg": "", "recipient": "RAIN.Controls.Engine.SimpleEngine_8"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "hasConfiguration", "arg": "", "recipient": "RAIN.Controls.Engine.SimpleEngine_8"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getConfiguration", "arg": "", "recipient": "RAIN.Controls.Engine.SimpleEngine_8"}
 
 = Registry =
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredTemplates", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "test", "arg": {'foo': 3, 'bar': 5.6}, "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "SimpleEngine", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Echo", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredTemplates", "arg": "SimpleEngine", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "SimpleEngine", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "test", "arg": {'foo': 3, 'bar': 5.6}, "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
 
 
 = Timer =
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Timer", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "Timer", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
 
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_9"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "RAIN.Controls.Timer.Timer_9"}
 
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listEvents", "arg": "", "recipient": "ANRV.Controls.Timer.Timer_19"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "listEvents", "arg": "", "recipient": "RAIN.Controls.Timer.Timer_19"}
 
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "addTimer", "arg": {"usec": 1342275941.284734, "message": {"py/object": "ANRV.Messages.Message", "sender": "ANRV.Communication.JSONServer.JSONHandler_16", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}}, "recipient": "ANRV.Controls.Timer.Timer_9"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "addTimer", "arg": {"usec": 1342275941.284734, "message": {"py/object": "RAIN.Messages.Message", "sender": "RAIN.Communication.JSONServer.JSONHandler_16", "timestamp": 1330702718.642987, "func": "listRegisteredComponents", "arg": "", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}}, "recipient": "RAIN.Controls.Timer.Timer_9"}
 = Echo =
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "ANRV.Communication.Echo.Echo_30"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "echo", "arg": "This is an echorequest.", "recipient": "RAIN.Communication.Echo.Echo_30"}
 
 
 = TkAdmin =
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "TkAdmin", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "FOOBAR", "arg": "BAZQUX", "recipient": "ANRV.Interface.TkAdmin.TkAdmin_11"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": "TkAdmin", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "FOOBAR", "arg": "BAZQUX", "recipient": "RAIN.Interface.TkAdmin.TkAdmin_11"}
 
 
 = Serial =
 == Configuration ==
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "writeConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "readConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "hasConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getConfiguration", "arg": "", "recipient": "ANRV.Communication.SerialPort.SerialPort_14"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "writeConfiguration", "arg": "", "recipient": "RAIN.Communication.SerialPort.SerialPort_14"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "readConfiguration", "arg": "", "recipient": "RAIN.Communication.SerialPort.SerialPort_14"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "hasConfiguration", "arg": "", "recipient": "RAIN.Communication.SerialPort.SerialPort_14"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "getConfiguration", "arg": "", "recipient": "RAIN.Communication.SerialPort.SerialPort_14"}
 
 
 
 = EVIL DEBUG MESSAGES =
 == Wrong recipient ==
-{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23{"py/object": "ANRV.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23, "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}, "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
-{"py/object": "ANRV.Messages.Message", "sender": "ANRV.System.Echo", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "ANRV.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23{"py/object": "RAIN.Messages.Message", "sender": "CLIENT", "timestamp": 1330702718.642987, "func": "createComponent", "arg": 23, "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}, "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
+{"py/object": "RAIN.Messages.Message", "sender": "RAIN.System.Echo", "timestamp": 1330702718.642987, "func": "getComponentInfo", "arg": "", "recipient": "RAIN.System.RegistryComponent.RegistryComponent_6"}
 
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - Identity Information Provider -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -22,9 +22,9 @@
 import os
 import uuid
 
-from ANRV import Version
-from ANRV.System import Logging
-from ANRV.System import Configuration
+from RAIN import Version
+from RAIN.System import Logging
+from RAIN.System import Configuration
 
 SystemName = DefaultSystemName = "DEFAULT"
 SystemClass = DefaultSystemClass = "DEFAULT"

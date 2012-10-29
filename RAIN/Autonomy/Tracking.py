@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #    Simple Position & Course Tracker 
 #    Copyright (C) 2012 Martin Ling <martin@earth.li>
 #
@@ -18,9 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System import Registry
-from ANRV.System.RPCComponent import RPCComponent
-from ANRV.Messages import Message
+from RAIN.System import Registry
+from RAIN.System.RPCComponent import RPCComponent
+from RAIN.Messages import Message
 from time import time
 
 class Tracker(RPCComponent):

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Tk Admin Interface (Map Dialog)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,12 +18,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System import Registry
-from ANRV.System import RPCComponent
-import ANRV.Messages
-from ANRV.System import  Identity
-from ANRV.System.LoggableComponent import LoggableComponent
-from ANRV.System.RPCComponent import RPCComponent
+from RAIN.System import Registry
+from RAIN.System import RPCComponent
+import RAIN.Messages
+from RAIN.System import  Identity
+from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.System.RPCComponent import RPCComponent
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 

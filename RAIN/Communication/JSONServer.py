@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software - CLI Classes
+#    Prototype of the MS0x00 RAIN Operating Software - CLI Classes
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,11 @@ import Axon
 from Kamaelia.Chassis.Graphline import Graphline
 import Kamaelia.IPC
 
-from ANRV.System import Configuration
-from ANRV.System import Logging
-from ANRV.System.LoggableComponent import LoggableComponent
-from ANRV.Messages import Message
-from ANRV.System import Registry
+from RAIN.System import Configuration
+from RAIN.System import Logging
+from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.Messages import Message
+from RAIN.System import Registry
 
 from collections import deque
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Logger Service Component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -19,9 +19,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
-from ANRV.System import Logging
-from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.RPCComponent import RPCComponent
+from RAIN.System import Logging
+from RAIN.System.Registry import ComponentTemplates
+from RAIN.System.RPCComponent import RPCComponent
 
 class LoggerComponent(RPCComponent):
     """

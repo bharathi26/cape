@@ -1,11 +1,11 @@
 from distutils.core import setup
 
-from ANRV.Version import ver
+from RAIN.Version import ver
 
 #This is a list of files to install, and where
 #(relative to the 'root' dir, where setup.py is)
 #You could be more specific.
-files = ["ANRV/*"]
+files = ["RAIN/*"]
 
 setup(name = "anrv",
     version = ver,
@@ -14,13 +14,13 @@ setup(name = "anrv",
     author = "Hackerfleet Contributors",
     author_email = "riot@hackerfleet.org",
     url = "https://hackerfleet.org/anrv",
-    packages = ['ANRV',
-                'ANRV.Communication',
-                'ANRV.Controls',
-                'ANRV.Interface',
-                'ANRV.Sensors',
-                'ANRV.System',
-                'ANRV.Test',
+    packages = ['RAIN',
+                'RAIN.Communication',
+                'RAIN.Controls',
+                'RAIN.Interface',
+                'RAIN.Sensors',
+                'RAIN.System',
+                'RAIN.Test',
                 ],
     classifiers = [
         'Development Status :: 3 - Alpha',

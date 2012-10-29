@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Mixin with logging capabilities
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,8 +18,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ANRV.System import Logging
-#from ANRV.System.Registry import ComponentTemplates
+from RAIN.System import Logging
+#from RAIN.System.Registry import ComponentTemplates
 
 class LoggableComponent():
     """Basic loggable Component.

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - Serial LCD Component -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -113,7 +113,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
         try:
             self.lcd = serial.Serial(self.device,)
             self._brightness(0.5)
-            self._text("ANRV Booting up - Please wait -")
+            self._text("RAIN Booting up - Please wait -")
         except Exception as error:
             print("DEBUG.LCD._connect: Failed to open device: %s" % error)
             self.lcd = None

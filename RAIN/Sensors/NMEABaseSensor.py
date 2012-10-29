@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software 
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - NMEABaseSensor Serial Controller -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -20,10 +20,10 @@
 
 import Axon
 
-from ANRV.System.Registry import ComponentTemplates
-from ANRV.System.RPCComponent import RPCComponent
+from RAIN.System.Registry import ComponentTemplates
+from RAIN.System.RPCComponent import RPCComponent
 
-from ANRV.Messages import Message
+from RAIN.Messages import Message
 
 import serial, string
 from pynmea.streamer import NMEAStream
@@ -49,7 +49,7 @@ class NMEABaseSensor(RPCComponent):
                                          'maxdeviation': [float, "Maximum time deviation in seconds.", 10]}
 
         super(NMEABaseSensor, self).__init__()
-        self.Configuration.update({'SerialPort': 'ANRV.Communication.SerialPort.SerialPort_15'})
+        self.Configuration.update({'SerialPort': 'RAIN.Communication.SerialPort.SerialPort_15'})
 
         self.nmeaLog = {}
         self.streamer = NMEAStream()

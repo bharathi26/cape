@@ -88,7 +88,7 @@ if __name__=="__main__":
                   TCPClient(server, port) 
                 ).activate()
 
-    app = AxonVisualiserServer(caption="ANRV Vis", **dictArgs)
+    app = AxonVisualiserServer(caption="RAIN Vis", **dictArgs)
     
     app.run()
 

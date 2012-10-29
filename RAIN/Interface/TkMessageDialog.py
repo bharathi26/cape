@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #      - Tk Admin Interface Message Dialog
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,8 +18,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import ANRV.Messages
-from ANRV.System.LoggableComponent import LoggableComponent
+import RAIN.Messages
+from RAIN.System.LoggableComponent import LoggableComponent
 
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow

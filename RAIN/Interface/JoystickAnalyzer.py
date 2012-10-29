@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 ANRV Operating Software
+#    Prototype of the MS0x00 RAIN Operating Software
 #     - Joystick Analyzer (loosely based on Mike Doty's work) -
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -37,7 +37,7 @@ __readme__ = "LOL. Just kidding."
 # TODO:
 # * Outsource useful parts to Kamaelia
 # * Network code
-# * Add  ANRV Interface Objects
+# * Add  RAIN Interface Objects
 #  * Bandwidth && Latency Meter
 #  * Rudder && Thruster Visualization
 #  * Messages Window
@@ -57,7 +57,7 @@ __readme__ = "LOL. Just kidding."
 import pygame
 from pygame.locals import *
 from time import sleep
-from ANRV.Interface.JoystickDescription import *
+from RAIN.Interface.JoystickDescription import *
 from math import cos, sin, pi
 from time import time
 import socket
@@ -71,7 +71,7 @@ class App:
     def __init__(self,joynum, ip, port):
         pygame.init()
 
-        pygame.display.set_caption("ANRV Joystick Prototype")
+        pygame.display.set_caption("RAIN Joystick Prototype")
 
         # Set up the network connection
         self.socket = None
@@ -129,7 +129,7 @@ class App:
         else:
             print("Connected!")
         self.socket = s
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "ANRV.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (time())
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "RAIN.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (time())
         self.socket.sendto(request, (self.hostname, self.port))
 
 
@@ -170,11 +170,11 @@ class App:
 
 
     def TransmitRudder(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "ANRV.Rudder"}\r\n""" % (time(), value)
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "RAIN.Rudder"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def TransmitThrust(self, value):
-        request = """{"py/object": "ANRV.Messages.Message", "sender": "ANRV.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "ANRV.Engine"}\r\n""" % (time(), value)
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "RAIN.Engine"}\r\n""" % (time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def main(self):
