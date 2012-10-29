@@ -1,8 +1,8 @@
 This Readme is WiP!
 
 = About =
-This is the Readme file for the ANRV Software.
-ANRV stands for "Autonomous Naval Robotic Vehicle".
+This is the Readme file for the RAIN Software.
+RAIN stands for "Autonomous Naval Robotic Vehicle".
 
 = Installation =
 
@@ -50,7 +50,7 @@ python ScaffoldServer
 Tests haven't been written, yet. This is going to be funny. Very.
 
 = Documentation =
-Try pydoc ANRV
+Try pydoc RAIN
 
 = Contributors =
 * riot <riot@hackerfleet.org>
@@ -66,8 +66,8 @@ https://hackerfleet.org/support
 
 
 = License =
-Prototype of the MS0x00 ANRV Operating Software
-Copyright (C) 2011-2012 riot <riot@hackerfleet.org>
+Prototype of the MS0x00 RAIN Operating Software
+Copyright (C) 2011-2012 riot <riot@hackerfleet.org> and others.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
