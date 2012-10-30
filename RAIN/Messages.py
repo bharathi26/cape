@@ -26,7 +26,7 @@ from .Primitives import Angle, Waypoint, WaypointList
 
 from copy import deepcopy
 
-class Message():
+class Message(object):
     """
     Basic Message Class
 
@@ -50,7 +50,8 @@ class Message():
     #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
 
-    __slots__ = ['sender', 'recipient', 'timestamp', 'type', 'func', 'arg', 'error']
+    __slots__ = ['sender', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
+
     def __init__(self, sender="", recipient="", func="", arg="", error="", msg_type="request"):
         self.timestamp = time()
         self.sender = sender
@@ -69,8 +70,9 @@ class Message():
         if len(argstring) > 1024:
             argstring = "Too large to display (%i bytes)" % len(argstring)
 
-        result = "%f - [%10s] -> [%10s] %s %15s (%s)" %(self.timestamp, self.sender, self.recipient,
-            self.msg_type, self.func, argstring if not self.error else str(self.error))
+        result = "%f - [%10s] -> [%10s] %s %15s (%s)" % (self.timestamp, self.sender, self.recipient,
+                                                         self.msg_type, self.func,
+                                                         argstring if not self.error else str(self.error))
         return result
 
     def response(self, args):
@@ -92,46 +94,49 @@ class Message():
         return response
 
     def jsondecode(self, jsonstring):
-#        print "Trying to parse json"
-#        try:
-            from pprint import pprint
-            pprint(jsonstring)
-            test = jsonpickle.decode(jsonstring)
-            if type(test) == type(self):
-                self = test
-                return True
+    # TODO: Clean up this mess
+    #        print "Trying to parse json"
+    #        try:
+        from pprint import pprint
+
+        pprint(jsonstring)
+        test = jsonpickle.decode(jsonstring)
+        if type(test) == type(self):
+            self = test
+            return True
+        else:
+            if test['timestamp']:
+                self.timestamp = test['timestamp']
             else:
-                if test['timestamp']:
-                    self.timestamp = test['timestamp']
-                else:
-                    print("No timestamp. Correcting.")
-                    self.timestamp = time()
-                if test['sender']:
-                    self.sender = test['sender']
-                else:
-                    print("No sender")
-                if test['recipient']:
-                    self.recipient = test['recipient']
-                else:
-                    print("No recipient")
-                if test['func']:
-                    self.func = test['func']
-                else:
-                    print("No func")
-                if test['arg']:
-                    self.arg = test['arg']
-                else:
-                    print("No args")
-    
-                return (self.sender and self.recipient and self.func and self.arg)
-#        except:
-#            return False
+                print("No timestamp. Correcting.")
+                self.timestamp = time()
+            if test['sender']:
+                self.sender = test['sender']
+            else:
+                print("No sender")
+            if test['recipient']:
+                self.recipient = test['recipient']
+            else:
+                print("No recipient")
+            if test['func']:
+                self.func = test['func']
+            else:
+                print("No func")
+            if test['arg']:
+                self.arg = test['arg']
+            else:
+                print("No args")
+
+            return (self.sender and self.recipient and self.func and self.arg)
+        #        except:
+        #            return False
 
     def jsonencode(self, unpicklable=True):
         return jsonpickle.encode(self, unpicklable=unpicklable)
 
 
 def test():
+    # TODO: Clean up yet another mess
     course = Angle("heading", 223)
     foo = Message('rudder', 'messagetester', func="dataresponse", arg=course)
 

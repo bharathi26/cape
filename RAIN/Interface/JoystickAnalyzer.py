@@ -67,8 +67,8 @@ import getopt
 from Colors import *
 
 
-class App:
-    def __init__(self,joynum, ip, port):
+class App(object):
+    def __init__(self, joynum, ip, port):
         pygame.init()
 
         pygame.display.set_caption("RAIN Joystick Prototype")
@@ -99,17 +99,18 @@ class App:
             self.my_joystick.init()
 
         max_joy = max(self.my_joystick.get_numaxes(),
-                      self.my_joystick.get_numbuttons(),
-                      self.my_joystick.get_numhats())
+            self.my_joystick.get_numbuttons(),
+            self.my_joystick.get_numhats())
 
-        self.screen = pygame.display.set_mode( (max_joy * 40 + 10, 170) )
+        self.screen = pygame.display.set_mode((max_joy * 40 + 10, 170))
 
         self.font = pygame.font.SysFont("Helvetica", 10)
 
     def connect(self):
         print("Connecting to %s:%i" % (self.hostname, self.port))
         s = None
-        for res in socket.getaddrinfo(self.hostname, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
+        for res in socket.getaddrinfo(self.hostname, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0,
+            socket.AI_PASSIVE):
             af, socktype, proto, canonname, sa = res
             try:
                 s = socket.socket(af, socktype, proto)
@@ -129,7 +130,8 @@ class App:
         else:
             print("Connected!")
         self.socket = s
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "RAIN.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (time())
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "RAIN.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (
+        time())
         self.socket.sendto(request, (self.hostname, self.port))
 
 
@@ -157,24 +159,26 @@ class App:
 
     def draw_text(self, text, x, y, color, align_right=False):
         surface = self.font.render(text, True, color, (0, 0, 0))
-        surface.set_colorkey( (0, 0, 0) )
+        surface.set_colorkey((0, 0, 0))
 
         self.screen.blit(surface, (x, y))
 
     def center_text(self, text, x, y, color):
         surface = self.font.render(text, True, color, (0, 0, 0))
-        surface.set_colorkey( (0, 0, 0) )
+        surface.set_colorkey((0, 0, 0))
 
         self.screen.blit(surface, (x - surface.get_width() / 2,
                                    y - surface.get_height() / 2))
 
 
     def TransmitRudder(self, value):
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "RAIN.Rudder"}\r\n""" % (time(), value)
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "RAIN.Rudder"}\r\n""" % (
+        time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def TransmitThrust(self, value):
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "RAIN.Engine"}\r\n""" % (time(), value)
+        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "RAIN.Engine"}\r\n""" % (
+        time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def main(self):
@@ -182,11 +186,11 @@ class App:
         # TODO: Needs a default for unknown joysticks!
         # print JoystickDB
 
-#        if "Logitech Logitech Extreme 3D Pro" not in self.joystick_names:
-#           print "Connect a supported joystick!"
-#           sys.exit
+        #        if "Logitech Logitech Extreme 3D Pro" not in self.joystick_names:
+        #           print "Connect a supported joystick!"
+        #           sys.exit
 
-#        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
+        #        JoystickConf = next(v for k,v in list(JoystickDB.items()) if self.joystick_names[0] in k)
         JoystickConf = JoystickDB[self.joystick_names[self.joynum]]
         print JoystickConf
         if JoystickConf:
@@ -209,7 +213,7 @@ class App:
         hold = True
         reverse = False
         newthrust = False
-        newrudder= False
+        newrudder = False
         if JoystickConf:
             supported = "Supported"
             joysticknamecolor = GREEN
@@ -218,30 +222,30 @@ class App:
             joysticknamecolor = ORANGE
 
         while (True):
-            sleep(1.0/freq)
+            sleep(1.0 / freq)
             self.g_keys = pygame.event.get()
 
             self.screen.fill(0)
-## This is bad, its blocking :/ Use a Monitor if you want to see what you're doing.
-## (This is valid until we have a new Kamaelia based Joystick-Capable Client)
-#            recvd= True
-#            data = ""
-#            while recvd:
-#                newdata = self.socket.recv(1024)
-#                if len(newdata) == 0:
-#                    recvd = not recvd
-#                data += newdata
-#            print data
+            ## This is bad, its blocking :/ Use a Monitor if you want to see what you're doing.
+            ## (This is valid until we have a new Kamaelia based Joystick-Capable Client)
+            #            recvd= True
+            #            data = ""
+            #            while recvd:
+            #                newdata = self.socket.recv(1024)
+            #                if len(newdata) == 0:
+            #                    recvd = not recvd
+            #                data += newdata
+            #            print data
             for event in self.g_keys:
                 if (event.type == KEYDOWN and event.key == K_ESCAPE):
-
                     self.quit()
                     return
 
                 elif (event.type == QUIT):
                     self.quit()
                     return
-            self.draw_text("Joystick Name:  %s (%s)" % (self.joystick_names[self.joynum], supported), 5, 5, joysticknamecolor)
+            self.draw_text("Joystick Name:  %s (%s)" % (self.joystick_names[self.joynum], supported), 5, 5,
+                joysticknamecolor)
 
 
             ############################ AXES ############################
@@ -254,11 +258,12 @@ class App:
 
                 def rad(val):
                     return val * (pi / 180.0)
-                def delta(a,b):
+
+                def delta(a, b):
                     if a > b:
-                        return a-b
+                        return a - b
                     else:
-                        return b-a
+                        return b - a
 
                 if AxesConf:
                     axescolor = DARKGREEN
@@ -286,17 +291,17 @@ class App:
                 lineY = centerY + sin((axesval[i] * pi) - pi / 2) * 20
                 pygame.draw.line(self.screen, WHITE, (centerX, centerY), (lineX, lineY))
 
-                arcdeg = ((axesval[i]+1)/2) * 360
+                arcdeg = ((axesval[i] + 1) / 2) * 360
 
-                begin  = pi/2
-                end    = rad((-arcdeg) % 360) - pi/2
+                begin = pi / 2
+                end = rad((-arcdeg) % 360) - pi / 2
                 #pygame.draw.arc(self.screen, WHITE, (centerX-20, centerY-20, 40, 40), begin, end, 3)
                 self.center_text(("%f" % axesval[i])[:5], 30 + (i * 45), 50, WHITE)
 
             ############################ BUTTONS ############################
 
             self.draw_text("Buttons (%d)" % self.my_joystick.get_numbuttons(),
-                           5, 75, WHITE)
+                5, 75, WHITE)
 
             for i in range(self.my_joystick.get_numbuttons()):
                 buttoncolor = DARKGRAY
@@ -307,7 +312,7 @@ class App:
                             toggled[i] = 0
                             newthrust = True
                             thrust = 0
-                        # TODO: I'd love to have "Press and hold long for shift functionality"
+                            # TODO: I'd love to have "Press and hold long for shift functionality"
                         buttoncolor = GREEN
                         toggled[i] += 1
                         if (toggled[i] > 25): # TODO: This should be calculated into a time and measured well.
@@ -315,11 +320,11 @@ class App:
                             toggled[i] = 0
 
                             if ButtonConf[i] == HOLD:
-                               hold = not hold
+                                hold = not hold
                             if ButtonConf[i] == REVERSE:
-                               reverse = not reverse
+                                reverse = not reverse
                     if switched[i] == 1:
-                       buttoncolor = BLUE
+                        buttoncolor = BLUE
 
                 pygame.draw.circle(self.screen, buttoncolor, (20 + (i * 30), 100), 10, 0)
 
@@ -328,24 +333,24 @@ class App:
             ############################ Coolie Hat ############################
 
             self.draw_text("POV Hats (%d)" % self.my_joystick.get_numhats(),
-                           5, 125, (255, 255, 255))
+                5, 125, (255, 255, 255))
 
             for i in range(0, self.my_joystick.get_numhats()):
                 if (self.my_joystick.get_hat(i) != (0, 0)):
                     pygame.draw.circle(self.screen, BLUE,
-                                       (20 + (i * 30), 150), 10, 0)
+                        (20 + (i * 30), 150), 10, 0)
                 else:
                     pygame.draw.circle(self.screen, RED,
-                                       (20 + (i * 30), 150), 10, 0)
+                        (20 + (i * 30), 150), 10, 0)
 
                 self.center_text("%d" % i, 20 + (i * 30), 100, WHITE)
             if not hold:
-               if newthrust:
-                  self.TransmitThrust(thrust)
-                  newthrust = False
-               if newrudder:
-                  self.TransmitRudder(rudder)
-                  newrudder= False
+                if newthrust:
+                    self.TransmitThrust(thrust)
+                    newthrust = False
+                if newrudder:
+                    self.TransmitRudder(rudder)
+                    newrudder = False
             pygame.display.flip()
 
     def quit(self):

@@ -23,7 +23,7 @@ from pymongo import Connection
 from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponent, RPCComponentThreaded
 
-class MongoMixin():
+class MongoMixin(object):
     """
     Mongo Component
 
@@ -47,8 +47,8 @@ class MongoMixin():
         return (True, {'serverinfo': MongoMixin.mongodb.server_info(),
                        'hostname': MongoMixin.mongodb.host,
                        'port': MongoMixin.mongodb.port
-                      }
-               )
+        }
+            )
 
     def rpc_getDatabases(self):
         """Returns a list of mongodb's stored databases."""

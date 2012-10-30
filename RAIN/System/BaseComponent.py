@@ -25,7 +25,7 @@ from RAIN.System.Identity import SystemName
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System.ConfigurableComponent import ConfigurableComponent
 
-class BaseMixin():
+class BaseMixin(object):
     """
     Basic Component
 

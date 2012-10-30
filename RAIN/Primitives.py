@@ -33,9 +33,10 @@
 # * Primitives for 9dof usage
 # * Primitives for GPS usage
 
-class Waypoint():
+class Waypoint(object):
     """A Waypoint consists of a geographical location (latitude and longitude) and a name."""
     __slots__ = ['name', 'lat', 'lon']
+
     def __init__(self, name="", lat="", lon=""):
         self.name = name
         self.lat = lat
@@ -45,7 +46,8 @@ class Waypoint():
         result = "%s[%s, %s]" % (self.name, self.lat, self.lon)
         return result
 
-class WaypointList():
+
+class WaypointList(object):
     """A waypointlist consists of several Waypoints and a name."""
     __slots__ = ['name', 'points']
 
@@ -63,9 +65,11 @@ class WaypointList():
     def append(self, point):
         self.points.append(point)
 
-class Angle():
+
+class Angle(object):
     """Contains a named angle in degrees."""
     __slots__ = ['name', 'value']
+
     def __init__(self, name="", val=""):
         self.name = name
         self.value = val
@@ -74,13 +78,15 @@ class Angle():
         result = "%s: %f° DEG" % (self.name, self.value)
         return result
 
-class Frequency():
+
+class Frequency(object):
     """Contains a frequency and methods to ease usage.
     See http://en.wikipedia.org/wiki/Frequency
     """
     # TODO: I'd like this one to be transparent about setting/getting either Periods or Frequencies
     # Internally this object always stores frequencies, hence the name.
     __slots__ = ['name', 'value']
+
     def __init__(self, name="", val=0, period=0):
         self.name = name
         self.value = val

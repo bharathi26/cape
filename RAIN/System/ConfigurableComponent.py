@@ -25,7 +25,7 @@ from configobj import ConfigObj
 
 from pprint import pprint
 
-class ConfigurableComponent():
+class ConfigurableComponent(object):
     """Basic configurable Component.
 
     TODO:

@@ -100,7 +100,7 @@ class SerialPort(RPCComponentThreaded):
 
     def _write(self, args):
         self.loginfo("Writing to SerialPort: '%s'" % args)
-        if self.Port == None:
+        if not self.Port:
             return (False, "Not connected.")
         try:
             if len(args) > 0:

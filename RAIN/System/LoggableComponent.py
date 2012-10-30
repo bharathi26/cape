@@ -21,7 +21,7 @@
 from RAIN.System import Logging
 #from RAIN.System.Registry import ComponentTemplates
 
-class LoggableComponent():
+class LoggableComponent(object):
     """Basic loggable Component.
 
     TODO:
@@ -30,6 +30,7 @@ class LoggableComponent():
     * Handling of attribute calls
     * RPC related stuff? later in the tree
     """
+
     def __init__(self):
         try:
             self.logdebug("Beginning component logging.")
@@ -39,7 +40,7 @@ class LoggableComponent():
 
     def _formMessage(self, msg):
         try:
-            return Logging.formMessage(self.name[self.name.rindex(".")+1:], msg)
+            return Logging.formMessage(self.name[self.name.rindex(".") + 1:], msg)
         except AttributeError:
             return Logging.formMessage("UNNAMED", msg)
 

@@ -47,7 +47,7 @@ class Recorder(Axon.Component.component):
         """x.__init__(...) initializes x; see x.__class__.__doc__ for signature"""
         super(Recorder, self).__init__(**argd)
 
-        if self.filename == None:
+        if not self.filename :
             raise ValueError("Expected a filename")
         self.F = None
         self.shutdown = Axon.Ipc.producerFinished()

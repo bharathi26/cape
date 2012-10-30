@@ -51,5 +51,13 @@ setup(name = "anrv",
 
     #package_data = {'package' : files },
     #scripts = [""], # None yet
-    long_description = """WiP"""
-) 
+    long_description = """WiP""",
+    requires=['jsonpickle',
+              'hgapi',
+              'mapnik2',
+              'PIL',
+              'Kamaelia',
+              'pynmea',
+              'configobj',
+              'pymongo']
+)

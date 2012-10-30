@@ -1,5 +1,16 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+# WARNING!
+# This is a demo of "how it would look" in python 3.x
+# As you can see, the RPC definitions and its Methodregister
+# can be built very dynamically with this annotated
+# structure.
+#
+# Since we have very many dependencies,
+# that cannot be resolved with 3.x Python,
+# we choose to implement a rather ugly way
+# to implement Methodregister annotations.
 
 #    Prototype of the MS0x00 RAIN Operating Software - Useless NewComponent Component
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>

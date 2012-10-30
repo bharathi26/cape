@@ -18,17 +18,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class BaseMessage():
+class BaseMessage(object):
     """Base Message class.
     Contains Origin, Type and Content of a basic message.
     """
     content = ""
     origin = ""
     msgtype = ""
-    def __init__(self,content,origin,msgtype):
+
+    def __init__(self, content, origin, msgtype):
         self.content = content
         self.origin = origin
         self.msgtype = msgtype
+
     def __str__(self):
         return str(self.content)
 

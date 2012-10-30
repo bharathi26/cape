@@ -30,7 +30,7 @@ from RAIN.System.BaseComponent import BaseComponent, BaseComponentThreaded
 
 from RAIN.Messages import Message
 
-class RPCMixin():
+class RPCMixin(object):
     """
     = Basic RPC Component =
 
@@ -93,10 +93,10 @@ class RPCMixin():
     MethodRegister = {}
     MR = {}
 
-#    def rpc_default(self, arg):
-#       """Default Method"""
-#        # TODO: Do we need a default rpc method? Why? What could we do with it?
-#        pass
+    #    def rpc_default(self, arg):
+    #       """Default Method"""
+    #        # TODO: Do we need a default rpc method? Why? What could we do with it?
+    #        pass
 
     def rpc_updateComponentInfo(self):
         """RPC Function '''updateComponentInfo'''
@@ -167,7 +167,7 @@ class RPCMixin():
         for param in args:
             self.logdebug("Being checked: %s" % param)
             # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
-#            try:
+            #            try:
             self.logdebug(argspeclist)
             argspec = argspeclist[param]
             self.logdebug(argspec)
@@ -176,9 +176,9 @@ class RPCMixin():
                 warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), typespec)
                 self.logwarn(warning)
                 return False, warning
-#            except Exception as e:
-#                self.logerror(e)
-#                return False, "Unknown Error %s" % e
+            #            except Exception as e:
+            #                self.logerror(e)
+            #                return False, "Unknown Error %s" % e
         return True, "All args valid."
 
     def handleRPC(self, msg):
@@ -296,7 +296,8 @@ class RPCMixin():
         self.MR['rpc_readConfiguration'] = {}
         self.MR['rpc_hasConfiguration'] = {}
         self.MR['rpc_setConfiguration'] = {'config': [dict, "Configuration updates"]}
-        self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"], # TODO: Uh oh. Anyone can subscribe anything?
+        self.MR['rpc_subscribe'] = {'name': [str, "Name of subscribing component"],
+                                    # TODO: Uh oh. Anyone can subscribe anything?
                                     'function': [str, "Name of function call to use"]}
 
         self.subscribers = {}
