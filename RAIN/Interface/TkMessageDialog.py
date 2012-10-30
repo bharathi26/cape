@@ -39,33 +39,26 @@ import json
 
 class TkMessageDialog(TkWindow, LoggableComponent):
     def __init__(self, parent, msg):
-        # TODO:
-        # * interaction!
-        # * integrate TkArgsDialog
+        super(TkMessageDialog, self).__init__()
         top = self.top = Toplevel(parent)
         self.msg = msg
-
         self.messageFrame = fr = Frame(top)
         self._textTimestamp = Pmw.ScrolledText(fr, label_text="Timestamp", labelpos="w")
         self._textTimestamp._textbox.config(height=1)
         self._textTimestamp.settext(msg.timestamp)
         self._textTimestamp.pack(fill=X)
-
         self._textSender = Pmw.ScrolledText(fr, label_text="Sender", labelpos="w")
         self._textSender._textbox.config(height=1)
         self._textSender.settext(msg.sender)
         self._textSender.pack(fill=X)
-
         self._textRecipient = Pmw.ScrolledText(fr, label_text="Recipient", labelpos="w")
         self._textRecipient._textbox.config(height=1)
         self._textRecipient.settext(msg.recipient)
         self._textRecipient.pack(fill=X)
-
         self._textFunc = Pmw.ScrolledText(fr, label_text="Function", labelpos="w")
         self._textFunc._textbox.config(height=1)
         self._textFunc.settext(msg.func)
         self._textFunc.pack(fill=X)
-
         self._textArg = Pmw.ScrolledText(fr, label_text="Arguments", labelpos="n")
         argstring = str(msg.arg)
         if len(argstring) < 2000:
@@ -73,21 +66,16 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         else:
             self._textArg._textbox.insert(END, "Too large to display (%i characters)." % len(argstring))
         self._textArg.pack(expand=1, fill=BOTH)
-
         self.messageFrame.pack(side=TOP, expand=1, fill=BOTH)
-
         self.buttonFrame = fr = Frame(top)
         self._buttonClose = Button(fr, text="Close")
         self._buttonClose.pack(side=RIGHT)
-
         self._buttonCopy = Button(fr, text="Copy JSON")
         self._buttonCopy.pack(side=LEFT)
-
-        self._buttonCopy.bind('<ButtonRelease-1>' \
-                    ,self.__on_buttonCopy_Release)
-        self._buttonClose.bind('<ButtonRelease-1>' \
-                    ,self.__on_buttonClose_Release)
-
+        self._buttonCopy.bind('<ButtonRelease-1>'\
+            , self.__on_buttonCopy_Release)
+        self._buttonClose.bind('<ButtonRelease-1>'\
+            , self.__on_buttonClose_Release)
         self.buttonFrame.pack(side=BOTTOM, fill=X)
 
     def __on_buttonCopy_Release(self, Event=None):

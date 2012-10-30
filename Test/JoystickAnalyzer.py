@@ -57,7 +57,7 @@ __readme__ = "LOL. Just kidding."
 import pygame
 from pygame.locals import *
 from time import sleep
-from RAIN.Interface.JoystickDescription import *
+from Test.JoystickDescription import *
 from math import cos, sin, pi
 from time import time
 import socket

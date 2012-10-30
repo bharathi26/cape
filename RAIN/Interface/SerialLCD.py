@@ -88,6 +88,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
             self.lcd.write("\x7C\x35")
 
     def _pos(self, col, row):
+        count = 0
         if row == 0:
             count = col
         elif row == 1:

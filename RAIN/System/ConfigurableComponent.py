@@ -52,7 +52,7 @@ class ConfigurableComponent(object):
         # So, for now we just check for our BaseComponent's attributes.. which is kind of lame
 
         # TODO: Sort these everywhere
-        uuid = name = sysname = hname = hdesc = "Not found"
+        uuid = name = sysname = template = hname = hdesc = "Not found"
         try:
             c = self.Configuration
             uuid = c['uuid']

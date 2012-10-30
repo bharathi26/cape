@@ -51,7 +51,8 @@ class WaypointList(object):
     """A waypointlist consists of several Waypoints and a name."""
     __slots__ = ['name', 'points']
 
-    def __init__(self, name="", points=[]):
+    def __init__(self, name="", points=None):
+        if not points: points = []
         self.name = name
         self.points = points
 

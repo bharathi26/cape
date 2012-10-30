@@ -6,9 +6,6 @@ import bottle
 
 from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponentThreaded
-from RAIN.System.LoggableComponent import LoggableComponent
-
-import Axon
 
 class WSGIGateway(RPCComponentThreaded):
     def __init__(self):

@@ -41,7 +41,7 @@ class MSPTop(RPCComponent.RPCComponent):
         self.send(Message(self.name, port, "write", "hello\n"))
 
     def _setLights(self, mode):
-        if mode >= 0 and mode < 4:
+        if 0 <= mode < 4:
             self.send(Message(self.name, self.Configuration['SerialPort'], "write", "lights%i\n" % mode))
             # TODO: Instead of this, we should enter a state here and await a response before returning our OK.
             return (True, "New lights set.")

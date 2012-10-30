@@ -18,11 +18,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
-
 from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponent
-from RAIN.Messages import Message
 
 import serial
 

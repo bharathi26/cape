@@ -102,14 +102,14 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
 
         self._buttonFrame = Frame(self.window)
 
-        self._submitButton = Button(self._buttonFrame, text='Submit', command=self.send)
+        self._submitButton = Button(self._buttonFrame, text='Submit', command=self.transmit)
         self._closeButton = Button(self._buttonFrame, text='Close', command=self.close)
         self._submitButton.pack(side="left")
         self._closeButton.pack(side="right")
 
         self._buttonFrame.pack(side="bottom", fill="x", expand="yes")
 
-    def send(self):
+    def transmit(self):
         arguments = {}
 
         for args in self.argEntries:

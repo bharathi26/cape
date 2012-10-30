@@ -83,7 +83,7 @@ class NMEABaseSensor(RPCComponent):
         reqdict = {}
         for key in self.nmeaLog.keys():
             #print(key)
-            if key > minimum and key < maximum:
+            if minimum < key < maximum:
                 reqdict[key] = self.nmeaLog[key]
         return True, reqdict
 
@@ -91,14 +91,14 @@ class NMEABaseSensor(RPCComponent):
         if newest == 0:
             newest = time()
         if oldest < 0:
-            oldest = newest + oldest
+            oldest += newest
         reqdict = {}
         reqkeys = self.nmeaLog.keys()
 
         self.loginfo("Looking for nmea data in time '%f'-'%f'." % (oldest, newest))
 
         for key in reqkeys:
-            if key > oldest and key < newest:
+            if oldest < key < newest:
                 reqdict[key] = self.nmeaLog[key]
         return True, reqdict
 

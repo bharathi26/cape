@@ -22,13 +22,9 @@ import Axon
 
 import inspect
 
-from pprint import pprint
-
 from RAIN.System.Registry import ComponentTemplates
 #from RAIN.System.ConfigurableComponent import ConfigurableComponent
 from RAIN.System.BaseComponent import BaseComponent, BaseComponentThreaded
-
-from RAIN.Messages import Message
 
 class RPCMixin(object):
     """
@@ -116,6 +112,14 @@ class RPCMixin(object):
 
         return (True, self._getComponentInfo())
 
+    def rpc_subscribe(self, name, function):
+        """
+        Adds sender to the subscription list of our incoming data.
+        """
+        self.loginfo("New subscription: '%s'@'%s'" % (function, name))
+        self.subscribers[name] = function
+        return True
+
     def rpc_getConfiguration(self):
         """RPC wrapper for ConfigurableComponent"""
         return self.GetConfiguration()
@@ -135,14 +139,6 @@ class RPCMixin(object):
     def rpc_setConfiguration(self, config):
         """RPC wrapper for ConfigurableComponent"""
         return self.SetConfiguration(config)
-
-    def rpc_subscribe(self, name, function):
-        """
-        Adds sender to the subscription list of our incoming data.
-        """
-        self.loginfo("New subscription: '%s'@'%s'" % (function, name))
-        self.subscribers[name] = function
-        return True
 
     def _checkArgs(self, msg):
         # TODO:
@@ -323,7 +319,7 @@ class RPCMixin(object):
         while True:
             while not self.anyReady():
                 yield 1
-            msg = None
+
             response = None
 
             if self.dataReady("inbox"):
@@ -397,7 +393,6 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
 
             self.mainthread()
 
-            msg = None
             response = None
 
             if self.dataReady("inbox"):
