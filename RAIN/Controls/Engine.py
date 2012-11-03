@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 RAIN Operating Software
+#    Prototype of the MS0x00 ANRV Operating Software
 #      Simple Thrust Control Virtual Component (SRCVC)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
@@ -18,9 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from RAIN.System import Registry
-from RAIN.System import RPCComponent
-from RAIN.Messages import Message
+from ANRV.System import Registry
+from ANRV.System import RPCComponent
+from ANRV.Messages import Message
 
 class SimpleEngine(RPCComponent.RPCComponent):
     """
@@ -33,8 +33,8 @@ class SimpleEngine(RPCComponent.RPCComponent):
     upper = 1616
     lower = 1408
 
-    delta = upper - lower
-    center = lower + (delta / 2)
+    delta = self.Configuration['Upper'] - self.Configuration['Lower']
+    center = self.Configuration['Lower'] + (delta / 2)
 
     def rpc_setThrust(self, newthrust):
         """Calculates the new servo value for a given thrust.
@@ -71,7 +71,9 @@ class SimpleEngine(RPCComponent.RPCComponent):
 
         super(SimpleEngine, self).__init__()
         self.Configuration.update({
-            'Maestro': 'RAIN.Maestro'
+            'Maestro': ''
+            'Upper': 0
+            'Lower': 0
         })
 
 Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]
