@@ -57,6 +57,7 @@ class MSPBottom(RPCComponent.RPCComponent):
         self.MR['rpc_serialsubscription'] = {'default': [str, "Responses from the serial device."]}
 
         super(MSPBottom, self).__init__()
-        self.Configuration['SerialPort'] = "RAIN.Communication.SerialPort.SerialPort_14" # TODO: For development purposes
+        self.Configuration[
+        'SerialPort'] = "RAIN.Communication.SerialPort.SerialPort_14" # TODO: For development purposes
 
 Registry.ComponentTemplates['MSPBottom'] = [MSPBottom, "Bottom MSP430 Computer"]

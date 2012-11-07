@@ -65,15 +65,15 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
     def _clear(self):
         self.lcd.write("\xFE\x01")
         self.pause(0.01)
-        self._pos(0,0)
+        self._pos(0, 0)
         return True
 
     def _clearrow(self, row):
-        self._pos(0,row)
+        self._pos(0, row)
         for i in range(self.cols):
             self.lcd.write(" ")
             self.pause(0.01)
-        self._pos(0,row)
+        self._pos(0, row)
 
     def _setsize(self, cols=16, rows=2):
         self.cols = cols
@@ -112,7 +112,7 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
 
     def _connect(self):
         try:
-            self.lcd = serial.Serial(self.device,)
+            self.lcd = serial.Serial(self.device)
             self._brightness(0.5)
             self._text("RAIN Booting up - Please wait -")
         except Exception as error:
@@ -124,16 +124,16 @@ class SerialLCD(Axon.ThreadedComponent.threadedcomponent):
         # TODO: Call the maestro to actually sendout a message to the serial LCD
         # See here: http://www.sparkfun.com/datasheets/LCD/SerLCD_V2_5.PDF
         try:
-            udata=args.decode("utf-8")
+            udata = args.decode("utf-8")
         except:
-            udata=args
-        asciidata=udata.encode("ascii","replace")
+            udata = args
+        asciidata = udata.encode("ascii", "replace")
 
         cursor = 0
         firstpass = True # test whether this is the first 16 characters
         lcd = self.lcd
 
-        self._pos(0,0)
+        self._pos(0, 0)
 
         for letter in asciidata:
             lcd.write(letter)

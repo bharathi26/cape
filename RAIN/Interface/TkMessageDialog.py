@@ -21,7 +21,6 @@
 import RAIN.Messages
 from RAIN.System.LoggableComponent import LoggableComponent
 
-
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
 try:
@@ -72,9 +71,9 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         self._buttonClose.pack(side=RIGHT)
         self._buttonCopy = Button(fr, text="Copy JSON")
         self._buttonCopy.pack(side=LEFT)
-        self._buttonCopy.bind('<ButtonRelease-1>'\
+        self._buttonCopy.bind('<ButtonRelease-1>'
             , self.__on_buttonCopy_Release)
-        self._buttonClose.bind('<ButtonRelease-1>'\
+        self._buttonClose.bind('<ButtonRelease-1>'
             , self.__on_buttonClose_Release)
         self.buttonFrame.pack(side=BOTTOM, fill=X)
 

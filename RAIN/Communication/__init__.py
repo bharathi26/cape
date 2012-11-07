@@ -11,13 +11,11 @@ of communication to the outside world.
 * Pong          - reactive part of the ping system
 """
 
-__all__ = ['CLI',
-           'Echo',
+__all__ = ['Echo',
            'JSONServer',
            'Maestro',
            'Ping',
            'Pong',
            'WSGIGateway',
            'SerialPort',
-           'I2C',
-          ]
+]

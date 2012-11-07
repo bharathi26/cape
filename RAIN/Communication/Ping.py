@@ -36,7 +36,7 @@ class Ping(Axon.Component.component):
                 "signal": "Signaling from this Protocol"}
     lastping = 0
     count = 0
-    rttlist = [0]*30
+    rttlist = [0] * 30
     verbosity = 1
 
     def __init__(self, frequency=Frequency("PingFreq", period=60), verbosity=3):
@@ -66,7 +66,8 @@ class Ping(Axon.Component.component):
                     if self.verbosity > 1:
                         arg['lastping'] = self.lastping
                     if self.verbosity > 2:
-                        meanrtt = (fsum(self.rttlist[-10:]) / 10, fsum(self.rttlist[-20:]) / 20, fsum(self.rttlist) / 30)
+                        meanrtt = (
+                        fsum(self.rttlist[-10:]) / 10, fsum(self.rttlist[-20:]) / 20, fsum(self.rttlist) / 30)
                         arg['meanrtt'] = meanrtt
                     response = Message(sender=self.name, recipient="ALL", arg=arg)
                 if msg.recipient == "Ping":

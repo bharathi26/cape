@@ -24,7 +24,6 @@ from RAIN.Messages import Message
 from time import time
 
 class CourseController(RPCComponent):
-
     def __init__(self):
         self.MR['rpc_setCourse'] = {'newCourse': [float, 'New course bearing (0-360)']}
         self.MR['rpc_setSpeed'] = {'newSpeed': [float, 'Target speed in knots']}
@@ -46,7 +45,7 @@ class CourseController(RPCComponent):
     def main_prepare(self):
         self.loginfo("Controller subscribing to tracker")
         request = Message(sender=self.name, recipient=self.Configuration['tracker'],
-            func="subscribe", arg={'name': self.name, 'function': 'updateControls'})
+                          func="subscribe", arg={'name': self.name, 'function': 'updateControls'})
         self.send(request, "outbox")
 
     def rpc_setCourse(self, newCourse):
@@ -77,7 +76,7 @@ class CourseController(RPCComponent):
         elif rudder > 1:
             rudder = 1
         request = Message(sender=self.name, recipient=self.Configuration['rudder'],
-            func="setRudder", arg={'newangle': float(rudder)})
+                          func="setRudder", arg={'newangle': float(rudder)})
         self.send(request, "outbox")
         correction = self.speed - speed
         thrust = self.Configuration['thrustProportionalGain'] * correction
@@ -91,7 +90,7 @@ class CourseController(RPCComponent):
         elif thrust > 1:
             thrust = 1
         request = Message(sender=self.name, recipient=self.Configuration['engine'],
-            func="setThrust", arg={'newthrust': float(thrust)})
+                          func="setThrust", arg={'newthrust': float(thrust)})
         self.send(request, "outbox")
         self.previousTrack = track
         self.previousSpeed = speed

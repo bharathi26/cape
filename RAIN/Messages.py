@@ -64,8 +64,11 @@ class Message(object):
     def __str__(self):
         # TODO:
         # * check who calls this. Message apparently gets converted to string WAY too offen.
-        argstring = str(self.arg)
-        errstring = str(self.error)
+        try:
+            argstring = str(self.arg)
+            errstring = str(self.error)
+        except AttributeError:
+            return "Corrupted Message. Not all relevant parts were contained."
 
         if len(argstring) > 1024:
             argstring = "Too large to display (%i bytes)" % len(argstring)
@@ -128,70 +131,16 @@ class Message(object):
                 print("No args")
 
             return (self.sender and self.recipient and self.func and self.arg)
-        #        except:
-        #            return False
+            #        except:
+            #            return False
 
     def jsonencode(self, unpicklable=True):
         return jsonpickle.encode(self, unpicklable=unpicklable)
 
 
 def test():
-    # TODO: Clean up yet another mess
-    course = Angle("heading", 223)
-    foo = Message('rudder', 'messagetester', func="dataresponse", arg=course)
-
-    print("First test simple string representation:")
-    print(foo)
-
-    print("\n#########################################################################\n")
-    print("Now, on to the json en/decoding:")
-    spam = jsonpickle.encode(foo)
-    ham = jsonpickle.decode(spam)
-    print("JSON:")
-    print(spam)
-    print("Decoded JSON:")
-    print(ham)
-
-    print("\n#########################################################################\n")
-    print("Now we decode something we snapped up:")
-    eggs = jsonpickle.encode(foo, unpicklable=False)
-    print(eggs)
-    qux = jsonpickle.decode(eggs)
-    print((qux['sender']))
-
-    print("\n#########################################################################\n")
-    print("And again, with something old:")
-    spam = '{"py/object": "__main__.Message", "sender": "rudder", "timestamp": 1330118209.340174, "func": "dataresponse", "arg": {"py/object": "__main__.Angle", "name": "heading", "value": 223}, "recipient": "__main__"}'
-    ham = jsonpickle.decode(spam)
-    print(ham)
-
-    print("\n#########################################################################\n")
-    print("Generating wild Berlin based Waypoints:")
-    ham = WaypointList("TestWaypointlist")
-    for count, foo in enumerate(list(range(10))):
-        bar = Waypoint("Point %i" % count, "52,30.2N", "13,23.56E")
-        print(bar)
-        print((jsonpickle.encode(bar, unpicklable=False)))
-        ham.append(bar)
-
-    print(ham)
-
-    print("\n#########################################################################\n")
-    print("Testing Messages with a WaypointList")
-    spam = Message(__name__, "WaypointController", "SetList", ham)
-    print(spam)
-
-    print("\n#########################################################################\n")
-    print("Trying to jsonize WPC-Testmessage:")
-    eggs = jsonpickle.encode(spam)
-    print(eggs)
-
-    spam = jsonpickle.decode(eggs)
-    ham = spam.arg
-    print((ham.name))
-    print((ham.points))
-    for point in ham.points:
-        print(point)
+    # TODO: This class IS rather easy to test. Add some doctests here, now!
+    print "No testing yet :/"
 
 if __name__ == "__main__":
     test()

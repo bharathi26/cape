@@ -146,7 +146,7 @@ class RPCMixin(object):
         # * Better checking and error reporting
         # * Needs moar secure handling and logical checking of args etc.
 
-        self.logdebug("Checking arguments.")
+        self.log(5, "Checking arguments.")
         argspeclist = self.MethodRegister[msg.func]['args']
         #self.logdebug("ARGSPECLIST: '%s'" % argspeclist)
 
@@ -161,20 +161,20 @@ class RPCMixin(object):
         if len(args) != len(argspeclist):
             return False, 'Incorrect number of arguments. Got %d, expected %d' % (len(args), len(argspeclist))
         for param in args:
-            self.logdebug("Being checked: %s" % param)
+            self.log(5,"Being checked: %s" % param)
             # TODO: You can supply wrongly named args now, which crashes with TypeError during calling
             #            try:
-            self.logdebug(argspeclist)
+            #self.logdebug(argspeclist)
             argspec = argspeclist[param]
-            self.logdebug(argspec)
+            #self.logdebug(argspec)
             typespec = argspec[0]
             if not isinstance(args[param], typespec):
                 warning = "Argument type error: %s is %s - expected %s" % (param, type(args[param]), typespec)
                 self.logwarn(warning)
                 return False, warning
-            #            except Exception as e:
-            #                self.logerror(e)
-            #                return False, "Unknown Error %s" % e
+                #            except Exception as e:
+                #                self.logerror(e)
+                #                return False, "Unknown Error %s" % e
         return True, "All args valid."
 
     def handleRPC(self, msg):
@@ -194,17 +194,16 @@ class RPCMixin(object):
         # TODO: Grand unified error responses everywhere, needs a well documented standard.
 
         if msg.recipient == self.name:
-            self.logdebug(msg)
-            self.logdebug("Checking RPC request")
+            self.log(5,"Checking RPC request for '%s'" % msg)
             if msg.msg_type == 'request':
                 if msg.func in self.MethodRegister:
-                    self.logdebug("Request for method %s" % msg.func)
+                    #self.logdebug("Request for method %s" % msg.func)
                     # TODO: Better get the method from self.MR
                     method = getattr(self, "rpc_" + msg.func)
                     if method:
                         argtestresult, log = self._checkArgs(msg)
                         if argtestresult:
-                            self.logdebug("Calling method after successful ArgSpecTest: %s" % log)
+                            self.log(5, "Calling method after successful ArgSpecTest: %s" % log)
                             # Deliver the final result
                             args = msg.arg if msg.arg is not None else {}
                             result = method(**args)
@@ -229,7 +228,7 @@ class RPCMixin(object):
                 else:
                     self.logwarning("Response handler not implemented")
             else:
-                self.logerror("Unknown message type %s" % msg.msg_type)
+                self.logwarning("Unknown message type %s" % msg.msg_type)
         else:
             self.logerror("Received a message without being the recipient!")
 
@@ -269,7 +268,7 @@ class RPCMixin(object):
                 name = method[0][4:]
 
                 params = ArgSpecBuilder(method)
-                self.logdebug("Parameters for '%s': '%s'" % (method[0], params))
+                self.log(5, "Parameters for '%s': '%s'" % (method[0], params))
 
                 # TODO: Check for other stuff and log it accurately.
                 if isinstance(params, dict): # This might become more complex
@@ -281,7 +280,8 @@ class RPCMixin(object):
         return True
 
     def __init__(self):
-        """Initializes this RPC Component. Don't forget to call super(YourComponent, self).__init__() when overwriting."""
+        """Initializes this RPC Component. Don't forget to call super(YourComponent,
+        self).__init__() when overwriting."""
 
         # Python 2.x Methodregister
         self.MR['rpc_getComponentInfo'] = {}
@@ -323,11 +323,11 @@ class RPCMixin(object):
             response = None
 
             if self.dataReady("inbox"):
-                self.logdebug("Handling incoming rpc messages.")
+                self.log(5, "Handling incoming rpc messages.")
                 msg = self.recv("inbox")
                 response = self.handleRPC(msg)
             if response:
-                self.logdebug("Sending response to '%s'" % response.recipient)
+                self.log(5, "Sending response to '%s'" % response.recipient)
                 self.send(response, "outbox")
             yield 1
 
@@ -338,10 +338,12 @@ class RPCMixin(object):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+
 class RPCComponent(RPCMixin, BaseComponent):
     def __init__(self):
         BaseComponent.__init__(self)
         RPCMixin.__init__(self)
+
 
 class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
     def __init__(self):
@@ -396,11 +398,11 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
             response = None
 
             if self.dataReady("inbox"):
-                self.logdebug("Handling incoming rpc messages.")
+                self.log(5, "Handling incoming rpc messages.")
                 msg = self.recv("inbox")
                 response = self.handleRPC(msg)
             if response:
-                self.logdebug("Sending response '%s' to '%s'" % (response, response.recipient))
+                self.log(5, "Sending response '%s' to '%s'" % (response, response.recipient))
                 self.send(response, "outbox")
 
 # * ConfigurableComponent

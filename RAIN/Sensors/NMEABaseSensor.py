@@ -56,7 +56,8 @@ class NMEABaseSensor(RPCComponent):
 
     def main_prepare(self):
         self.loginfo("Subscribing to configured SerialPort")
-        request = Message(sender=self.name, recipient=self.Configuration['SerialPort'], func="subscribe", arg={'function': 'nmeainput', 'name': self.name})
+        request = Message(sender=self.name, recipient=self.Configuration['SerialPort'], func="subscribe",
+                          arg={'function': 'nmeainput', 'name': self.name})
         self.send(request, "outbox")
 
     def rpc_nmeainput(self, line):
@@ -72,7 +73,7 @@ class NMEABaseSensor(RPCComponent):
                                       'obj': sentence}
             for recipient, func in self.subscribers.items():
                 msg = Message(sender=self.name, recipient=recipient, func=func,
-                        arg={'args': (sentence.sen_type, sentence)})
+                              arg={'args': (sentence.sen_type, sentence)})
                 self.send(msg, "outbox")
 
     def rpc_getNMEATimeLog(self, eventtime, maxdeviation=10):

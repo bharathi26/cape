@@ -18,12 +18,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
+#import Axon
 #from RAIN.System.Registry import ComponentTemplates
-from RAIN.System.Configuration import Configuration as ConfigurationDB
-from configobj import ConfigObj
+#from RAIN.System.Configuration import Configuration as ConfigurationDB
+#from configobj import ConfigObj
 
-from pprint import pprint
+#from pprint import pprint
 
 class ConfigurableComponent(object):
     """Basic configurable Component.
@@ -93,6 +93,8 @@ class ConfigurableComponent(object):
 
     def ReadConfiguration(self):
         """Tries to obtain a configuration from the System's configuration database"""
+        from RAIN.System.Configuration import Configuration as ConfigurationDB
+
         try:
             self.Configuration = ConfigurationDB[self.name]
             return True

@@ -27,6 +27,7 @@ class Echo(RPCComponent):
     Simple Echo Component that just echoes back any request to its echo rpc function.
     TODO: Enhance it to respond to ANY function.
     """
+
     def rpc_echo(self, arg):
         """
         Echoes back any message.

@@ -19,34 +19,36 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 import uuid
 
-from RAIN import Version
-from RAIN.System import Logging
-from RAIN.System import Configuration
+from RAIN.System import Logger, Version, Configuration
 
 SystemName = DefaultSystemName = "DEFAULT"
 SystemClass = DefaultSystemClass = "DEFAULT"
 SystemUUID = DefaultSystemUUID = uuid.uuid4()
 
-if 'IDENTITY' in Configuration.Configuration.sections:
-    config = Configuration.Configuration['IDENTITY']
-    SystemName = config.get('name', DefaultSystemName)
-    SystemClass = config.get('class', DefaultSystemClass)
-    SystemUUID = config.get('uuid', DefaultSystemUUID)
-    Logging.systeminfo("System name configured from configuration", facility="IDENTITY")
-else:
-    if Version.node:
-        SystemName = DefaultSystemClass + Version.node
-        SystemClass = DefaultSystemClass
-        SystemUUID = DefaultSystemUUID
-        Logging.systemwarn("No configured name. You might want to configure this.", facility="IDENTITY")
+def setupIdentity():
+    global SystemName
+    global SystemClass
+    global SystemUUID
+
+    if 'IDENTITY' in Configuration.Configuration.sections:
+        config = Configuration.Configuration['IDENTITY']
+        SystemName = config.get('name', DefaultSystemName)
+        SystemClass = config.get('class', DefaultSystemClass)
+        SystemUUID = config.get('uuid', DefaultSystemUUID)
+        Logger.systeminfo("System name configured from configuration", facility="IDENTITY")
     else:
-        SystemName = DefaultSystemClass + DefaultSystemName
-        SystemClass = DefaultSystemClass
-        SystemUUID = DefaultSystemUUID
-        Logging.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
+        if Version.node:
+            SystemName = DefaultSystemClass + Version.node
+            SystemClass = DefaultSystemClass
+            SystemUUID = DefaultSystemUUID
+            Logger.systemwarn("No configured name. You might want to configure this.", facility="IDENTITY")
+        else:
+            SystemName = DefaultSystemClass + DefaultSystemName
+            SystemClass = DefaultSystemClass
+            SystemUUID = DefaultSystemUUID
+            Logger.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
 
 def test():
     """N/A: Should test the Identity information system."""

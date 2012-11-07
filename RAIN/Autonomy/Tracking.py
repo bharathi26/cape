@@ -24,7 +24,6 @@ from RAIN.Messages import Message
 from time import time
 
 class Tracker(RPCComponent):
-
     def __init__(self):
         self.MR['rpc_gpsinput'] = {'args': [tuple, "Tuple of (sentence type, NMEA object)"]}
         super(Tracker, self).__init__()
@@ -36,7 +35,7 @@ class Tracker(RPCComponent):
         self.speed = 0.0
         self.loginfo("Subscribing to NMEA data")
         request = Message(sender=self.name, recipient=self.Configuration['gps'],
-            func="subscribe", arg={'function': 'gpsinput', 'name': self.name})
+                          func="subscribe", arg={'function': 'gpsinput', 'name': self.name})
         self.send(request, "outbox")
 
     def rpc_gpsinput(self, args):
@@ -61,8 +60,8 @@ class Tracker(RPCComponent):
         for subscriber, function in self.subscribers.items():
             self.loginfo("Sending tracker data to subscriber %s" % subscriber)
             message = Message(sender=self.name, recipient=subscriber,
-                func=function, arg={'latitude': self.latitude, 'longitude': self.longitude,
-                    'track': self.track, 'speed': self.speed})
+                              func=function, arg={'latitude': self.latitude, 'longitude': self.longitude,
+                                                  'track': self.track, 'speed': self.speed})
             self.send(message, "outbox")
 
     def _decode(self, value, direction):

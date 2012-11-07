@@ -1,6 +1,4 @@
-#!/usr/bin/python3
-
-
+#!/usr/bin/python2.7
 
 import sys, getopt
 
@@ -31,15 +29,19 @@ for o, a in opts:
     if o in ("-p", "--port"):
         port = int(a)
 
+from RAIN.System import Configuration
+Configuration.setupConfig(config)
+
 from RAIN.System import Logging
 Logging.setupLogger(debug)
 
 Logging.systeminfo("-"*42)
 Logging.systeminfo("ScaffoldServer booting.")
 
-from RAIN.System import Configuration
-Logging.systeminfo("Loading Configuration.")
-Configuration.setupConfig(config)
+
+from RAIN.System import Identity
+Logging.systeminfo("Setting Identity.")
+Identity.setupIdentity()
 
 from Axon.Scheduler import scheduler
 from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore

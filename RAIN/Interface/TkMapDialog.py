@@ -63,7 +63,6 @@ class TkMapDialog(TkWindow, LoggableComponent):
 
         self.frame.pack(fill="both", expand="yes")
 
-
         if mapimage != None:
             self.drawMap(mapimage)
 

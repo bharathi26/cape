@@ -26,19 +26,20 @@ import os
 # repository. We need to keep these rather up to date, upon relevant changes.
 
 _default_ver = '0.0.1'
-_default_ver_num = 0,0,1
+_default_ver_num = 0, 0, 1
 _default_ver_details = {'author': None,
-               'branch': None,
-               'date': None,
-               'desc': None,
-               'node': None,
-               'parents': None,
-               'rev': None,
-               'tags': None}
+                        'branch': None,
+                        'date': None,
+                        'desc': None,
+                        'node': None,
+                        'parents': None,
+                        'rev': None,
+                        'tags': None}
 
 def _ver_hgapi():
     """Tries to obtain detailed version information of the running instance via hgapi."""
     import hgapi
+
     repo = hgapi.Repo(os.path.abspath(os.curdir))
     ver_details = repo.revision(repo.hg_rev()).__dict__
     return ver_details
@@ -53,7 +54,7 @@ def test():
 try:
     ver_details = _ver_hgapi()
     ver = '0.0.%d' % ver_details['rev']
-    ver_num = 0,0,ver_details['rev']
+    ver_num = 0, 0, ver_details['rev']
     ver_is_hg = True
     node = ver_details['node']
 except:

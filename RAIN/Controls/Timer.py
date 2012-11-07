@@ -30,10 +30,10 @@ class Timer(RPCComponent.RPCComponent):
     def __init__(self):
         self.MR['rpc_addTimer'] = {'usec': [float, "Unix timestamp of event"],
                                    'message': [Message, "Message to transmit on event"]
-                                  }
+        }
         self.MR['rpc_addCountdown'] = {'usec': [float, "Seconds to count down"],
                                        'message': [Message, "Message to transmit on countdown"]
-                                      }
+        }
         self.MR['rpc_listTimers'] = {}
         super(Timer, self).__init__()
 

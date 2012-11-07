@@ -58,6 +58,7 @@ class BaseMixin(object):
         self.hdesc = "No description yet."
         self.hname = self.name
 
+
 class BaseComponent(Axon.Component.component, BaseMixin, ConfigurableComponent, LoggableComponent):
     def __init__(self, **kwargs):
         Axon.Component.component.__init__(self, **kwargs)
@@ -65,7 +66,9 @@ class BaseComponent(Axon.Component.component, BaseMixin, ConfigurableComponent, 
         ConfigurableComponent.__init__(self)
         LoggableComponent.__init__(self)
 
-class BaseComponentThreaded(Axon.ThreadedComponent.threadedcomponent, BaseMixin, ConfigurableComponent, LoggableComponent):
+
+class BaseComponentThreaded(Axon.ThreadedComponent.threadedcomponent, BaseMixin, ConfigurableComponent,
+                            LoggableComponent):
     def __init__(self, **kwargs):
         Axon.ThreadedComponent.threadedcomponent.__init__(self, **kwargs)
         BaseMixin.__init__(self)

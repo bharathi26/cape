@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 RAIN Operating Software
-#      - Mixin with logging capabilities
+#      - Mixin with Logger capabilities
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,14 +18,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from RAIN.System import Logging
+from RAIN.System import Logger
 #from RAIN.System.Registry import ComponentTemplates
 
 class LoggableComponent(object):
     """Basic loggable Component.
 
     TODO:
-    * Central logging facility component
+    * Central Logger facility component
     * Documentation
     * Handling of attribute calls
     * RPC related stuff? later in the tree
@@ -33,33 +33,36 @@ class LoggableComponent(object):
 
     def __init__(self):
         try:
-            self.logdebug("Beginning component logging.")
+            self.logdebug("Beginning component Logger.")
         except AttributeError:
             self.name = "STUPIDLOGGABLE"
             self.logdebug("DON'T HAVE A NAME, ME SIMPLE LOGGABLE MIXIN.")
 
     def _formMessage(self, msg):
         try:
-            return Logging.formMessage(self.name[self.name.rindex(".") + 1:], msg)
+            return Logger.formMessage(self.name[self.name.rindex(".") + 1:], msg)
         except AttributeError:
-            return Logging.formMessage("UNNAMED", msg)
+            return Logger.formMessage("UNNAMED", msg)
+
+    def log(self, lvl, msg):
+        Logger.log(lvl, self._formMessage(msg))
 
     def logdebug(self, msg):
-        Logging.debug(self._formMessage(msg))
+        Logger.debug(self._formMessage(msg))
 
     def loginfo(self, msg):
-        Logging.info(self._formMessage(msg))
+        Logger.info(self._formMessage(msg))
 
     def logwarn(self, msg):
-        Logging.warn(self._formMessage(msg))
+        Logger.warn(self._formMessage(msg))
 
     def logwarning(self, msg):
-        Logging.warn(self._formMessage(msg))
+        Logger.warn(self._formMessage(msg))
 
     def logerror(self, msg):
-        Logging.error(self._formMessage(msg))
+        Logger.error(self._formMessage(msg))
 
     def logcritical(self, msg):
-        Logging.critical(self._formMessage(msg))
+        Logger.critical(self._formMessage(msg))
 
 #ComponentTemplates["LoggableComponent"] = [LoggableComponent, "Loggable Component"]

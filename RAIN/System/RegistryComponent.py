@@ -42,12 +42,21 @@ class RegistryComponent(RPCComponent):
         return True
 
     def initFromConfig(self):
+        "Generates all configured components from the global Configuration"
         config = Configuration.Configuration
         for sectionitem in config:
             section = config[sectionitem]
             if section.has_key("template"):
-                newcomponent = self._createComponent(section["template"], sectionitem)
-                newcomponent.ReadConfiguration()
+                result, newcomponent = self._createComponent(section["template"], sectionitem)
+                if result:
+                    newcomponent.ReadConfiguration()
+                else:
+                    self.logerror("Couldn't create component '%s'." % sectionitem)
+
+    def rpc_getConfigDB(self):
+        """Instructs the configuration system to return the current configuration.."""
+        self.loginfo("Getting configuration database.")
+        return Configuration.Configuration
 
     def rpc_storeConfigDB(self):
         """Instructs the configuration system to write back its DB."""
@@ -69,7 +78,8 @@ class RegistryComponent(RPCComponent):
         # TODO: This revision isn't better.
         if self.dispatcher: # "Dispatcher" in Registry.Components:
             if templatename in Registry.ComponentTemplates:
-                self.logdebug("Trying to create '%s' (Template '%s')." % (name if name is not None else "Unnamed", templatename))
+                self.logdebug(
+                    "Trying to create '%s' (Template '%s')." % (name if name is not None else "Unnamed", templatename))
                 # TODO: Better addressing without too much added trouble
                 # TODO: Initialize parameters correctly (How?)
                 try:
@@ -86,11 +96,11 @@ class RegistryComponent(RPCComponent):
                     self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                     self.dispatcher.RegisterComponent(newcomponent)
 
-                    return newcomponent
+                    return (True, newcomponent)
                 except TypeError as e:
                     msg = "Unsupported initialization found in component '%s' - error: '%s'." % (templatename, e)
                     self.logerror(msg)
-                    return msg
+                    return (False, msg)
 
             else:
                 self.logwarning("Cannot instantiate component %s. It is not registered as template." % templatename)
@@ -103,7 +113,8 @@ class RegistryComponent(RPCComponent):
         """Returns the current list of registered (running!) components."""
         self.logdebug("RPC: List of registered (running) components requested")
         self.logdebug(Registry.Components)
-        return (True, list(Registry.Components.keys())) # TODO: Watch out, this is dangerous, when someone else writes here
+        return (
+        True, list(Registry.Components.keys())) # TODO: Watch out, this is dangerous, when someone else writes here
 
     def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
@@ -117,12 +128,13 @@ class RegistryComponent(RPCComponent):
         self.MR['rpc_listRegisteredComponents'] = {}
         self.MR['rpc_listRegisteredTemplates'] = {}
         self.MR['rpc_storeConfigDB'] = {}
+        self.MR['rpc_getConfigDB'] = {}
         self.MR['rpc_createAllComponents'] = {}
         super(RegistryComponent, self).__init__()
 
 
 
-    # TODO:
-    # * Destruction of components
+        # TODO:
+        # * Destruction of components
 
 Registry.ComponentTemplates['RegistryComponent'] = [RegistryComponent, "Registry Component"]

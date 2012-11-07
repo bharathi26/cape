@@ -25,8 +25,8 @@ from time import sleep
 
 class Idler(RPCComponent):
     def __init__(self, frequency=200, realtime=False):
-        self.MR['rpc_setFreq']     = {'frequency':[float, 'Frequency to run with (Hz)']}
-        self.MR['rpc_setRealtime'] = {'realtime' :[bool, 'If on, run as fast as possible (Idler deactivated).']}
+        self.MR['rpc_setFreq'] = {'frequency': [float, 'Frequency to run with (Hz)']}
+        self.MR['rpc_setRealtime'] = {'realtime': [bool, 'If on, run as fast as possible (Idler deactivated).']}
 
         super(Idler, self).__init__()
         self.Configuration.update({

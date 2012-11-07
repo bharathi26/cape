@@ -42,20 +42,23 @@ class SimpleEngine(RPCComponent.RPCComponent):
         Transmits a Message containing these bytes to the Maestro Component and returns True.
         """
 
-#        Problems:
-#        * We don't really know what name the Maestro has.
-#        * Most of the stuff isn't really configureable right now, this has to wait for the configuration system to be
-#          fully grown to potential.
-#        * This is a very Maestro centric component, and should be defined as such.
-#        * It cannot really decide wether the maestro actually sent the command, unless we integrate states and defers
-#          (It has to talk back with the Maestro and await its response before it can reliably give the requesting
-#           party a response)
+        #        Problems:
+        #        * We don't really know what name the Maestro has.
+        #        * Most of the stuff isn't really configureable right now, this has to wait for the configuration
+        # system to be
+        #          fully grown to potential.
+        #        * This is a very Maestro centric component, and should be defined as such.
+        #        * It cannot really decide wether the maestro actually sent the command,
+        # unless we integrate states and defers
+        #          (It has to talk back with the Maestro and await its response before it can reliably give the
+        # requesting
+        #           party a response)
 
         target = int(self.center + (self.delta / 2) * newthrust)
         #print(("\n\n\n##### ENGINE TARGET: ", target))
 
         # Construct the bytes to send to the maestro
-        byte = chr(0x84) + chr(self.address) + chr((target*4) & 0x7f) + chr(((target*4) >> 7) & 0x7F)
+        byte = chr(0x84) + chr(self.address) + chr((target * 4) & 0x7f) + chr(((target * 4) >> 7) & 0x7F)
         #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
         self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": byte}))

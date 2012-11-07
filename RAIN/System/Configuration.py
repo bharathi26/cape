@@ -23,15 +23,13 @@
 import configobj
 import os.path
 
-from RAIN.System import Logging
-
 #TODO Rewrite the file/module finding...
 
 # General paths to look for configuration and module data
-Paths = DefaultPaths = {1: '/etc/anrv/', 2: os.path.expanduser('~/.'), 3: os.path.expanduser('~/.anrv/')}
+Paths = DefaultPaths = {1: '/etc/rain/', 2: os.path.expanduser('~/.'), 3: os.path.expanduser('~/.rain/')}
 
 # Filename of main configuration
-ConfigFilename = DefaultConfigFilename = "anrv.conf"
+ConfigFilename = DefaultConfigFilename = "rain.conf"
 
 # Pathname to look for modules in
 ModulePath = DefaultModulePath = "modules/"
@@ -59,56 +57,66 @@ def _getConfigFilename(filename=None):
         # TODO: Like this, using a dict with preference value is useless. Needs config segmentation or clearing.
         for key, path in Paths.items():
             name = path + DefaultConfigFilename
-            Logging.systemdebug("Trying %s." % name)
+
             if os.path.exists(name):
-                Logging.systemdebug("Works")
                 configfile = name
 
     return configfile
+
 
 def _getModulePath(path=DefaultModulePath):
     modulepaths = []
 
     for key, path in Paths.items():
         name = path + ModulePath
-        Logging.systemdebug("Trying %s." % name)
         if os.path.exists(name):
-            Logging.systemdebug("Found module folder: %s" % name)
             modulepaths.append(name)
 
     return modulepaths
 
-def _readConfig(filename=DefaultConfigFilename):
+
+def readConfig(filename=DefaultConfigFilename):
+    """
+    Reads a configuration file.
+    """
     global Configuration
     try:
-        newconfig = configobj.ConfigObj(filename, unrepr=True)
+        newconfig = configobj.ConfigObj(filename, unrepr=True, interpolation=False)
         Configuration = newconfig
-        Logging.systeminfo("Successfully read configuration file '%s'" % filename)
         return True
     except configobj.UnknownType as error:
-        Logging.systemerror("Couldn't read configuration: '%s'" % error)
+        # TODO: do not silently ignore this!
+        pass
 
-def _reloadConfig():
+
+def reloadConfig():
+    """
+    Reloads the global configuration.
+    """
     global Configuration
     Configuration.reload()
     return True
 
-def _writeConfig():
+
+def writeConfig():
+    """
+    Writes the global configuration.
+    """
     global Configuration
-    Logging.systeminfo("Configuration: \n%s" % Configuration)
     Configuration.write()
     return True
 
+
 def setupConfig(filename=ConfigFilename):
-    Logging.systeminfo("Determining configuration filename")
+    """
+     Prepares a configuration file and loads it.
+     """
     Filename = _getConfigFilename(filename)
 
-    Logging.systeminfo("Loading configuration from '%s'" % Filename)
-    _readConfig(Filename)
+    readConfig(Filename)
 
-    Logging.systeminfo("Checking module paths")
     ModulePaths = _getModulePath(ModulePath)
-    Logging.systeminfo("Found module paths: %s" % ModulePaths)
+
 
 def test():
     """N/A: Should test the configuration system."""

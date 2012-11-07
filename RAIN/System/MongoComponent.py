@@ -54,10 +54,12 @@ class MongoMixin(object):
         """Returns a list of mongodb's stored databases."""
         return (True, MongoMixin.mongodb.database_names())
 
+
 class MongoComponent(RPCComponent, MongoMixin):
     def __init__(self, **kwargs):
         MongoMixin.__init__(self)
         RPCComponent.__init__(self)
+
 
 class MongoComponentThreaded(RPCComponentThreaded, MongoMixin):
     def __init__(self, **kwargs):

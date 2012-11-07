@@ -22,8 +22,6 @@ import Axon
 from Kamaelia.Chassis.Graphline import Graphline
 import Kamaelia.IPC
 
-from RAIN.System import Configuration
-from RAIN.System import Logging
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.Messages import Message
 from RAIN.System import Registry
@@ -85,30 +83,31 @@ class JSONHandler(Axon.Component.component, LoggableComponent):
                             self.send(msg, "outbox")
                             self.logdebug("Accepted external message.")
                         else:
-                            self.logdebug("Malformed message or non message. Type '%s': '%s'" %(type(msg), msg))
-                            response = Message(sender=self.name, recipient="CLIENT", func="Error", arg="Malformed Message")
+                            self.logdebug("Malformed message or non message. Type '%s': '%s'" % (type(msg), msg))
+                            response = Message(sender=self.name, recipient="CLIENT", func="Error",
+                                               arg="Malformed Message")
                     except ValueError as error:
                         self.logwarning("%s:MALFORMED INPUT: %s" % (self.name, data))
-                        response = Message(sender=self.name, recipient="CLIENT", func="ValueError", arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
+                        response = Message(sender=self.name, recipient="CLIENT", func="ValueError",
+                                           arg=[error.args[0], data.decode("UTF-8", errors="ignore")])
                         # TODO: Watch this crappy exception. We need better input handling against bad boys.
                         self.logdebug(response)
 
-#                    if msg and isinstance(msg, Message):
-#                        if msg.recipient == "JSONServer":
-#                            if msg.func == "SetFilter":
-#                                self.msgfilter = msg.arg
-#                                #response = msg.response(True)
-#                                print(("Filter has been changed to %s" % msg.arg))
-#                            if msg.func == "AddRecipient":
-#                                self.msgfilter['recipients'].append(msg.arg)
-#                                #response = msg.response(True
-#                                print(("Recipient %s has been added to filter." % msg.arg))
+                    #                    if msg and isinstance(msg, Message):
+                    #                        if msg.recipient == "JSONServer":
+                    #                            if msg.func == "SetFilter":
+                    #                                self.msgfilter = msg.arg
+                    #                                #response = msg.response(True)
+                    #                                print(("Filter has been changed to %s" % msg.arg))
+                    #                            if msg.func == "AddRecipient":
+                    #                                self.msgfilter['recipients'].append(msg.arg)
+                    #                                #response = msg.response(True
+                    #                                print(("Recipient %s has been added to filter." % msg.arg))
                 if response:
                     response = response.jsonencode()
                     response = response.encode("utf-8")
                     self.send(response, "protocolout")
                 yield 1
-
 
             if self.dataReady("control"):
                 data = self.recv("control")
@@ -145,16 +144,16 @@ class JSONSplitter(Axon.Component.component, LoggableComponent):
 
             if self.dataReady("inbox"):
                 msgs = self.recv("inbox")
-#                if buflist.count() >= maxlength:
-#                    response = Message(self.name, "JSONServer", "WarnQueueFull")
+                #                if buflist.count() >= maxlength:
+                #                    response = Message(self.name, "JSONServer", "WarnQueueFull")
                 for msg in msgs.split(self.separator):
                     if len(msg) > 0:
-#                        print("Appending:", msg)
+                    #                        print("Appending:", msg)
                         self.buflist.append(msg.rstrip(self.separator))
             if len(self.buflist) > 0:
                 response = self.buflist.popleft()
                 self.send(response, "outbox")
-#                print(("DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)))
+            #                print(("DEBUG.JSONSplitter.Queuelength: %i" % len(self.buflist)))
             yield 1
 
     def shutdown(self):
@@ -163,15 +162,16 @@ class JSONSplitter(Axon.Component.component, LoggableComponent):
             msg = self.recv("control")
             return isinstance(msg, Axon.Ipc.producerFinished)
 
+
 def JSONProtocol(*argv, **argd):
     return Graphline(
-        SPLITTER = JSONSplitter(),
+        SPLITTER=JSONSplitter(),
         #CE = ConsoleEchoer(),
-        SERVER = JSONHandler(),
+        SERVER=JSONHandler(),
 
-        linkages = {("self", "inbox"): ("SPLITTER", "inbox"),
-                    ("SPLITTER", "outbox"): ("SERVER", "protocolin"),
-                    ("SERVER", "protocolout"): ("self", "outbox")}
+        linkages={("self", "inbox"): ("SPLITTER", "inbox"),
+                  ("SPLITTER", "outbox"): ("SERVER", "protocolin"),
+                  ("SERVER", "protocolout"): ("self", "outbox")}
 
     )
 

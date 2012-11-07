@@ -19,36 +19,32 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Axon
-import logging
-
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
+from Axon.AdaptiveCommsComponent import AdaptiveCommsComponent
 
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System import Registry
 from RAIN.Messages import Message
-from RAIN.System import Logging
 
-
-class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableComponent):
-    inboxes = {'inbox'   : 'Dispatcher Inbox',
-               'control' : 'Not used yet.'}
-    outboxes = {'outbox' : 'Dispatcher Outbox',
-                'signal' : 'Not used yet.'}
+class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
+    inboxes = {'inbox': 'Dispatcher Inbox',
+               'control': 'Not used yet.'}
+    outboxes = {'outbox': 'Dispatcher Outbox',
+                'signal': 'Not used yet.'}
     Components = []
 
     def __init__(self):
-        super(Dispatcher, self).__init__()
+        AdaptiveCommsComponent.__init__(self)
+        LoggableComponent.__init__(self)
 
     def RegisterComponent(self, thecomponent):
         self.logdebug("Trying to register new component")
         self.addChildren(thecomponent)
 
-        newIn  = self.addInbox(thecomponent.name)
+        newIn = self.addInbox(thecomponent.name)
         newOut = self.addOutbox(thecomponent.name)
 
         newState = "WAITING"
-        linkToComponent   = self.link((self, newOut), (thecomponent, "inbox"))
+        linkToComponent = self.link((self, newOut), (thecomponent, "inbox"))
         linkFromComponent = self.link((thecomponent, "outbox"), (self, "inbox"))
 
         resource = thecomponent
@@ -82,14 +78,16 @@ class Dispatcher(Axon.AdaptiveCommsComponent.AdaptiveCommsComponent, LoggableCom
                 response = None
                 self.loginfo("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
                 if msg.recipient in self.inboxes:
-                    self.send(msg,  msg.recipient)
+                    self.send(msg, msg.recipient)
                 elif msg.recipient == self.name:
                     self.logcritical('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
                     #response = msg.response((False, "Not available."))
                 else:
                     self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
-                    #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False, "Recipient not found."))
-                    # TODO: maybe we should include the original timestamp, look in RAIN/Messages.py for more on that topic.
+                    #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False,
+                    # "Recipient not found."))
+                    # TODO: maybe we should include the original timestamp, look in RAIN/Messages.py for more on that
+                    # topic.
                 if response:
                     if response.recipient in self.inboxes:
                         self.logdebug("Responding to '%s'" % response.recipient)

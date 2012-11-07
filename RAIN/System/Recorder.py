@@ -31,12 +31,12 @@ class Recorder(Axon.Component.component):
     * hold_open - keep file open (default: True)
     """
     Inboxes = {
-        "inbox"   : "data to append to the end of the file.",
-        "control" : "Send any message here to shut this component down"
+        "inbox": "data to append to the end of the file.",
+        "control": "Send any message here to shut this component down"
     }
     Outboxes = {
-        "outbox"  : "a copy of the message is forwarded here",
-        "signal"  : "passes on the message used to shutdown the component"
+        "outbox": "a copy of the message is forwarded here",
+        "signal": "passes on the message used to shutdown the component"
     }
     # Arguments
 
@@ -47,12 +47,12 @@ class Recorder(Axon.Component.component):
         """x.__init__(...) initializes x; see x.__class__.__doc__ for signature"""
         super(Recorder, self).__init__(**argd)
 
-        if not self.filename :
+        if not self.filename:
             raise ValueError("Expected a filename")
         self.F = None
         self.shutdown = Axon.Ipc.producerFinished()
 
-    def writeChunk(self,chunk):
+    def writeChunk(self, chunk):
         if self.hold_open:
             if self.F == None:
                 self.F = open(self.filename, "a")
@@ -68,7 +68,7 @@ class Recorder(Axon.Component.component):
     def main(self):
         while not self.dataReady("control"):
             for chunk in self.Inbox("inbox"):
-                 self.writeChunk(chunk)
+                self.writeChunk(chunk)
             if not self.anyReady():
                 self.pause()
             yield 1

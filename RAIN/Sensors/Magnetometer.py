@@ -46,8 +46,8 @@ class Magnetometer(RPCComponentThreaded):
             self.values[i] = value
         for subscriber, func in self.subscribers.items():
             self.send(Message(sender=self.name, recipient=subscriber, func=func,
-                arg={'x': self.values[0], 'y': self.values[2], 'z': self.values[1]}),
-                "outbox")
+                              arg={'x': self.values[0], 'y': self.values[2], 'z': self.values[1]}),
+                      "outbox")
         sleep(0.1)
 
 ComponentTemplates['Magnetometer'] = [Magnetometer, "Magnetometer"]

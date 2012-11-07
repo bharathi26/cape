@@ -95,7 +95,6 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
             argLabel.pack(side='left')
             argFrame.pack(fill='x', expand='yes')
 
-
             self.argEntries[arg] = {'Frame': argFrame, 'Entry': argEntry, 'Doc': argDoc}
 
         self._argsFrame.pack(expand='yes', fill='both', side="top")
@@ -114,6 +113,8 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
 
         for args in self.argEntries:
             self.logdebug("Checking '%s' against '%s'" % (args, self.argspec[args]))
+            # TODO: There's a bug here, that prevents bools and probably a lot of other stuff from
+            # being parsed correctly.
             if self.argspec[args][0] == dict:
                 arguments[args] = json.loads(self.argEntries[args]['Entry'].get())
             else:
@@ -122,6 +123,7 @@ class TkRPCArgDialog(TkWindow, LoggableComponent):
 
     def close(self):
         self.window.destroy()
+
 
 class TkAdmin(TkWindow, RPCComponent):
     """
@@ -151,21 +153,21 @@ class TkAdmin(TkWindow, RPCComponent):
         # TODO: Good idea to already activate here?
         # TODO: Don't we need a central InvisibleWindow thats kept inbetween destruction of tkinterfaces?
         self._invisibleRoot = tkInvisibleWindow().activate()
-#        self.clearInput = tkinter.BooleanVar()
+        #        self.clearInput = tkinter.BooleanVar()
         self.componentlist = {}
         self.messages = []
         self.MapViewer = None
 
-    def __on_ButtonClear_Press(self,Event=None):
-        self.clearEntry() 
+    def __on_ButtonClear_Press(self, Event=None):
+        self.clearEntry()
 
-    def __on_ButtonTransmit_Release(self,Event=None):
+    def __on_ButtonTransmit_Release(self, Event=None):
         self.usertransmit()
 
-    def __on_EntryInput_Enter__C(self,Event=None):
+    def __on_EntryInput_Enter__C(self, Event=None):
         self.usertransmit()
 
-    def __on_ButtonClearResponses_Press(self,Event=None):
+    def __on_ButtonClearResponses_Press(self, Event=None):
         self.__TextResponses.clear()
 
     def showMessage(self, ev):
@@ -177,12 +179,14 @@ class TkAdmin(TkWindow, RPCComponent):
         msgdialog = TkMessageDialog(self.window, msg)
 
     def clearEntry(self):
-        self.__EntryInput.delete(0,END)
+        self.__EntryInput.delete(0, END)
         self.__FrameInput['bg'] = self.defaultcolors['bg']
-#        self.__EntryInput['fg'] = self.defaultcolors['fg']
+
+    #        self.__EntryInput['fg'] = self.defaultcolors['fg']
 
     def scanregistry(self):
-        msg = RAIN.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents", arg=None)
+        msg = RAIN.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents",
+                                    arg=None)
         self.transmit(msg)
 
     def scancomponent(self, name):
@@ -215,14 +219,14 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def updateMessageLog(self):
         loglistbox = self.__MessageLog._listbox
-        loglistbox.delete(0,END) # GAH. Addition should be sufficient. CHANGE!
+        loglistbox.delete(0, END) # GAH. Addition should be sufficient. CHANGE!
 
         for msg in sorted(self.messages, key=lambda msg: msg.timestamp):
-            loglistbox.insert(END,msg)
+            loglistbox.insert(END, msg)
             if msg.recipient == self.name:
-                loglistbox.itemconfig(END, bg='green',fg='black')
+                loglistbox.itemconfig(END, bg='green', fg='black')
             else:
-                loglistbox.itemconfig(END, bg='red',fg='black')
+                loglistbox.itemconfig(END, bg='red', fg='black')
 
     def usertransmit(self):
         def send(msg):
@@ -251,7 +255,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 self.__EntryInput.icursor(col)
             self.logwarning(errmsg)
             self.__FrameInput['bg'] = 'red'
-#            self.__FrameInput['fg'] = 'yellow'
+            #            self.__FrameInput['fg'] = 'yellow'
             messagebox.showinfo("Transmit failed!", errmsg)
 
         if self.autoclear.get():
@@ -283,23 +287,27 @@ class TkAdmin(TkWindow, RPCComponent):
                 for meth in mr:
                     self.logdebug("Got method '%s'." % meth)
                     if len(mr[meth]['args']) > 0:
-                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(comp,meth): self.callComplexMethod(name,meth))
+                        MenuSubComponent.add_command(label=meth,
+                                                     command=lambda (name, meth)=(comp, meth): self.callComplexMethod(
+                                                         name, meth))
                     else:
-                        MenuSubComponent.add_command(label=meth, command=lambda (name,meth)=(comp,meth): self.callSimpleMethod(name,meth))
+                        MenuSubComponent.add_command(label=meth,
+                                                     command=lambda (name, meth)=(comp, meth): self.callSimpleMethod(
+                                                         name, meth))
 
         def __handleRegisteredComponents(components):
-           self.loginfo("Got a list of registered components. Parsing.")
-           self.componentlist = {}
-           self.__MenuComponents.delete(4,END)
-           for comp in components:
-               if self.autoscan.get() and comp not in self.componentlist:
-                   self.scancomponent(comp)
-               MenuSubComponent = Menu(self.__MenuComponents)
-               MenuSubComponent.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
-               MenuSubComponent.add_separator()
+            self.loginfo("Got a list of registered components. Parsing.")
+            self.componentlist = {}
+            self.__MenuComponents.delete(4, END)
+            for comp in components:
+                if self.autoscan.get() and comp not in self.componentlist:
+                    self.scancomponent(comp)
+                MenuSubComponent = Menu(self.__MenuComponents)
+                MenuSubComponent.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
+                MenuSubComponent.add_separator()
 
-               self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
-               self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
+                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
+                self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
 
         if isinstance(msg, RAIN.Messages.Message):
             if msg.sender == self.systemregistry:
@@ -318,16 +326,18 @@ class TkAdmin(TkWindow, RPCComponent):
                         self.MapViewer.activate()
 
     def scanlinetest(self):
-        polygon = [[50,5],[100,270],[150,270],[220,30]]
+        polygon = [[50, 5], [100, 270], [150, 270], [220, 30]]
         ScanlineTestDialog = TkScanlineTestDialog(polygon)
 
     def quit(self):
+        self.logcritical("Shutting down hard.")
         Axon.Scheduler.scheduler.run.stop()
 
     def setupWindow(self):
         self.logdebug("Setting up TkAdmin GUI")
 
         import Pmw
+
         Pmw.initialise(self.window)
 
         self.window.title(self.title)
@@ -335,7 +345,7 @@ class TkAdmin(TkWindow, RPCComponent):
 
         ### Menu ###
         self.__FrameMenu = Frame(self.window)
-        self.__FrameMenu.pack(anchor='n',side='top')
+        self.__FrameMenu.pack(anchor='n', side='top')
 
         self.__Menu = Menu(self.window)
         self.__MenuFile = Menu(self.__Menu)
@@ -357,7 +367,8 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__MenuSettings.add_checkbutton(label="Fix sender", onvalue=True, offvalue=False, variable=self.fixsender)
         self.__MenuSettings.add_checkbutton(label="Autoscan", onvalue=True, offvalue=False, variable=self.autoscan)
         self.__MenuSettings.add_checkbutton(label="Autoclear", onvalue=True, offvalue=False, variable=self.autoclear)
-        self.__MenuSettings.add_checkbutton(label="Show responses", onvalue=True, offvalue=False, variable=self.showresponses)
+        self.__MenuSettings.add_checkbutton(label="Show responses", onvalue=True, offvalue=False,
+                                            variable=self.showresponses)
 
         self.__MenuComponents = Menu(self.__Menu)
         self.__MenuComponents.add_command(label="Scan", command=self.scanregistry)
@@ -371,7 +382,7 @@ class TkAdmin(TkWindow, RPCComponent):
         ### Output ###
 
         self.__FrameOutput = Frame(self.window)
-        self.__FrameOutput.pack(side='top',fill='both',expand='yes')
+        self.__FrameOutput.pack(side='top', fill='both', expand='yes')
 
         self.__NotebookOutput = Pmw.NoteBook(self.__FrameOutput)
         self.__NotebookOutput.pack(fill='both', expand=1)
@@ -387,23 +398,23 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__NotebookOutput.tab('Messages').focus_set()
 
         self.__FrameInput = Frame(self.window, borderwidth=2)
-        self.__FrameInput.pack(anchor='s',expand='no',fill='x',side='top')
+        self.__FrameInput.pack(anchor='s', expand='no', fill='x', side='top')
 
         self.__FrameStatusbar = Frame(self.window, relief='raised')
-        self.__FrameStatusbar.pack(anchor='sw',side='top') # ,fill='x'
+        self.__FrameStatusbar.pack(anchor='sw', side='top') # ,fill='x'
 
-        self.__LabelStatus = Label(self.__FrameStatusbar,text='Ready.')
-        self.__LabelStatus.pack(anchor='w',expand='yes',side='top') # ,fill='both'
+        self.__LabelStatus = Label(self.__FrameStatusbar, text='Ready.')
+        self.__LabelStatus.pack(anchor='w', expand='yes', side='top') # ,fill='both'
 
         self.__FrameResponses = Frame(self.__PageResponses, background="yellow")
 
         self.__FrameResponsesHeader = Frame(self.__FrameResponses)
 
-        self.__LabelResponses = Label(self.__FrameResponsesHeader,text='Responses')
-        self.__LabelResponses.pack(anchor='e',side='right', fill='x')
+        self.__LabelResponses = Label(self.__FrameResponsesHeader, text='Responses')
+        self.__LabelResponses.pack(anchor='e', side='right', fill='x')
 
         self.__ButtonClearResponses = Button(self.__FrameResponsesHeader, text='Clear')
-        self.__ButtonClearResponses.pack(anchor='w',side='left')
+        self.__ButtonClearResponses.pack(anchor='w', side='left')
 
         self.__FrameResponsesHeader.pack(anchor='n', fill='x', side=TOP)
 
@@ -439,18 +450,18 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__FrameInputEntry = Frame(self.__FrameInput)
 
         self.__EntryInput = Entry(self.__FrameInput)
-        self.__EntryInput.pack(expand='yes',fill='both',side='left')
+        self.__EntryInput.pack(expand='yes', fill='both', side='left')
 
         self.__FrameTransmitButton = Frame(self.__FrameInput)
-        self.__FrameTransmitButton.pack(anchor='w',side='left')
+        self.__FrameTransmitButton.pack(anchor='w', side='left')
 
         self.__ButtonTransmit = Button(self.__FrameTransmitButton
-            ,text='Transmit')
-        self.__ButtonTransmit.pack(expand='yes',fill='both',side='top')
+            , text='Transmit')
+        self.__ButtonTransmit.pack(expand='yes', fill='both', side='top')
         self.__FrameClearButton = Frame(self.__FrameInput)
-        self.__FrameClearButton.pack(anchor='w',side='left')
-        self.__ButtonClear = Button(self.__FrameClearButton,text='Clear')
-        self.__ButtonClear.pack(expand='yes',fill='both',side='top')
+        self.__FrameClearButton.pack(anchor='w', side='left')
+        self.__ButtonClear = Button(self.__FrameClearButton, text='Clear')
+        self.__ButtonClear.pack(expand='yes', fill='both', side='top')
 
         self.__FrameInputEntry.pack(side='left')
 
@@ -459,13 +470,12 @@ class TkAdmin(TkWindow, RPCComponent):
         ### Bindings ###
 
         self.__MessageLog._listbox.bind("<Double-Button-1>", self.showMessage)
-        self.__ButtonClearResponses.bind('<ButtonRelease-1>' \
-            ,self.__on_ButtonClearResponses_Press)
-        self.__ButtonTransmit.bind('<ButtonRelease-1>' \
-            ,self.__on_ButtonTransmit_Release)
-        self.__ButtonClear.bind('<ButtonPress-1>',self.__on_ButtonClear_Press)
-        self.__EntryInput.bind('<Control-Return>',self.__on_EntryInput_Enter__C)
-
+        self.__ButtonClearResponses.bind('<ButtonRelease-1>'
+            , self.__on_ButtonClearResponses_Press)
+        self.__ButtonTransmit.bind('<ButtonRelease-1>'
+            , self.__on_ButtonTransmit_Release)
+        self.__ButtonClear.bind('<ButtonPress-1>', self.__on_ButtonClear_Press)
+        self.__EntryInput.bind('<Control-Return>', self.__on_EntryInput_Enter__C)
 
         self.defaultcolors = {'bg': self.window['bg'], 'fg': self.__EntryInput['fg']}
 
@@ -494,4 +504,5 @@ class TkAdmin(TkWindow, RPCComponent):
                     self.__TextResponses.insert(END, "%s\n" % msg)
             self.tkupdate()
 
-Registry.ComponentTemplates['TkAdmin'] = [TkAdmin, "Simple Second revision Admin GUI providing message relaying and log viewing."]
+Registry.ComponentTemplates['TkAdmin'] = [TkAdmin,
+                                          "Simple Second revision Admin GUI providing message relaying and log viewing."]

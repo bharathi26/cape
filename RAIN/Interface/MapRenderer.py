@@ -28,7 +28,7 @@ class MapRenderer(RPCComponent.RPCComponent):
     """
     """
 
-    mapsize = 1024,768
+    mapsize = 1024, 768
     mapfile = "./RAIN/Static/world_boundaries.xml"
     backgroundColor = '#114B7F'
     foregroundColor = '#6494BF'
@@ -37,12 +37,14 @@ class MapRenderer(RPCComponent.RPCComponent):
     # can also be constructed as:
     #longlat = mapnik.Projection('+init=epsg:4326')
 
-    merc = mapnik.Projection('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over')
+    merc = mapnik.Projection(
+        '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null '
+        '+no_defs +over')
 
     def rpc_renderCoord(self, lat, lon, zoom):
         im = mapnik.Image(self.mapsize[0], self.mapsize[1])
-        
-        center = mapnik.Coord(lat,lon)
+
+        center = mapnik.Coord(lat, lon)
         transform = mapnik.ProjTransform(self.longlat, self.merc)
         merc_center = transform.forward(center)
 
@@ -75,10 +77,10 @@ class MapRenderer(RPCComponent.RPCComponent):
         r = mapnik.Rule()
         polygon_symbolizer = mapnik.PolygonSymbolizer(mapnik.Color(self.foregroundColor))
         r.symbols.append(polygon_symbolizer)
-        line_symbolizer = mapnik.LineSymbolizer(mapnik.Color('rgb(50%,50%,50%)'),0.1)
+        line_symbolizer = mapnik.LineSymbolizer(mapnik.Color('rgb(50%,50%,50%)'), 0.1)
         r.symbols.append(line_symbolizer)
         s.rules.append(r)
-        m.append_style('My Style',s)
+        m.append_style('My Style', s)
 
         ds = mapnik.Shapefile(file=LandmassShapefile)
         layer = mapnik.Layer('world')
@@ -86,7 +88,7 @@ class MapRenderer(RPCComponent.RPCComponent):
         layer.styles.append('My Style')
         m.layers.append(layer)
 
-        center = mapnik.Coord(lat,lon)
+        center = mapnik.Coord(lat, lon)
         transform = mapnik.ProjTransform(self.longlat, self.merc)
         merc_center = transform.forward(center)
 
@@ -111,8 +113,9 @@ class MapRenderer(RPCComponent.RPCComponent):
 
         LandmassShapefile = 'RAIN/Interface/ne_110m_admin_0_countries.shp'
 
-
-        merc = mapnik.Projection('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over')
+        merc = mapnik.Projection(
+            '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null '
+            '+no_defs +over')
 
         # long/lat in degrees, aka ESPG:4326 and "WGS 84" 
         longlat = mapnik.Projection('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
@@ -138,11 +141,11 @@ class MapRenderer(RPCComponent.RPCComponent):
                                      'minlon': [float, "Minimal longitude of map."],
                                      'maxlat': [float, "Maximal latitude of map."],
                                      'maxlon': [float, "Maximal longitude of map."],
-                                    }
+        }
         self.MR['rpc_renderCoord'] = {'lat': [float, "Minimal latitude of map."],
                                       'lon': [float, "Minimal longitude of map."],
                                       'zoom': [float, "Maximal longitude of map."],
-                                     }
+        }
 
         self.rendermap = mapnik.Map(self.mapsize[0], self.mapsize[1])
         mapnik.load_map(self.rendermap, self.mapfile)

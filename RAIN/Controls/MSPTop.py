@@ -79,10 +79,11 @@ class MSPTop(RPCComponent.RPCComponent):
         self.MR['rpc_setLights'] = {'mode': [int, "Lightmode [0: off, 1: Steerboard on, 2: Port on, 3: Both on"]}
         self.MR['rpc_blinkLight'] = {'light': [int, "Which light to blink."],
                                      'count': [int, "How many times to blink."],
-                                    }
+        }
         self.MR['rpc_serialsubscription'] = {'data': [str, "Responses from the serial device."]}
 
         super(MSPTop, self).__init__()
-        self.Configuration['SerialPort'] = "RAIN.Communication.SerialPort.SerialPort_14" # TODO: For development purposes
+        self.Configuration[
+        'SerialPort'] = "RAIN.Communication.SerialPort.SerialPort_14" # TODO: For development purposes
 
 Registry.ComponentTemplates['MSPTop'] = [MSPTop, "Top MSP430 Computer"]

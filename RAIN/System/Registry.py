@@ -25,7 +25,7 @@ Dispatcher = None
 Modules = {}
 
 from RAIN.System import Configuration
-from RAIN.System import Logging
+from RAIN.System import Logger
 
 import glob, os, imp
 
@@ -40,20 +40,21 @@ def _findModules(Paths):
     # * Modules should possibly signed and here, verification could happen (or better: upon (re)loading?)
     # * ...
     def gatherModules(path):
-        Logging.systemdebug(os.path.dirname(path)+"/*.py")
+        Logger.systemdebug(os.path.dirname(path) + "/*.py")
         modules = {}
-        for f in glob.glob(os.path.dirname(path)+"/*.py"):
-            Logging.systemdebug("Inspecting '%s'" % f)
+        for f in glob.glob(os.path.dirname(path) + "/*.py"):
+            Logger.systemdebug("Inspecting '%s'" % f)
             modules[os.path.basename(f)[:-3]] = f
-        Logging.systemdebug("Found modules: %s" % modules)
+        Logger.systemdebug("Found modules: %s" % modules)
         return modules
 
     modules = {}
     for path in Paths:
-        Logging.systemdebug("Inspecting modulepath '%s'" % path)
+        Logger.systemdebug("Inspecting modulepath '%s'" % path)
         modules.update(gatherModules(path))
 
     return modules
+
 
 def _loadModule(modfilename):
     pass
@@ -61,19 +62,20 @@ def _loadModule(modfilename):
     #mod = imp.new_module(
     #return __import__(Filename)
 
+
 def _updateModule(Name):
     reload(Name)
 
 
-Logging.systeminfo("Looking for modules")
+Logger.systeminfo("Looking for modules")
 ModuleFiles = _findModules(Configuration.ModulePaths)
-Logging.systeminfo("Found %i modules. Loading..." % len(ModuleFiles))
+Logger.systeminfo("Found %i modules. Loading..." % len(ModuleFiles))
 
 for module in ModuleFiles:
-    Logging.systemdebug("Loading %s" % module)
+    Logger.systemdebug("Loading %s" % module)
     Modules[module] = _loadModule(ModuleFiles[module])
 
-Logging.systeminfo("All modules loaded.")
+Logger.systeminfo("All modules loaded.")
 
 def test():
     """N/A: Should test the version information system."""

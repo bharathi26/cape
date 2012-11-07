@@ -45,7 +45,7 @@ class SimpleRudder(RPCComponent.RPCComponent):
         #print(("\n\n\n##### ENGINE TARGET: ", target))
 
         # Construct the bytes to send to the maestro
-        byte = chr(0x84) + chr(self.address) + chr((target*4) & 0x7f) + chr(((target*4) >> 7) & 0x7F)
+        byte = chr(0x84) + chr(self.address) + chr((target * 4) & 0x7f) + chr(((target * 4) >> 7) & 0x7F)
         #print(("##### ENGINE BYTES: ", byte, "\n\n\n"))
 
         self.send(Message(self.name, self.Configuration['Maestro'], "write", {"args": byte}))

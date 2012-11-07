@@ -1,5 +1,5 @@
 __all__ = ['Identity',
-           'Logging',
+           'Logger',
            'Configuration',
            'Registry',
            'Dispatcher',
@@ -10,4 +10,4 @@ __all__ = ['Identity',
            'RegistryComponent',
            'LoggerComponent',
            'MongoComponent',
-           ]
+]

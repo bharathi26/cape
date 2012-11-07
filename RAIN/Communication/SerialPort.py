@@ -64,7 +64,8 @@ class SerialPort(RPCComponentThreaded):
                     self.buf = lines[-1]
                     self.logdebug(line)
                     for recipient in self.subscribers:
-                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient], arg={'line': line})
+                        msg = Message(sender=self.name, recipient=recipient, func=self.subscribers[recipient],
+                                      arg={'line': line})
                         self.send(msg, "outbox")
             else:
                 for recipient in self.subscribers:
@@ -79,16 +80,16 @@ class SerialPort(RPCComponentThreaded):
         self.MR['rpc_write'] = {'args': [str, "String to send."]} # TODO: Strings are BAD HERE.
         super(SerialPort, self).__init__()
         self.Configuration.update({'verbosity': 1, # TODO: Make use of all these...
-                          'device': "/dev/ttyACM0",
-                          'speed': 9600,
-                          'bytesize': 8,
-                          'parity': 'N',
-                          'stopbits': 1,
-                          'timeout': None, # Hmmm.
-                          'xonxoff': 0,
-                          'buffersize': 100,
-                          'readline': True
-                         })
+                                   'device': "/dev/ttyACM0",
+                                   'speed': 9600,
+                                   'bytesize': 8,
+                                   'parity': 'N',
+                                   'stopbits': 1,
+                                   'timeout': None, # Hmmm.
+                                   'xonxoff': 0,
+                                   'buffersize': 100,
+                                   'readline': True
+        })
 
         self.logdebug(self.Configuration)
         self.device = device

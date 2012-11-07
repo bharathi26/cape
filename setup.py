@@ -1,27 +1,29 @@
 from distutils.core import setup
 
-from RAIN.Version import ver
+from RAIN.System.Version import ver
 
 #This is a list of files to install, and where
 #(relative to the 'root' dir, where setup.py is)
 #You could be more specific.
 files = ["RAIN/*"]
 
-setup(name = "anrv",
+setup(name = "rain",
     version = ver,
     description = "Autonomous Naval Robotic Vehicle OS",
     license = "GPL v3",
     author = "Hackerfleet Contributors",
     author_email = "riot@hackerfleet.org",
-    url = "https://hackerfleet.org/anrv",
+    url = "https://hackerfleet.org/rain",
     packages = ['RAIN',
                 'RAIN.Communication',
                 'RAIN.Controls',
                 'RAIN.Interface',
                 'RAIN.Sensors',
                 'RAIN.System',
+                'RAIN.Autonomy',
                 'RAIN.Test',
                 ],
+    scripts = ['rain.py'],
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
