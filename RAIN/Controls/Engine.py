@@ -29,12 +29,7 @@ class SimpleEngine(RPCComponent.RPCComponent):
     Used mainly to control the motorship 0's 3,7kW engine via Maestro controller.
     """
 
-    address = 0x01
-    upper = 1616
-    lower = 1408
 
-    delta = self.Configuration['Upper'] - self.Configuration['Lower']
-    center = self.Configuration['Lower'] + (delta / 2)
 
     def rpc_setThrust(self, newthrust):
         """Calculates the new servo value for a given thrust.
@@ -69,14 +64,22 @@ class SimpleEngine(RPCComponent.RPCComponent):
     def handleResponse(self, response):
         return True
 
+    def ReadConfiguration(self):
+        super(SimpleEngine, self).ReadConfiguration()
+
+        self.delta = self.Configuration['Upper'] - self.Configuration['Lower']
+        self.center = self.Configuration['Lower'] + (delta / 2)
+
     def __init__(self):
         self.MR['rpc_setThrust'] = {'newthrust': [float, "New thrust as float. Range [-1;0;1]."]}
 
-        super(SimpleEngine, self).__init__()
         self.Configuration.update({
-            'Maestro': ''
-            'Upper': 0
-            'Lower': 0
+            'Maestro': '',
+            'Address': 0x01,
+            'Upper': 1616,
+            'Lower': 1408
         })
+
+        super(SimpleEngine, self).__init__()
 
 Registry.ComponentTemplates['SimpleEngine'] = [SimpleEngine, "Simple Engine (Maestro Controlled) Component"]

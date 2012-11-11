@@ -80,10 +80,10 @@ class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
                 if msg.recipient in self.inboxes:
                     self.send(msg, msg.recipient)
                 elif msg.recipient == self.name:
-                    self.logcritical('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
+                    self.logdebug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
                     #response = msg.response((False, "Not available."))
                 else:
-                    self.logwarn('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
+                    self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
                     #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False,
                     # "Recipient not found."))
                     # TODO: maybe we should include the original timestamp, look in RAIN/Messages.py for more on that

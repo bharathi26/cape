@@ -78,6 +78,8 @@ class ConfigurableComponent(object):
         self.Configuration.update(NewConfiguration)
 
     def WriteConfiguration(self):
+        from RAIN.System.Configuration import Configuration as ConfigurationDB
+
         """Stores this components configuration back in to the System's configuration database"""
         self.logdebug("Generating new configuration.")
         c = self.Configuration

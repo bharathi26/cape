@@ -4,17 +4,17 @@ import sys
 
 import RAIN.System.Configuration as Configuration
 Configuration.setupConfig()
-
 from RAIN.System import Logger as Logger
 Logger.setupLogger()
 
 from RAIN.System import Identity as Identity
+print "FOO"
 Identity.setupIdentity()
+print "BAR"
 
 Logger.systeminfo("-"*42)
 Logger.systeminfo("RAIN booting.")
 
-from RAIN.System import *
 from RAIN.Communication import *
 from RAIN.Interface import *
 from RAIN.Controls import *

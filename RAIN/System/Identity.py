@@ -39,6 +39,7 @@ def setupIdentity():
         SystemUUID = config.get('uuid', DefaultSystemUUID)
         Logger.systeminfo("System name configured from configuration", facility="IDENTITY")
     else:
+        Logger.systemwarn("Uh oh.", facility='IDENTITY')
         if Version.node:
             SystemName = DefaultSystemClass + Version.node
             SystemClass = DefaultSystemClass
