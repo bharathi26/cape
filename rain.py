@@ -8,9 +8,7 @@ from RAIN.System import Logger as Logger
 Logger.setupLogger()
 
 from RAIN.System import Identity as Identity
-print "FOO"
 Identity.setupIdentity()
-print "BAR"
 
 Logger.systeminfo("-"*42)
 Logger.systeminfo("RAIN booting.")
