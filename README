@@ -1,7 +1,3 @@
-Uh oh.
-======
-This README, as RAIN itself, is young and thus heavy WiP!
-
 About
 =====
 RAIN is an asynchronous multi component framework with distributed computing
@@ -10,12 +6,19 @@ integrated, too, since one of the goals is driving a fully fledged, planetwide
 Delay Tolerant Network (DTN).
 
 It's current primary development focus points are:
+
 * operate our fleet of naval development and testing ships (e.g. the MS0x00)
+
 * aggregate, process and (re-)distribute navigational data from many
   different sources to many different targets
+
 * form and manage a meshed DTN
 
 Usage is pretty unlimited, as long as you can do it reasonably in Python.
+
+Warning
+=======
+This README, as RAIN itself, is young and thus heavy WiP!
 
 Installation
 ============
@@ -31,9 +34,10 @@ Quick Setup
 This quick setup cannot install all extras and addons, but the core RAIN
 system. Missing things are: Mapnik2 and Mongo connectors.
 
-hg clone https://hackerfleet.org/hg/rain
-cd rain
-sudo python setup.py install
+::
+    hg clone https://repos.hackerfleet.org/hg/repos/rain
+    cd rain
+    sudo python setup.py install
 
 All required dependencies should be installed automatically via PyPi, Python's
 official package repository.
@@ -62,33 +66,31 @@ that part.
 Dependencies
 ''''''''''''
 This needs rework towards a virtual environment friendly process. WiP!
-As root:
-
-apt-get install python-setuptools python-serial python-jsonpickle \
-                python-configobj python-pmw python-pymongo \
-                python-imaging python-imaging-tk python-mapnik2 \
-                mongodb \
-                mercurial
-
-svn checkout http://kamaelia.googlecode.com/svn/trunk/ kamaelia
-cd kamaelia/Code/Python/Axon
-python setup.py install
-cd ../Kamaelia
-python setup.py install
-cd ../../../../
+As root:::
+    apt-get install python-setuptools python-serial python-jsonpickle \
+    python-configobj python-pmw python-pymongo \
+    python-imaging python-imaging-tk python-mapnik2 \
+    mongodb mercurial
+    
+    svn checkout http://kamaelia.googlecode.com/svn/trunk/ kamaelia
+    cd kamaelia/Code/Python/Axon
+    python setup.py install
+    cd ../Kamaelia
+    python setup.py install
+    cd ../../../../
 
 RAIN
 ====
-
-hg clone https://hackerfleet.org/hg/rain
-cd rain
-python setup.py install
+::
+    hg clone https://hackerfleet.org/hg/rain
+    cd rain
+    python setup.py install
 
 Running & Tests
 ---------------
 Now you should be ready to start the system with:
-
-rain.py
+::
+    rain.py
 
 Tests haven't been written, yet. This is going to be funny. Very.
 
@@ -101,10 +103,12 @@ for more documentation.
 
 Documentation
 =============
-Try pydoc RAIN
+After installation, try:::
+    pydoc RAIN
 
 Contributors
 ============
+
 * riot <riot@hackerfleet.org>
 * Martin Ling <martin@earth.li>
 
