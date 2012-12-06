@@ -66,7 +66,8 @@ that part.
 Dependencies
 ''''''''''''
 This needs rework towards a virtual environment friendly process. WiP!
-As root:::
+As root:
+::
     apt-get install python-setuptools python-serial python-jsonpickle \
     python-configobj python-pmw python-pymongo \
     python-imaging python-imaging-tk python-mapnik2 \
