@@ -1,16 +1,55 @@
-This Readme is WiP!
+Uh oh.
+======
+This README, as RAIN itself, is young and thus heavy WiP!
 
-= About =
-This is the Readme file for the RAIN Software.
-RAIN stands for "Autonomous Naval Robotic Vehicle".
+About
+=====
+RAIN is an asynchronous multi component framework with distributed computing
+capabilities. A lot of aspects of message oriented middleware systems are
+integrated, too, since one of the goals is driving a fully fledged, planetwide
+Delay Tolerant Network (DTN).
 
-= Installation =
+It's current primary development focus points are:
+* operate our fleet of naval development and testing ships (e.g. the MS0x00)
+* aggregate, process and (re-)distribute navigational data from many
+  different sources to many different targets
+* form and manage a meshed DTN
 
-== Debian ==
-=== MongoDB on armhf ===
-If you're installing dependencies on debian's armhf port, you'll
-notice mongodb missing. This is because the non-x86 port of mongodb 
-isn't yet debian-packaged.
+Usage is pretty unlimited, as long as you can do it reasonably in Python.
+
+Installation
+============
+The installation is being overhauled to an automated process via Python's
+setuptools. The long instructions here will still be valid, especially for
+Debian systems.
+
+If you're not on any strange/colourful/alien platform, try the
+Quick Setup.
+
+Quick Setup
+-----------
+This quick setup cannot install all extras and addons, but the core RAIN
+system. Missing things are: Mapnik2 and Mongo connectors.
+
+hg clone https://hackerfleet.org/hg/rain
+cd rain
+sudo python setup.py install
+
+All required dependencies should be installed automatically via PyPi, Python's
+official package repository.
+
+Debian
+------
+Debian has a lot of prepackaged libs. Please do not use them. Instead, setup a 
+virtual environment and install into this via pip if possible.
+
+Some features rely on external non-python software and thus need the appropriate
+packages installed.
+
+MongoDB on armhf
+''''''''''''''''
+If you're installing dependencies on debian's armhf port, you'll notice mongodb
+missing. This is because the non-x86 port of mongodb isn't yet debian-packaged.
 
 So you will need to install and build mongodb from hand here.
 This document describes the procedure quite well:
@@ -20,7 +59,9 @@ https://github.com/mongodb/mongo/blob/master/docs/building.debian.etch.ec2.md
 Mind you, there is no need to use gcc4.1 in sid or wheezy, so skip
 that part.
 
-=== Dependencies ===
+Dependencies
+''''''''''''
+This needs rework towards a virtual environment friendly process. WiP!
 As root:
 
 apt-get install python-setuptools python-serial python-jsonpickle \
@@ -36,37 +77,66 @@ cd ../Kamaelia
 python setup.py install
 cd ../../../../
 
-=== RAIN ===
+RAIN
+====
 
-hg clone https://www.hackerfleet.org/hg/ms0x00
-cd ms0x00
+hg clone https://hackerfleet.org/hg/rain
+cd rain
 python setup.py install
 
-== Running & Tests ==
-Now you should be ready to start the temporary Scaffold Server script with:
+Running & Tests
+---------------
+Now you should be ready to start the system with:
 
-python ScaffoldServer
+rain.py
 
 Tests haven't been written, yet. This is going to be funny. Very.
 
-= Documentation =
+AddOns
+------
+There are some init-scripts and helper utilities. You can find these in
+RAIN/Tools. Their integration into your system will be implemented as command
+for the automated installation procedure, soon. In the meantime read the files
+for more documentation.
+
+Documentation
+=============
 Try pydoc RAIN
 
-= Contributors =
+Contributors
+============
 * riot <riot@hackerfleet.org>
+* Martin Ling <martin@earth.li>
 
-= Contact/Support =
+Should you be missing inappropriately, send a mail to riot@hackerfleet.org
+
+Committing
+==========
+If you'd like to commit patches to the official repository, contact
+riot@hackerfleet.org
+
+Contact/Support
+===============
 This software comes without warranty and express support (See License).
 Support is based on community best-effort.
+
+RAIN's project page is here:
+https://hackerfleet.org/dev/wiki/rain
+
+You can browse the source code comfortably here:
+https://hackerfleet.org/dev/browser/rain
+
+Tickets can be found here:
+https://hackerfleet.org/dev/query?component=rain
 
 Here are the official contact urls:
 
 irc://freenode.org/#hackerfleet
 https://hackerfleet.org/support
 
-
-= License =
-Prototype of the MS0x00 RAIN Operating Software
+License
+=======
+Prototype of the RAIN Operating Software
 Copyright (C) 2011-2012 riot <riot@hackerfleet.org> and others.
 
 This program is free software: you can redistribute it and/or modify

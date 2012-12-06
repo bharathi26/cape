@@ -1,6 +1,10 @@
-from distutils.core import setup
+from setuptools import setup
+import os.path
 
 from RAIN.System.Version import ver
+
+def read(filename):
+    return open(os.path.join(os.path.dirname(__file__), filename)).read()
 
 #This is a list of files to install, and where
 #(relative to the 'root' dir, where setup.py is)
@@ -14,16 +18,10 @@ setup(name = "rain",
     author = "Hackerfleet Contributors",
     author_email = "riot@hackerfleet.org",
     url = "https://hackerfleet.org/rain",
-    packages = ['RAIN',
-                'RAIN.Communication',
-                'RAIN.Controls',
-                'RAIN.Interface',
-                'RAIN.Sensors',
-                'RAIN.System',
-                'RAIN.Autonomy',
-                'RAIN.Test',
-                ],
+    packages = ['RAIN'],
+    package_data = {'RAIN': ['RAIN']},
     scripts = ['rain.py'],
+    zip_safe = False,
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
@@ -53,13 +51,23 @@ setup(name = "rain",
 
     #package_data = {'package' : files },
     #scripts = [""], # None yet
-    long_description = """WiP""",
-    requires=['jsonpickle',
-              'hgapi',
-              'mapnik2',
-              'PIL',
-              'Kamaelia',
-              'pynmea',
-              'configobj',
-              'pymongo']
+    long_description = read('README'),
+    # Dependencies
+    #
+    # Note: Those are proven to work, older versions might work, 
+    # but have never been tested.
+    #
+    dependency_links = [
+        'http://kamaelia.googlecode.com/files/Axon-1.7.0.tar.gz',
+        'http://kamaelia.googlecode.com/files/Kamaelia-1.0.12.0.tar.gz'
+    ],
+    install_requires=['jsonpickle>=0.4.0',
+                      'hgapi>=1.1.0',
+                      'PIL>=1.1.7',
+                      'Axon>=1.7.0',
+                      'Kamaelia>=1.0.12.0',
+                      'pynmea>=0.3.0',
+                      'configobj>=4.7.2'],
+    extras_require={'mapnik2': 'mapnik2>=2.0.0',
+                    'pymongo': 'pymongo>=2.2'}
 )
