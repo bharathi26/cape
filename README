@@ -33,7 +33,7 @@ Quick Setup
 -----------
 This quick setup cannot install all extras and addons, but the core RAIN
 system. Missing things are: Mapnik2 and Mongo connectors.
-
+Clone manually (rain is not yet published on pypi) and install via setup.py:
 ::
     hg clone https://repos.hackerfleet.org/hg/repos/rain
     cd rain
@@ -81,6 +81,7 @@ As root:::
 
 RAIN
 ====
+Installing rain itself will soon be automated via pypi, for now clone manually:
 ::
     hg clone https://hackerfleet.org/hg/rain
     cd rain
@@ -92,7 +93,7 @@ Now you should be ready to start the system with:
 ::
     rain.py
 
-Tests haven't been written, yet. This is going to be funny. Very.
+Tests haven't been written, yet. This is going to be funny work. Very.
 
 AddOns
 ------
@@ -103,7 +104,8 @@ for more documentation.
 
 Documentation
 =============
-After installation, try:::
+After installation, try:
+::
     pydoc RAIN
 
 Contributors
