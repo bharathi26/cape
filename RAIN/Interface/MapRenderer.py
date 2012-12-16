@@ -22,7 +22,10 @@ from RAIN.System import Registry
 from RAIN.System import RPCComponent
 from RAIN.Messages import Message
 
-import mapnik2 as mapnik
+try: # DEPENDENCYBUG
+    import mapnik2 as mapnik
+except ImportError:
+    print "No mapnik2!"
 
 class MapRenderer(RPCComponent.RPCComponent):
     """

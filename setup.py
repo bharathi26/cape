@@ -58,16 +58,24 @@ setup(name = "rain",
     # but have never been tested.
     #
     dependency_links = [
-        'http://kamaelia.googlecode.com/files/Axon-1.7.0.tar.gz',
-        'http://kamaelia.googlecode.com/files/Kamaelia-1.0.12.0.tar.gz'
+        'https://www.hackerfleet.org/redist/Kamaelia-1.1.2.0.tar.gz',
+        'https://www.hackerfleet.org/redist/Axon-1.7.0.tar.gz',
+        'https://www.hackerfleet.org/redist/Pmw-1.3.3.tar.gz',
     ],
     install_requires=['jsonpickle>=0.4.0',
+                      'pyserial>=2.6',
+                      'bottle>=0.11.4',
                       'hgapi>=1.1.0',
                       'PIL>=1.1.7',
                       'Axon>=1.7.0',
-                      'Kamaelia>=1.0.12.0',
+                      'Kamaelia>=1.1.2.0',
                       'pynmea>=0.3.0',
-                      'configobj>=4.7.2'],
-    extras_require={'mapnik2': 'mapnik2>=2.0.0',
-                    'pymongo': 'pymongo>=2.2'}
+                      'configobj>=4.7.2',
+                      'Pmw>=1.3.2',
+                      'pymongo>=2.4.1'
+                      ]
+    # OPTIONALS, currently setup only works by hard deactivating (removal) of modules, sorry.
+    #extras_require={'mapnik2': 'mapnik2>=2.0.0',
+    #                'smbus': 'smbus>=1.1',
+    #                'pymongo': 'pymongo>=2.2'}
 )

@@ -32,7 +32,11 @@ import Axon
 import PIL
 import PIL.Image
 import PIL.ImageTk
-import mapnik2 as mapnik
+
+try: # DEPENDENCYBUG
+    import mapnik2 as mapnik
+except:
+    print "No mapnik2!"
 
 try:
     unicode

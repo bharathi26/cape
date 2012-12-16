@@ -23,6 +23,7 @@ from Axon.AdaptiveCommsComponent import AdaptiveCommsComponent
 
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System import Registry
+from RAIN.System import Identity
 from RAIN.Messages import Message
 
 class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
@@ -80,14 +81,15 @@ class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
                 if msg.recipient in self.inboxes:
                     self.send(msg, msg.recipient)
                 elif msg.recipient == self.name:
-                    self.logdebug('A MESSAGE FOR ME. NOW WHAT, SMARTIEPANTS?')
-                    #response = msg.response((False, "Not available."))
+                    self.logdebug('Dispatcher services requested.')
+                    if msg.func == "directory":
+                        response = msg.response((True, str(self.Components)))
+                    else:
+                        response = msg.response((False, "Not available."))
+                elif msg.node != Identity.SystemUUID:
+                    self.logcritical("WHoa! A non-me-node message!") 
                 else:
                     self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
-                    #response = Message(sender=self.name, recipient=msg.sender, func=msg.func, arg=(False,
-                    # "Recipient not found."))
-                    # TODO: maybe we should include the original timestamp, look in RAIN/Messages.py for more on that
-                    # topic.
                 if response:
                     if response.recipient in self.inboxes:
                         self.logdebug("Responding to '%s'" % response.recipient)

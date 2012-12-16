@@ -18,4 +18,5 @@ __all__ = ['Echo',
            'Pong',
            'WSGIGateway',
            'SerialPort',
+           'ZMQGate',
 ]

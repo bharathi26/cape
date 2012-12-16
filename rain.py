@@ -29,6 +29,7 @@ Identity.setupIdentity()
 Logger.systeminfo("-"*42)
 Logger.systeminfo("RAIN booting.")
 
+from RAIN.System import *
 from RAIN.Communication import *
 from RAIN.Interface import *
 from RAIN.Controls import *

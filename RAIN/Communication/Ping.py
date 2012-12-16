@@ -17,19 +17,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
-
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
-
-from ..Messages import Message
-from ..Primitives import Frequency
+from RAIN.Messages import Message
+from RAIN.Primitives import Frequency
+from RAIN.System.RPCComponent import RPCComponent
 
 from time import time
 from math import fsum
 
-class Ping(Axon.Component.component):
+class Ping(RPCComponent):
     Inboxes = {"inbox": "RPC commands",
                "control": "Signaling to this Protocol"}
     Outboxes = {"outbox": "RPC Responses",

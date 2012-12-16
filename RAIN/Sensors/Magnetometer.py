@@ -22,7 +22,11 @@ from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponentThreaded
 from RAIN.Messages import Message
 
-from smbus import SMBus
+try: # DEPENDENCYBUG
+    from smbus import SMBus
+except ImportError:
+    print "smbus missing!"
+    
 from time import sleep
 
 class Magnetometer(RPCComponentThreaded):

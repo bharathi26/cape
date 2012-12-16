@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 #    Prototype of the RAIN Operating Software
 #    Copyright (C) 2011-2012 riot <riot@hackerfleet.org>
 #
@@ -15,19 +18,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __doc__ = """
-Preliminary testing AMQP gateway component.
+Preliminary testing ZMQ gateway component.
 
-The intention of this component is to integrate an Advanced Message
-Queueing Protocol Broker and specifically its networked messaging
-parts into RAIN.
+The intention of this component is to integrate ZMQ as node-to-node communication protocol
+into RAIN.
 """
 
-#from RAIN.System import Registry
+from RAIN.System import Registry
+from RAIN.System.RPCComponent import RPCComponent
 
-# -- YOUR CODE HERE --
+import sys
+print sys.path
+import zmq
 
-# ----
-
-#Registry.ComponentTemplates['AMQPGate'] = [AMQPGate, "Advanced Message Queueing Protocol Gateway"]
-
-# Nothing here yet
+class ZMQGate(RPCComponent):
+    def __init__(self):
+        super(ZMQGate, self).__init__()
+        self.context = zmq.Context()
+        self.publisher = self.context.socket(zmq.PUB)
+        self.publisher.bind("ipc://*:55555")
+    
+Registry.ComponentTemplates['ZMQGate'] = [ZMQGate, "Node-to-node ØMQ Gateway"]

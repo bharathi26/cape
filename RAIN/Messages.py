@@ -22,9 +22,9 @@
 import jsonpickle
 from time import time
 
-from .Primitives import Angle, Waypoint, WaypointList
-
 from copy import deepcopy
+
+from RAIN.System import Identity
 
 class Message(object):
     """
@@ -50,10 +50,11 @@ class Message(object):
     #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
 
-    __slots__ = ['sender', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
+    __slots__ = ['sender', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error', 'node']
 
-    def __init__(self, sender="", recipient="", func="", arg="", error="", msg_type="request"):
+    def __init__(self, sender="", recipient="", func="", arg="", error="", msg_type="request", node=Identity.SystemUUID):
         self.timestamp = time()
+        self.node = node
         self.sender = sender
         self.recipient = recipient
         self.msg_type = msg_type
