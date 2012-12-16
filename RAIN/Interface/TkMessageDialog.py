@@ -19,6 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import RAIN.Messages
+from RAIN.System import Identity
 from RAIN.System.LoggableComponent import LoggableComponent
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
@@ -38,14 +39,23 @@ import json
 
 class TkMessageDialog(TkWindow, LoggableComponent):
     def __init__(self, parent, msg):
-        super(TkMessageDialog, self).__init__()
-        top = self.top = Toplevel(parent)
         self.msg = msg
-        self.messageFrame = fr = Frame(top)
+        super(TkMessageDialog, self).__init__()        
+        
+    def setupWindow(self):
+        msg = self.msg
+        self.messageFrame = fr = Frame(self.window)
         self._textTimestamp = Pmw.ScrolledText(fr, label_text="Timestamp", labelpos="w")
         self._textTimestamp._textbox.config(height=1)
         self._textTimestamp.settext(msg.timestamp)
         self._textTimestamp.pack(fill=X)
+        
+        if msg.node != Identity.SystemUUID:
+            self._textNode = Pmw.ScrolledText(fr, label_text="Node", labelpos="w")
+            self._textNode._textbox.config(height=1)
+            self._textNode.settext(msg.node)
+            self._textNode.pack(fill=X)
+
         self._textSender = Pmw.ScrolledText(fr, label_text="Sender", labelpos="w")
         self._textSender._textbox.config(height=1)
         self._textSender.settext(msg.sender)
@@ -66,10 +76,11 @@ class TkMessageDialog(TkWindow, LoggableComponent):
             self._textArg._textbox.insert(END, "Too large to display (%i characters)." % len(argstring))
         self._textArg.pack(expand=1, fill=BOTH)
         self.messageFrame.pack(side=TOP, expand=1, fill=BOTH)
-        self.buttonFrame = fr = Frame(top)
+        
+        self.buttonFrame = fr = Frame(self.window)
         self._buttonClose = Button(fr, text="Close")
         self._buttonClose.pack(side=RIGHT)
-        self._buttonCopy = Button(fr, text="Copy JSON")
+        self._buttonCopy = Button(fr, text="Copy as JSON")
         self._buttonCopy.pack(side=LEFT)
         self._buttonCopy.bind('<ButtonRelease-1>'
             , self.__on_buttonCopy_Release)
@@ -78,12 +89,13 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         self.buttonFrame.pack(side=BOTTOM, fill=X)
 
     def __on_buttonCopy_Release(self, Event=None):
-        self.top.clipboard_clear()
-        text = self.msg.jsonencode()
+        text = str(self.msg.jsonencode())
+        print text
         text = text.encode("UTF-8")
-        self.top.clipboard_append(text, type="STRING")
-        pass
+        self.window.clipboard_clear()
+        self.window.clipboard_append(text, type="STRING")
+        
 
     def __on_buttonClose_Release(self, Event=None):
-        self.top.destroy()
+        self.window.destroy()
 

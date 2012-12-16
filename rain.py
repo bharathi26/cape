@@ -35,6 +35,7 @@ from RAIN.Interface import *
 from RAIN.Controls import *
 from RAIN.Sensors import *
 from RAIN.Autonomy import *
+from RAIN.Test import *
 
 #
 # Fifth: Construct a base system and instantiate the Node
