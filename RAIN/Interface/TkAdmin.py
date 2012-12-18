@@ -170,13 +170,17 @@ class TkAdmin(TkWindow, RPCComponent):
     def __on_ButtonClearResponses_Press(self, Event=None):
         self.__TextResponses.clear()
 
-    def showMessage(self, ev):
+    def showMessage(self, ev=None):
         msglb = self.__MessageLog._listbox
         sel = msglb.curselection()
         if len(sel) > 1:
             self.logwarning("Multiple messages selected to display. Can't.")
         msg = self.messages[int(sel[0])]
         msgdialog = TkMessageDialog(self.window, msg)
+        
+    def composeMessage(self):
+         msg = RAIN.Messages.Message()
+         msgdialog = TkMessageDialog(self.window, msg, onclosecallback=self.transmit)  
 
     def clearEntry(self):
         self.__EntryInput.delete(0, END)
@@ -350,9 +354,11 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__Menu = Menu(self.window)
         self.__MenuFile = Menu(self.__Menu)
         self.__MenuEdit = Menu(self.__Menu)
+        self.__MenuMessage = Menu(self.__Menu)
         self.__MenuSettings = Menu(self.__Menu)
         self.__Menu.add_cascade(menu=self.__MenuFile, label="File")
         self.__Menu.add_cascade(menu=self.__MenuEdit, label="Edit")
+        self.__Menu.add_cascade(menu=self.__MenuMessage, label="Message")
         self.__Menu.add_cascade(menu=self.__MenuSettings, label="Settings")
         self.window.config(menu=self.__Menu)
 
@@ -363,6 +369,9 @@ class TkAdmin(TkWindow, RPCComponent):
         self.fixsender = BooleanVar()
         self.autoclear = BooleanVar()
         self.showresponses = BooleanVar()
+
+        self.__MenuMessage.add_command(label="View", command=self.showMessage)
+        self.__MenuMessage.add_command(label="Compose New", command=self.composeMessage)
 
         self.__MenuSettings.add_checkbutton(label="Fix sender", onvalue=True, offvalue=False, variable=self.fixsender)
         self.__MenuSettings.add_checkbutton(label="Autoscan", onvalue=True, offvalue=False, variable=self.autoscan)

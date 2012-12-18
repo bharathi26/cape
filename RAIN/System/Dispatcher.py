@@ -86,8 +86,9 @@ class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
                         response = msg.response((True, str(self.Components)))
                     else:
                         response = msg.response((False, "Not available."))
-                elif msg.node != Identity.SystemUUID:
-                    self.logcritical("WHoa! A non-me-node message!") 
+                elif not msg.localRecipient:
+                    self.logcritical("WHoa! A non-me-node message!")
+                     
                 else:
                     self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
                 if response:

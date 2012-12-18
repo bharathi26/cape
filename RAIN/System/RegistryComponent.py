@@ -20,7 +20,7 @@
 #
 
 from RAIN.System import Registry
-from RAIN.System import Configuration
+from RAIN.System import Configuration 
 from RAIN.System.RPCComponent import RPCComponent
 from RAIN.System.BaseComponent import BaseComponent
 
@@ -61,7 +61,7 @@ class RegistryComponent(RPCComponent):
     def rpc_storeConfigDB(self):
         """Instructs the configuration system to write back its DB."""
         self.loginfo("Storing configuration database.")
-        return Configuration._writeConfig()
+        return Configuration.writeConfig()
 
     def rpc_createComponent(self, templatename):
         "RPC Wrapper"

@@ -50,17 +50,103 @@ class Message(object):
     #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
 
-    __slots__ = ['sender', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error', 'node']
+    __slots__ = ['sendernode', 'sender', 'recipientnode', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
 
-    def __init__(self, sender="", recipient="", func="", arg="", error="", msg_type="request", node=Identity.SystemUUID):
+    def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg="", error="", msg_type="request"):
+        """Initializes a new message with the current timestamp and given arguments.
+        Default message type is "request"
+        
+        Address pattern for sender and recipient:
+        [str(node):]str(component.name)
+        """
         self.timestamp = time()
-        self.node = node
+        
         self.sender = sender
         self.recipient = recipient
+        
+        self.sendernode = sendernode
+        self.recipientnode = recipientnode
+        
         self.msg_type = msg_type
         self.func = func
         self.arg = arg
         self.error = error
+
+    def localRecipient():
+        def fget(self):
+            return self.recipientnode == Identity.SystemUUID
+        
+        return locals()
+    
+    localRecipient = property(**localRecipient())
+        
+    def localSender():
+        def fget(self):
+            return self.sendernode == Identity.SystemUUID
+        
+        return locals()
+        
+    localSender = property(**localSender())    
+
+#    def recipientNode():
+#        """Returns and sets the recipient node."""
+#       
+#        def fget(self):
+#            if ":" in self.recipient:
+#                # Message recipient has a node, return only that part
+#                return self.recipient.split(":")[0]
+#            else:
+#                # No node, systemwide only message
+#                return Identity.SystemUUID
+#        
+#        def fset(self, value):
+#            if value in ("", Identity.SystemUUID):
+#                # No node means local message - delete node
+#                del(self.recipientNode)
+#            else:
+#                if ":" in self.recipient:
+#                    self.recipient = "%s:%s" % (value, self.recipient.split(":")[1])
+#                else:
+#                    self.recipient = "%s:%s" % (value, self.recipient)  
+#                
+#        def fdel(self):
+#            if ":" in self.recipient:
+#                # Message recipient has a node, delete that
+#                self.recipient = self.recipient.split(":")[1]            
+#              
+#        return locals()
+#       
+#    recipientNode = property(**recipientNode())
+#
+#    def senderNode():
+#        """Returns and sets the sender node."""
+#        # TODO: This is a bulky copy of the recipientNode property
+#       
+#        def fget(self):
+#            if ":" in self.sender:
+#                # Message sender has a node, return only that part
+#                return self.sender.split(":")[0]
+#            else:
+#                # No node, systemwide only message
+#                return Identity.SystemUUID
+#        
+#        def fset(self, value):
+#            if value in ("", Identity.SystemUUID):
+#                # No node means local message
+#                self.sender = self.sender.split(":")[1]
+#                # TODO: essentially this is the same as .fdel()
+#            else:
+#                self.sender = "%s:%s" % (value, self.sender.split(":")[1])
+#                
+#        def fdel(self):
+#            if ":" in self.sender:
+#                # Message sender has a node, delete that
+#                self.sender = self.sender.split(":")[1]            
+#              
+#        return locals()
+#       
+#    senderNode = property(**senderNode())
+
 
     def __str__(self):
         # TODO:

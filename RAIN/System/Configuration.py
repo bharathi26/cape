@@ -103,6 +103,7 @@ def writeConfig():
     Writes the global configuration.
     """
     global Configuration
+    print "WOOHA"
     Configuration.write()
     return True
 

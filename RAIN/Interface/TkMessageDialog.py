@@ -38,8 +38,9 @@ import jsonpickle
 import json
 
 class TkMessageDialog(TkWindow, LoggableComponent):
-    def __init__(self, parent, msg):
+    def __init__(self, parent, msg, onclosecallback=None):
         self.msg = msg
+        self.onclosecallback = onclosecallback
         super(TkMessageDialog, self).__init__()        
         
     def setupWindow(self):
@@ -50,11 +51,13 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         self._textTimestamp.settext(msg.timestamp)
         self._textTimestamp.pack(fill=X)
         
+        self._textNodeName = Pmw.ScrolledText(fr, label_text="Node", labelpos="w")
+        self._textNodeName._textbox.config(height=1)
         if msg.node != Identity.SystemUUID:
-            self._textNode = Pmw.ScrolledText(fr, label_text="Node", labelpos="w")
-            self._textNode._textbox.config(height=1)
-            self._textNode.settext(msg.node)
-            self._textNode.pack(fill=X)
+            self._textNodeName.settext(str(msg.node))
+        else:
+            self._textNodeName.settext("SELF (%s)" % msg.node)
+        self._textNodeName.pack(fill=X)
 
         self._textSender = Pmw.ScrolledText(fr, label_text="Sender", labelpos="w")
         self._textSender._textbox.config(height=1)
@@ -90,12 +93,22 @@ class TkMessageDialog(TkWindow, LoggableComponent):
 
     def __on_buttonCopy_Release(self, Event=None):
         text = str(self.msg.jsonencode())
-        print text
         text = text.encode("UTF-8")
         self.window.clipboard_clear()
         self.window.clipboard_append(text, type="STRING")
         
+    def _compileMessage(self):
+        node = self._textNodeName.get()[:-1]
+        msg = RAIN.Messages.Message(sender=self._textSender.get()[:-1], 
+                      recipient=self._textRecipient.get()[:-1], 
+                      func=self._textFunc.get()[:-1], 
+                      arg=self._textArg.get()[:-1], 
+                      node=Identity.SystemUUID if node[:4] == "SELF" else node 
+                     )
+        return msg                
 
     def __on_buttonClose_Release(self, Event=None):
+        if self.onclosecallback:
+            self.onclosecallback(self._compileMessage())
         self.window.destroy()
 
