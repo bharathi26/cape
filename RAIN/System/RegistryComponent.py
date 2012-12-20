@@ -24,6 +24,7 @@ from RAIN.System import Configuration
 from RAIN.System.RPCComponent import RPCComponent
 from RAIN.System.BaseComponent import BaseComponent
 
+
 class RegistryComponent(RPCComponent):
     """
     The RegistryComponent allows for dealing with registry services.
@@ -46,7 +47,7 @@ class RegistryComponent(RPCComponent):
         config = Configuration.Configuration
         for sectionitem in config:
             section = config[sectionitem]
-            if section.has_key("template"):
+            if "template" in section:
                 result, newcomponent = self._createComponent(section["template"], sectionitem)
                 if result:
                     newcomponent.ReadConfiguration()
@@ -74,19 +75,25 @@ class RegistryComponent(RPCComponent):
     def _createComponent(self, templatename, name=None):
         """Creates a new component and registers it with a dispatcher."""
 
-        # TODO: The next check is somewhat ugly.
-        # TODO: This revision isn't better.
-        if self.dispatcher: # "Dispatcher" in Registry.Components:
+        if self.dispatcher:
             if templatename in Registry.ComponentTemplates:
                 self.logdebug(
-                    "Trying to create '%s' (Template '%s')." % (name if name is not None else "Unnamed", templatename))
-                # TODO: Better addressing without too much added trouble
-                # TODO: Initialize parameters correctly (How?)
+                    "Trying to create '%s' (Template '%s')." %
+                    (name if name is not None else "Unnamed", templatename))
                 try:
+                    # Add templating info
                     newcomponent = Registry.ComponentTemplates[templatename][0]()
                     newcomponent.template = templatename
+
+                    # Add essential system components
                     newcomponent.systemregistry = self.name
-                    if name:
+                    newcomponent.systemdispatcher = self.dispatcher.name
+
+                    # TODO: Actually, we might consider setting up static
+                    # system parameters, too, since we're at it.
+                    # (like SystemUUID et al)
+
+                    if name:  # given name overwrites automatic
                         newcomponent.name = name
 
                     realname = newcomponent.name
@@ -114,13 +121,14 @@ class RegistryComponent(RPCComponent):
         self.logdebug("RPC: List of registered (running) components requested")
         self.logdebug(Registry.Components)
         return (
-        True, list(Registry.Components.keys())) # TODO: Watch out, this is dangerous, when someone else writes here
+        True, list(Registry.Components.keys()))
+        # TODO: Watch out, this is dangerous, when someone else writes here
 
     def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
         self.logdebug("RPC: List of registered component templates requested")
         self.logdebug(list(Registry.ComponentTemplates.keys()))
-        return (True, list(Registry.ComponentTemplates.keys())) # TODO: See above
+        return (True, list(Registry.ComponentTemplates.keys()))  # TODO: See above
 
     def __init__(self, dispatcher):
         self.dispatcher = dispatcher
@@ -131,8 +139,6 @@ class RegistryComponent(RPCComponent):
         self.MR['rpc_getConfigDB'] = {}
         self.MR['rpc_createAllComponents'] = {}
         super(RegistryComponent, self).__init__()
-
-
 
         # TODO:
         # * Destruction of components

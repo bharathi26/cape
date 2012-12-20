@@ -19,14 +19,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#import jsonpickle
 import configobj
 import os.path
 
 #TODO Rewrite the file/module finding...
 
 # General paths to look for configuration and module data
-Paths = DefaultPaths = {1: '/etc/rain/', 2: os.path.expanduser('~/.'), 3: os.path.expanduser('~/.rain/')}
+Paths = DefaultPaths = {1: '/etc/rain/',
+                        2: os.path.expanduser('~/.'),
+                        3: os.path.expanduser('~/.rain/'),
+                       }
 
 # Filename of main configuration
 ConfigFilename = DefaultConfigFilename = "rain.conf"
@@ -38,23 +40,28 @@ ModulePath = DefaultModulePath = "modules/"
 ModulePaths = []
 
 # TODO:
-# * Modules shouldn't be stored along configuration and only looked for in trusted locations
-# * Segmentation of Configurationdata - desired? Or only one host-exclusive configuration?
+# * Modules shouldn't be stored along configuration and only looked for in
+#   trusted locations
+# * Segmentation of Configurationdata - desired? Or only one host-exclusive
+#   configuration?
 #   (i.e. basic config is loaded from a general source, userdata can overwrite)
 
 Configuration = configobj.ConfigObj()
 
+
 def _getConfigFilename(filename=None):
-    # TODO: This is stupid. Either read ONE configfile (which?) or read them one after another;
-    # The latter would allow overwriting by the user.
-    # Currently only the last one found will be inspected, wich works during development and testing
+    # TODO: This is stupid. Either read ONE configfile (which?) or read them
+    # one after another. The latter would allow overwriting by the user.
+    # Currently only the last one found will be inspected, wich works 
+    # during development and testing
 
     configfile = None
 
     if filename and os.path.exists(filename):
         configfile = filename
     else:
-        # TODO: Like this, using a dict with preference value is useless. Needs config segmentation or clearing.
+        # TODO: Like this, using a dict with preference value is useless.
+        # Needs config segmentation or clearing.
         for key, path in Paths.items():
             name = path + DefaultConfigFilename
 
@@ -81,7 +88,9 @@ def readConfig(filename=DefaultConfigFilename):
     """
     global Configuration
     try:
-        newconfig = configobj.ConfigObj(filename, unrepr=True, interpolation=False)
+        newconfig = configobj.ConfigObj(filename,
+                                        unrepr=True,
+                                        interpolation=False)
         Configuration = newconfig
         return True
     except configobj.UnknownType as error:
@@ -103,7 +112,7 @@ def writeConfig():
     Writes the global configuration.
     """
     global Configuration
-    print "WOOHA"
+
     Configuration.write()
     return True
 

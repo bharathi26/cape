@@ -23,6 +23,12 @@ Logger.setupLogger()
 from RAIN.System import Identity as Identity
 Identity.setupIdentity()
 
+if 'NODE' in Configuration.Configuration.sections:
+    ServerConfig = Configuration.Configuration['NODE']
+else:
+    Logger.systemcritical("No Node configuration found. Copy the sample or create one.")
+    sys.exit(23)
+
 #
 # Fourth: Initialize and inspect all components
 #
@@ -57,12 +63,6 @@ from Kamaelia.Util.Introspector import Introspector
 port = 55555
 introspector = False
 
-if 'SERVER' in Configuration.Configuration.sections:
-    ServerConfig = Configuration.Configuration['SERVER']
-else:
-    Logger.systemcritical("No Server Configuration found. Copy the sample or create one.")
-    sys.exit(23)
-
 if introspector:
     Logger.systeminfo("Connecting to introspector.")
     Pipeline(
@@ -70,13 +70,13 @@ if introspector:
         TCPClient("localhost", 55556),
         ).activate()
 
-Logger.systeminfo("Instantiating Dispatcher")
+Logger.systeminfo("Instantiating Dispatcher Component")
 dispatcher = Dispatcher.Dispatcher()
 Registry.Dispatcher = dispatcher
 
 dispatcher.activate()
 
-Logger.systeminfo("Instantiating Registry")
+Logger.systeminfo("Instantiating Registry Component")
 registrycomponent = RegistryComponent.RegistryComponent(dispatcher)
 dispatcher.RegisterComponent(registrycomponent)
 

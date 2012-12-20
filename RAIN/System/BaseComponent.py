@@ -18,12 +18,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import Axon
 import uuid
 
-from RAIN.System.Identity import SystemName
+from RAIN.System.Identity import SystemUUID
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System.ConfigurableComponent import ConfigurableComponent
+
 
 class BaseMixin(object):
     """
@@ -38,13 +40,6 @@ class BaseMixin(object):
 
     """
 
-    uuid = None
-    hname = ""
-    hdesc = ""
-    template = ""
-    systemname = SystemName
-    systemregistry = ""
-
     def __init__(self, **kwargs):
         """Initializes this Configurable Component.
         Don't forget to call
@@ -54,9 +49,15 @@ class BaseMixin(object):
         # TODO: Do we want to be able to handle kwargs here?
         # They'll just get thrown upwards in the callchain and will then be bound as attributes, iirc.
         #super(BaseComponent, self).__init__(**kwargs)
+        self.template = ""
         self.uuid = uuid.uuid4()
         self.hdesc = "No description yet."
         self.hname = self.name
+
+        self.systemuuid = SystemUUID
+
+        self.systemregistry = None
+        self.systemdispatcher = None
 
 
 class BaseComponent(Axon.Component.component, BaseMixin, ConfigurableComponent, LoggableComponent):

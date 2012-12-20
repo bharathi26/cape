@@ -88,6 +88,13 @@ class Message(object):
         
     localSender = property(**localSender())    
 
+    def type():
+        def fget(self):
+            return self.msg_type
+        
+        return locals()
+    type = property(**type())
+
 #    def recipientNode():
 #        """Returns and sets the recipient node."""
 #       
