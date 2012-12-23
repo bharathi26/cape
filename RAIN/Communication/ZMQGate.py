@@ -54,9 +54,10 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         self.buflist = deque()
 
         # Schema:
-        # {NodeUUID: ['IP-Address', ZMQ-Socket]}
+        # {'ip': ZMQ-Socket}}
         self.probednodes = {}
-        self.nodes = {} #Identity.SystemUUID: {'ip': '127.0.0.1', 'socket': None}}
+        
+        self.nodes = {} #Identity.SystemUUID: {'ip': '127.0.0.1', 'registry': '', 'dispatcher': '', 'socket': None}}
         
         self.url = "tcp://%s:55555" % ZMQConnector.routeraddress
 
@@ -118,6 +119,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                            'dispatcher': str(self.systemdispatcher),
                            }
                       )
+        self.logdebug("Discovery message: '%s'" % msg)
         socket.send(jsonpickle.encode(msg))
         
         self.probednodes[ip] = socket
@@ -166,20 +168,25 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
             if msg:
                 self.loginfo("ANALYSING '%s'" % msg )
 
-                if (msg.recipient == "ZMQConnector" and msg.type == 'request'):
+                if msg.recipient == "ZMQConnector":
                     if msg.func == "discover":
-                        if msg.sendernode in self.nodes:
-                            self.loginfo("Node already connected: '%s'" % msg.sendernode)
-                        elif msg.arg['ip'] in self.probednodes:
-                            # Node is already known.
-                            # This boils down to: We probed it, it now probes us
-                            self.loginfo("Storing probed node '%s' @ '%s'" % (msg.sendernode, msg.arg['ip']))
-                            self.nodes[msg.sendernode] = {'ip': msg.arg['ip'], 
-                                                          'socket': self.probednodes[msg.arg['ip']]}
-                        else:
-                            self.loginfo("Replying discovery request to '%s'" % msg.arg['ip'])
-                            msg = msg.response(str(self.systemregistry))
-                            self._discoverNode(msg.arg['ip'])
+                        if msg.type == 'request':
+                            # We're being probed! Store request details.
+                            node = msg.arg
+                            
+                            
+                            
+                            self.nodes[msg.sendernode] = {'ip': node['ip'],
+                                                      'registry': node['registry'],
+                                                      'dispatcher': node['dispatcher'],
+                                                      }
+                            if node['ip'] not in self.probednodes:
+                                self._discoverNode(ip)
+                            else:
+                                self.nodes[msg.sendernode]['socket'] = self.probednodes[node['ip']]
+                            
+                            
+                        
                             
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
