@@ -23,13 +23,32 @@ from RAIN.System import Registry
 from RAIN.Messages import Message
 from RAIN.System.RPCComponent import RPCComponent
 
+from RAIN.Communication.ZMQGate import ZMQConnector
+
+from RAIN.Messages import Message
+
+import jsonpickle
+
+import zmq
+
 class ZMQTest(RPCComponent):
     def __init__(self):
         self.MR['rpc_test_dispatcher_node'] = {}
+        self.MR['rpc_test_local_discovery'] = {}
         super(ZMQTest, self).__init__()
 
+    def rpc_test_local_discovery(self):
+        context = zmq.Context()
+        socket = context.socket(zmq.DEALER)
+        socket.connect("tcp://%s:55555" % (ZMQConnector.routeraddress))
+        msg = Message(sendernode="FOOBAR", func="discovery", arg={'ip': 'bazqux'})
+        package = jsonpickle.encode(msg)
+        self.logdebug("Transmitting '%s' to local node discovery " % package)
+        socket.send(package)
+        return True
+
     def rpc_test_dispatcher_node(self):
-        msg = Message(sender="", recipient="RAIN.", func="ping", arg="HELLO?", node='FOOBAR')
+        msg = Message(sender="", recipient="RAIN.", func="ping", arg="HELLO?", sendernode='FOOBAR')
         self.send(msg, "outbox")
         return True
 

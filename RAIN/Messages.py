@@ -50,7 +50,7 @@ class Message(object):
     #  * more serialization to other protocols like yaml or even XML (yuk!)
     # We might need '__weakref__' here..
 
-    __slots__ = ['sendernode', 'sender', 'recipientnode', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
+    #__slots__ = ['sendernode', 'sender', 'recipientnode', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
 
     def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg="", error="", msg_type="request"):
         """Initializes a new message with the current timestamp and given arguments.
@@ -59,7 +59,7 @@ class Message(object):
         Address pattern for sender and recipient:
         [str(node):]str(component.name)
         """
-        self.timestamp = time()
+        self.timestamp = float(time())
         
         self.sender = sender
         self.recipient = recipient
@@ -190,46 +190,46 @@ class Message(object):
             response.error = result
         return response
 
-    def jsondecode(self, jsonstring):
-    # TODO: Clean up this mess
-    #        print "Trying to parse json"
-    #        try:
-        from pprint import pprint
-
-        pprint(jsonstring)
-        test = jsonpickle.decode(jsonstring)
-        if type(test) == type(self):
-            self = test
-            return True
-        else:
-            if test['timestamp']:
-                self.timestamp = test['timestamp']
-            else:
-                print("No timestamp. Correcting.")
-                self.timestamp = time()
-            if test['sender']:
-                self.sender = test['sender']
-            else:
-                print("No sender")
-            if test['recipient']:
-                self.recipient = test['recipient']
-            else:
-                print("No recipient")
-            if test['func']:
-                self.func = test['func']
-            else:
-                print("No func")
-            if test['arg']:
-                self.arg = test['arg']
-            else:
-                print("No args")
-
-            return (self.sender and self.recipient and self.func and self.arg)
-            #        except:
-            #            return False
-
-    def jsonencode(self, unpicklable=True):
-        return jsonpickle.encode(self, unpicklable=unpicklable)
+#    def jsondecode(self, jsonstring):
+#    # TODO: Clean up this mess
+#    #        print "Trying to parse json"
+#    #        try:
+#        from pprint import pprint
+#
+#        pprint(jsonstring)
+#        test = jsonpickle.decode(jsonstring)
+#        if type(test) == type(self):
+#            self = test
+#            return True
+#        else:
+#            if test['timestamp']:
+#                self.timestamp = test['timestamp']
+#            else:
+#                print("No timestamp. Correcting.")
+#                self.timestamp = time()
+#            if test['sender']:
+#                self.sender = test['sender']
+#            else:
+#                print("No sender")
+#            if test['recipient']:
+#                self.recipient = test['recipient']
+#            else:
+#                print("No recipient")
+#            if test['func']:
+#                self.func = test['func']
+#            else:
+#                print("No func")
+#            if test['arg']:
+#                self.arg = test['arg']
+#            else:
+#                print("No args")
+#
+#            return (self.sender and self.recipient and self.func and self.arg)
+#            #        except:
+#            #            return False
+#
+#    def jsonencode(self, unpicklable=True):
+#        return jsonpickle.encode(self, unpicklable=unpicklable)
 
 
 def test():

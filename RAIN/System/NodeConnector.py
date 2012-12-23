@@ -19,7 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class NodeConnector(Object):
+class NodeConnector(object):
     def __init__(self):
         self.targetNode = None
         self.connected = False

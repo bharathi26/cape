@@ -52,17 +52,17 @@ class ConfigurableComponent(object):
         # So, for now we just check for our BaseComponent's attributes.. which is kind of lame
 
         # TODO: Sort these everywhere
-        uuid = name = sysname = template = hname = hdesc = "Not found"
+        uuid = name = sysuuid = template = hname = hdesc = "Not found"
         try:
             c = self.Configuration
             uuid = c['uuid']
             name = c['name']
-            sysname = c['systemname']
+            sysuuid = c['systemuuid']
             template = c['template']
             hname = c['hname']
             hdesc = c['hdesc']
         except KeyError as err:
-            errmsg = "%s '%s@%s (%s of %s)': '%s' '%s'" % (err, name, sysname, uuid, template, hname, hdesc)
+            errmsg = "%s '%s@%s (%s of %s)': '%s' '%s'" % (err, name, sysuuid, uuid, template, hname, hdesc)
             self.logerror(errmsg)
             return (False, errmsg)
         self.logdebug("Configuration found.")
@@ -85,7 +85,7 @@ class ConfigurableComponent(object):
         c = self.Configuration
         c['uuid'] = str(self.uuid)
         c['name'] = self.name
-        c['systemname'] = self.systemname
+        c['systemuuid'] = self.systemuuid
         c['template'] = self.template
         c['hname'] = self.hname
         c['hdesc'] = self.hdesc

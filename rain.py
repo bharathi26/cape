@@ -24,7 +24,7 @@ from RAIN.System import Identity as Identity
 Identity.setupIdentity()
 
 if 'NODE' in Configuration.Configuration.sections:
-    ServerConfig = Configuration.Configuration['NODE']
+    NodeConfig = Configuration.Configuration['NODE']
 else:
     Logger.systemcritical("No Node configuration found. Copy the sample or create one.")
     sys.exit(23)
@@ -86,17 +86,19 @@ Registry.Components[registrycomponent.name] = registrycomponent
 Logger.systeminfo("Initializing Node from Configuration.")
 registrycomponent.initFromConfig()
 
-# JSON gateway; Due to change in favour of AMQP node2node communication
-Logger.systeminfo("Setting up JSONServer on port %i" % port)
-jsonserver = ServerCore(protocol=JSONProtocol, port=port)
-jsonserver.activate()
-dispatcher.RegisterComponent(jsonserver)
+if NodeConfig['run.jsongate']:
+    # JSON gateway; Due to change in favour of AMQP node2node communication
+    Logger.systeminfo("Setting up JSONServer on port %i" % port)
+
+    jsonserver = ServerCore(protocol=JSONProtocol, port=port)
+    jsonserver.activate()
+    dispatcher.RegisterComponent(jsonserver)
 
 #
 # Sixth: Run the assembled RAIN Node
 #
 
-if ServerConfig['runserver']:
+if NodeConfig['run.allthreads']:
     Logger.systeminfo("Starting all threads")
     scheduler.run.runThreads()
 else:

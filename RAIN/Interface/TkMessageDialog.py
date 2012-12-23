@@ -51,13 +51,24 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         self._textTimestamp.settext(msg.timestamp)
         self._textTimestamp.pack(fill=X)
         
-        self._textNodeName = Pmw.ScrolledText(fr, label_text="Node", labelpos="w")
-        self._textNodeName._textbox.config(height=1)
-        if msg.node != Identity.SystemUUID:
-            self._textNodeName.settext(str(msg.node))
+        self._textSenderNodeName = Pmw.ScrolledText(fr, label_text="SenderNode", labelpos="w")
+        self._textSenderNodeName._textbox.config(height=1)
+        
+        if msg.sendernode and msg.sendernode != Identity.SystemUUID:
+            self._textSenderNodeName.settext(str(msg.sendernode))
         else:
-            self._textNodeName.settext("SELF (%s)" % msg.node)
-        self._textNodeName.pack(fill=X)
+            self._textSenderNodeName.settext("SELF (%s)" % Identity.SystemUUID)
+        self._textSenderNodeName.pack(fill=X)
+
+        self._textRecipientNodeName = Pmw.ScrolledText(fr, label_text="RecipientNode", labelpos="w")
+        self._textRecipientNodeName._textbox.config(height=1)
+        
+        if msg.recipientnode and msg.recipientnode != Identity.SystemUUID:
+            self._textRecipientNodeName.settext(str(msg.recipientnode))
+        else:
+            self._textRecipientNodeName.settext("SELF (%s)" % Identity.SystemUUID)
+        self._textRecipientNodeName.pack(fill=X)
+
 
         self._textSender = Pmw.ScrolledText(fr, label_text="Sender", labelpos="w")
         self._textSender._textbox.config(height=1)
@@ -98,12 +109,14 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         self.window.clipboard_append(text, type="STRING")
         
     def _compileMessage(self):
-        node = self._textNodeName.get()[:-1]
+        sendernode = self._textSenderNodeName.get()[:-1]
+        recipientnode = self._textRecipientNodeName.get()[:-1]
         msg = RAIN.Messages.Message(sender=self._textSender.get()[:-1], 
                       recipient=self._textRecipient.get()[:-1], 
                       func=self._textFunc.get()[:-1], 
                       arg=self._textArg.get()[:-1], 
-                      node=Identity.SystemUUID if node[:4] == "SELF" else node 
+                      sendernode=Identity.SystemUUID if (node[:4] == "SELF" or node == "") else sendernode,
+                      recipientnode=recipientnode 
                      )
         return msg                
 
