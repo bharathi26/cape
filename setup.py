@@ -18,7 +18,15 @@ setup(name = "rain",
     author = "Hackerfleet Contributors",
     author_email = "riot@hackerfleet.org",
     url = "https://hackerfleet.org/rain",
-    packages = ['RAIN'],
+    packages = ['RAIN',
+                'RAIN.System',
+                'RAIN.Communication',
+                'RAIN.Sensors',
+                'RAIN.Controls',
+                'RAIN.Autonomy',
+                'RAIN.Interface',
+                'RAIN.Test'
+                ],
     package_data = {'RAIN': ['RAIN']},
     scripts = ['rain.py'],
     zip_safe = False,
@@ -72,7 +80,8 @@ setup(name = "rain",
                       'pynmea>=0.3.0',
                       'configobj>=4.7.2',
                       'Pmw>=1.3.2',
-                      'pymongo>=2.4.1'
+                      'pymongo>=2.4.1',
+                      'pyzmq>=2.2.0.1'
                       ]
     # OPTIONALS, currently setup only works by hard deactivating (removal) of modules, sorry.
     #extras_require={'mapnik2': 'mapnik2>=2.0.0',
