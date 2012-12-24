@@ -130,7 +130,6 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         return str(self.nodes.keys())
 
     def mainthread(self):
-        #self.logdebug("BEGIN THREAD")
         msg = incoming = None        
         
         # If listening, collect incoming buffer
@@ -144,7 +143,6 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                     
         # Split buffer, if we have some
         if incoming:
-            #self.logdebug("Splitting")
             # new piece of a message arrived
             parts = incoming.split(ZMQConnector.separator)
             
@@ -158,7 +156,6 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         # If there are messages, decode and process them
         if len(self.buflist) > 0:
             jsonmsg = self.buflist.popleft()
-            #self.logdebug("DECODING (%i left)" % len(self.buflist))
             try:
                 msg = jsonpickle.decode(jsonmsg)
             except Exception as e:
@@ -166,28 +163,26 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 self.logerror("JSON decoding failed: '%s'" % e)
 
             if msg:
-                self.loginfo("ANALYSING '%s'" % msg )
+                self.loginfo("Analysing input: '%s'" % msg )
 
                 if msg.recipient == "ZMQConnector":
                     if msg.func == "discover":
                         if msg.type == 'request':
                             # We're being probed! Store request details.
                             node = msg.arg
-                            
-                            
+                            self.loginfo("Probe request received from '%s' " % node['ip'])
                             
                             self.nodes[msg.sendernode] = {'ip': node['ip'],
                                                       'registry': node['registry'],
                                                       'dispatcher': node['dispatcher'],
                                                       }
                             if node['ip'] not in self.probednodes:
-                                self._discoverNode(ip)
+                                self.loginfo("Uninitiated probe by '%s' - discovering in reverse." % (node['ip']))
+                                self._discoverNode(node['ip'])
                             else:
+                                self.loginfo("Probe returned storing socket for '%s'" % (node['ip']))
                                 self.nodes[msg.sendernode]['socket'] = self.probednodes[node['ip']]
-                            
-                            
-                        
-                            
+
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
                 elif msg.recipientnode == Identity.SystemUUID:
@@ -196,8 +191,6 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 else:
                     self.logwarning("Message for another node received - WTF?!")
         else:
-            self.logdebug("Sleeping.")
-            sleep(1)
-        self.logdebug("END THREAD")
+            sleep(0.1)
 
 Registry.ComponentTemplates['ZMQConnector'] = [ZMQConnector, "Node-to-node ØMQ Connector"]
