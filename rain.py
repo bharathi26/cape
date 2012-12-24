@@ -33,7 +33,7 @@ else:
 # Fourth: Initialize and inspect all components
 #
 Logger.systeminfo("-"*42)
-Logger.systeminfo("RAIN booting.")
+Logger.systeminfo("RAIN ('%s') booting." % Identity.SystemUUID)
 
 from RAIN.System import *
 from RAIN.Communication import *

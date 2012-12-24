@@ -44,7 +44,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
     separator = b"\r\n"
 
     def __init__(self):
-        print "BEGIN INIT"
+        self.loginfo('ZMQConnector initializing')
         self.MR['rpc_transmit'] = {'msg':
                                    [Message, 'Message to transmit via ZMQ.']}
         self.MR['rpc_discoverNode'] = {'ip': [str, 'IP to discover']}
@@ -53,6 +53,10 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                          [str, 'Node UUID to disconnect.']}
         self.MR['rpc_disconnectNodes'] = {}
         super(ZMQConnector, self).__init__()
+        self.logdebug('ZMQConnector configuring')
+        self.Configuration.update({
+                                   'routeraddress': '127.0.0.1',
+                                  })
 
         self.buflist = deque()
 
@@ -62,7 +66,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         
         self.nodes = {} #Identity.SystemUUID: {'ip': '127.0.0.1', 'registry': '', 'dispatcher': '', 'socket': None}}
         
-        self.url = "tcp://%s:55555" % ZMQConnector.routeraddress
+        self.url = "tcp://%s:55555" % self.Configuration['routeraddress']
 
         self.listening = False
 
@@ -75,7 +79,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
             self.loginfo("Socket bound")
         except zmq.core.error.ZMQError:
             self.logcritical("Couldn't bind socket: Already in use!")
-        print "END INIT"
+        self.logdebug("Init complete!")
 
     def rpc_transmit(self, msg):
         if msg.recipientNode == str(Identity.SystemUUID):
@@ -121,7 +125,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         
         for node in self.nodes:
             result = result and self._disconnectNode(node)
-            
+
         return result
 
     def _disconnectNode(self, node, announce=True):
@@ -134,7 +138,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                           sender=self.name,
                           recipient='ZMQConnector',
                           func='disconnect')
-            socket.send(msg)
+            socket.send(jsonpickle.encode(msg))
         
         socket.close()
         del(self.nodes[node])
@@ -151,7 +155,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                       sender=self.name,
                       recipient='ZMQConnector',
                       func="discover",
-                      arg={'ip': ZMQConnector.routeraddress,
+                      arg={'ip': self.Configuration['routeraddress'],
                            'registry': str(self.systemregistry),
                            'dispatcher': str(self.systemdispatcher),
                            }
@@ -204,14 +208,19 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
 
                 if msg.recipient in ("ZMQConnector", self.name):
                     if msg.func == "disconnect":
-                        self.loginfo("Disconnect announcement received from '%s'@'%s'" % (msg.sendernode, 
-                                                                                          self.nodes[msg.sendernode]['ip']))
-                        self._disconnectNode(msg.sendernode)
+                        if msg.sendernode in self.nodes:
+                            self.loginfo("Disconnect announcement received from '%s'@'%s'" % (msg.sendernode, 
+                                                                                              self.nodes[msg.sendernode]['ip']))
+                            self._disconnectNode(msg.sendernode)
+                        else:
+                            self.logwarning("Disconnect announcement from unconnected node received '%s', args: '%s'" % (msg.sendernode,
+                                                                                                                         msg.arg))
                     if msg.func == "discover":
+                        node = msg.arg
+                        
                         if msg.type == 'request':
-                            # We're being probed! Store request details.
-                            node = msg.arg
                             self.loginfo("Probe request received from '%s' " % node['ip'])
+                            # We're being probed! Store request details.
                             
                             self.nodes[msg.sendernode] = {'ip': node['ip'],
                                                       'registry': node['registry'],
@@ -225,14 +234,14 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                 print "Assigning socket"
                                 self.nodes[msg.sendernode]['socket'] = self.probednodes[node['ip']]
                                 print "Generating reply."
-                                reply = msg.response({'ip': ZMQConnector.routeraddress})
+                                reply = msg.response({'ip': self.Configuration['routeraddress']})
                                 print "Sending reply"
                                 self.nodes[msg.sendernode]['socket'].send(jsonpickle.encode(reply))
                                 
                         else:
                             # Hm, a response! This is the last packet in our discovery chain.
-                            self.loginfo("Uninitiated probe returned storing socket for '%s'" % (node['ip']))
-                            self.nodes[msg.sendernode]['socket'] = self.probednodes[msg.args['ip']]
+                            self.loginfo("Connected to '%s'" % (node['ip']))
+                            self.nodes[msg.sendernode]['connected'] = True
                                 
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.

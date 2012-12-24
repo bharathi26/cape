@@ -25,7 +25,7 @@
 from RAIN.System import Registry
 from RAIN.System import RPCComponent
 import RAIN.Messages
-from RAIN.System import  Identity
+from RAIN.System import Identity
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System.RPCComponent import RPCComponent
 
@@ -179,8 +179,8 @@ class TkAdmin(TkWindow, RPCComponent):
         msgdialog = TkMessageDialog(self.window, msg)
         
     def composeMessage(self):
-         msg = RAIN.Messages.Message()
-         msgdialog = TkMessageDialog(self.window, msg, onclosecallback=self.transmit)  
+        msg = RAIN.Messages.Message()
+        msgdialog = TkMessageDialog(self.window, msg, onclosecallback=self.transmit)  
 
     def clearEntry(self):
         self.__EntryInput.delete(0, END)
@@ -231,6 +231,11 @@ class TkAdmin(TkWindow, RPCComponent):
                 loglistbox.itemconfig(END, bg='green', fg='black')
             else:
                 loglistbox.itemconfig(END, bg='red', fg='black')
+
+    def editIdentity(self):
+        self.logerror("Not implemented. Here is a dump of this node's identity:")
+        self.loginfo(Identity.SystemIdentity)
+        self.loginfo(Identity.SystemUUID)
 
     def usertransmit(self):
         def send(msg):
@@ -356,10 +361,12 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__MenuEdit = Menu(self.__Menu)
         self.__MenuMessage = Menu(self.__Menu)
         self.__MenuSettings = Menu(self.__Menu)
+        self.__MenuSystem = Menu(self.__Menu)
         self.__Menu.add_cascade(menu=self.__MenuFile, label="File")
         self.__Menu.add_cascade(menu=self.__MenuEdit, label="Edit")
         self.__Menu.add_cascade(menu=self.__MenuMessage, label="Message")
         self.__Menu.add_cascade(menu=self.__MenuSettings, label="Settings")
+        self.__Menu.add_cascade(menu=self.__MenuSystem, label="System")
         self.window.config(menu=self.__Menu)
 
         self.__MenuFile.add_command(label="Update Message Log", command=self.updateMessageLog)
@@ -378,6 +385,8 @@ class TkAdmin(TkWindow, RPCComponent):
         self.__MenuSettings.add_checkbutton(label="Autoclear", onvalue=True, offvalue=False, variable=self.autoclear)
         self.__MenuSettings.add_checkbutton(label="Show responses", onvalue=True, offvalue=False,
                                             variable=self.showresponses)
+        
+        self.__MenuSystem.add_command(label="View/Edit Identity", command=self.editIdentity)
 
         self.__MenuComponents = Menu(self.__Menu)
         self.__MenuComponents.add_command(label="Scan", command=self.scanregistry)

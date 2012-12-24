@@ -27,10 +27,16 @@ SystemName = DefaultSystemName = "DEFAULT"
 SystemClass = DefaultSystemClass = "DEFAULT"
 SystemUUID = DefaultSystemUUID = uuid.uuid4()
 
+SystemIdentity = {'name': SystemName, 
+                  'class': SystemClass, 
+                  'UUID': SystemUUID
+                  } 
+
 def setupIdentity():
     global SystemName
     global SystemClass
     global SystemUUID
+    global SystemIdentity
 
     if 'IDENTITY' in Configuration.Configuration.sections:
         config = Configuration.Configuration['IDENTITY']
@@ -50,6 +56,12 @@ def setupIdentity():
             SystemClass = DefaultSystemClass
             SystemUUID = DefaultSystemUUID
             Logger.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
+            
+    SystemIdentity = {'name': SystemName, 
+                      'class': SystemClass, 
+                      'UUID': SystemUUID
+                      } 
+
 
 def test():
     """N/A: Should test the Identity information system."""
