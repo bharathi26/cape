@@ -52,34 +52,45 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         self.MR['rpc_disconnectNode'] = {'node':
                                          [str, 'Node UUID to disconnect.']}
         self.MR['rpc_disconnectNodes'] = {}
+        
         super(ZMQConnector, self).__init__()
         self.logdebug('ZMQConnector configuring')
+
         self.Configuration.update({
                                    'routeraddress': '127.0.0.1',
                                   })
 
+        self.listening = False        
         self.buflist = deque()
 
         # Schema:
-        # {'ip': ZMQ-Socket}}
+        # {'ip': ZMQ-Socket}
         self.probednodes = {}
+        # {'ip': Probedata}
+        self.probes = {}
         
         self.nodes = {} #Identity.SystemUUID: {'ip': '127.0.0.1', 'registry': '', 'dispatcher': '', 'socket': None}}
-        
-        self.url = "tcp://%s:55555" % self.Configuration['routeraddress']
 
-        self.listening = False
-
-        self.loginfo("Setting up socket '%s'" % self.url)
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.ROUTER)
+        
+        self.logdebug("Init complete!")
+
+    def main_prepare(self):
+        """Opens the listener socket."""
+        
+        # TODO: Maybe make this a function call thats available via RPC, too
+        # Since we might want to change the socket after e.g. reconfiguration
+        self.url = "tcp://%s:55555" % self.Configuration['routeraddress']
+        
+        self.loginfo("Setting up socket '%s'" % self.url)
         try:
             self.socket.bind(self.url)
             self.listening = True
             self.loginfo("Socket bound")
         except zmq.core.error.ZMQError:
             self.logcritical("Couldn't bind socket: Already in use!")
-        self.logdebug("Init complete!")
+
 
     def rpc_transmit(self, msg):
         if msg.recipientNode == str(Identity.SystemUUID):
@@ -217,32 +228,44 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                                                                                                          msg.arg))
                     if msg.func == "discover":
                         node = msg.arg
+                        ip = node['ip']
                         
                         if msg.type == 'request':
                             self.loginfo("Probe request received from '%s' " % node['ip'])
                             # We're being probed! Store request details.
                             
-                            self.nodes[msg.sendernode] = {'ip': node['ip'],
-                                                      'registry': node['registry'],
-                                                      'dispatcher': node['dispatcher'],
-                                                      }
-                            if node['ip'] not in self.probednodes:
-                                self.loginfo("Uninitiated probe by '%s' - discovering in reverse." % (node['ip']))
-                                self._discoverNode(node['ip'])
-                            else:
-                                self.loginfo("Probe returned storing socket for '%s'" % (node['ip']))
-                                print "Assigning socket"
-                                self.nodes[msg.sendernode]['socket'] = self.probednodes[node['ip']]
-                                print "Generating reply."
+                            self.probes[ip] = {'uuid': msg.sendernode,
+                                               'registry': node['registry'],
+                                               'dispatcher': node['dispatcher']
+                                               }
+                            
+                            if ip in self.probednodes:
+                                self.loginfo("Probe returned storing socket for '%s'" % (ip))
+                                
+                                self.nodes[msg.sendernode] = self.probes[ip]
+                                self.nodes[msg.sendernode]['socket'] = self.probednodes[ip]
+                                
                                 reply = msg.response({'ip': self.Configuration['routeraddress']})
-                                print "Sending reply"
+                                
                                 self.nodes[msg.sendernode]['socket'].send(jsonpickle.encode(reply))
+                                del(self.probednodes[ip])
+                                del(self.probes[ip])
+                            else:
+                                self.loginfo("Uninitiated probe by '%s' - discovering in reverse." % ip)
+                                self._discoverNode(ip)
                                 
                         else:
                             # Hm, a response! This is the last packet in our discovery chain.
-                            self.loginfo("Connected to '%s'" % (node['ip']))
-                            self.nodes[msg.sendernode]['connected'] = True
-                                
+                            self.loginfo("'%s' has successfully connected to us." % ip)
+                            #if ip in self.probes:
+                            probe = self.probes[ip] 
+                            self.nodes[probe['uuid']] = probe 
+                            self.nodes[probe['uuid']]['socket'] = self.probednodes[ip]
+                            del(self.probednodes[ip])
+                            del(self.probes[ip])
+
+                        self.loginfo("Connected nodes after discovery action: '%s'" % self.nodes.keys())  
+                            
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
                 elif msg.recipientnode == Identity.SystemUUID:
