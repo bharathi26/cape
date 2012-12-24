@@ -49,6 +49,9 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                    [Message, 'Message to transmit via ZMQ.']}
         self.MR['rpc_discoverNode'] = {'ip': [str, 'IP to discover']}
         self.MR['rpc_listconnectedNodes'] = {}
+        self.MR['rpc_disconnectNode'] = {'node':
+                                         [str, 'Node UUID to disconnect.']}
+        self.MR['rpc_disconnectNodes'] = {}
         super(ZMQConnector, self).__init__()
 
         self.buflist = deque()
@@ -75,7 +78,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         print "END INIT"
 
     def rpc_transmit(self, msg):
-        if msg.recipientNode == Identity.SystemUUID:
+        if msg.recipientNode == str(Identity.SystemUUID):
             errmsg = "(Unsent) message to ourself received for distribution: '%s'" % msg
             self.logerror(errmsg)
             return (False, errmsg)
@@ -95,6 +98,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         return True
 
     def rpc_discoverNode(self, ip):
+        """Discovers a Node at a given IP."""
+        
         if ip not in self.probednodes:
             msg = "Probing new node: '%s'" % ip
             self.logdebug(msg)
@@ -103,6 +108,38 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         else:
             self.logerror("Node has already been discovered: '%s'" % ip)
             return False
+        
+    def rpc_disconnectNode(self, node):
+        """Disconnects a given Node including announcement of its disconnection."""
+        
+        return self._disconnectNode(node)    
+    
+    def rpc_disconnectNodes(self):
+        """Disconnects from all nodes after sending an announcement to each."""
+        
+        result = True
+        
+        for node in self.nodes:
+            result = result and self._disconnectNode(node)
+            
+        return result
+
+    def _disconnectNode(self, node, announce=True):
+        if node not in self.nodes:
+            return (False, "Node not connected.")
+        
+        socket = self.nodes[node]['socket']
+        if announce:
+            msg = Message(sendernode=str(Identity.SystemUUID),
+                          sender=self.name,
+                          recipient='ZMQConnector',
+                          func='disconnect')
+            socket.send(msg)
+        
+        socket.close()
+        del(self.nodes[node])
+        
+        return True               
 
     def _discoverNode(self, ip):
         self.loginfo("Discovering node '%s'" % ip)
@@ -110,7 +147,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         socket.connect('tcp://%s:55555' % ip)
         # TODO: Is this smart, sending discovery data upon first message?
         # Maybe better in the reply...
-        msg = Message(sendernode=Identity.SystemUUID,
+        msg = Message(sendernode=str(Identity.SystemUUID),
                       sender=self.name,
                       recipient='ZMQConnector',
                       func="discover",
@@ -165,7 +202,11 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
             if msg:
                 self.loginfo("Analysing input: '%s'" % msg )
 
-                if msg.recipient == "ZMQConnector":
+                if msg.recipient in ("ZMQConnector", self.name):
+                    if msg.func == "disconnect":
+                        self.loginfo("Disconnect announcement received from '%s'@'%s'" % (msg.sendernode, 
+                                                                                          self.nodes[msg.sendernode]['ip']))
+                        self._disconnectNode(msg.sendernode)
                     if msg.func == "discover":
                         if msg.type == 'request':
                             # We're being probed! Store request details.
@@ -181,8 +222,18 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                 self._discoverNode(node['ip'])
                             else:
                                 self.loginfo("Probe returned storing socket for '%s'" % (node['ip']))
+                                print "Assigning socket"
                                 self.nodes[msg.sendernode]['socket'] = self.probednodes[node['ip']]
-
+                                print "Generating reply."
+                                reply = msg.response({'ip': ZMQConnector.routeraddress})
+                                print "Sending reply"
+                                self.nodes[msg.sendernode]['socket'].send(jsonpickle.encode(reply))
+                                
+                        else:
+                            # Hm, a response! This is the last packet in our discovery chain.
+                            self.loginfo("Uninitiated probe returned storing socket for '%s'" % (node['ip']))
+                            self.nodes[msg.sendernode]['socket'] = self.probednodes[msg.args['ip']]
+                                
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
                 elif msg.recipientnode == Identity.SystemUUID:

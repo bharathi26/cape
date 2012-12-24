@@ -167,14 +167,20 @@ class Message(object):
         if len(argstring) > 1024:
             argstring = "Too large to display (%i bytes)" % len(argstring)
 
-        result = "%f - [%10s] -> [%10s] %s %15s (%s)" % (self.timestamp, self.sender, self.recipient,
-                                                         self.msg_type, self.func,
-                                                         argstring if not self.error else str(self.error))
+        result = "%f - [%10s]@%s -> [%10s]@%s %s %15s (%s)" % (self.timestamp, 
+                                                               self.sender, 
+                                                               self.sendernode, 
+                                                               self.recipient,
+                                                               self.recipientnode,
+                                                               self.msg_type, 
+                                                               self.func,
+                                                               argstring if not self.error else str(self.error))
         return result
 
     def response(self, args):
         response = deepcopy(self)
         response.sender, response.recipient = response.recipient, response.sender
+        response.sendernode, response.recipientnode = response.recipientnode, response.sendernode
         response.msg_type = "response"
         if isinstance(args, tuple):
             success, result = args
