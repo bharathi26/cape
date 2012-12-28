@@ -93,23 +93,27 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
 
 
     def rpc_transmit(self, msg):
-        if msg.recipientNode == str(Identity.SystemUUID):
+        if msg.recipientnode == str(Identity.SystemUUID):
             errmsg = "(Unsent) message to ourself received for distribution: '%s'" % msg
             self.logerror(errmsg)
             return (False, errmsg)
 
-        if not msg.recipientNode in self.nodes:
+        if not msg.recipientnode in self.nodes:
             errmsg = "Node '%s' unknown."
             self.logwarning(errmsg)
             return (False, errmsg)
 
-        socket = self.nodes[msg.recipientNode]['socket']
+        self.loginfo("Getting socket.")
+
+        socket = self.nodes[msg.recipientnode]['socket']
 
         if not socket:
             # Connection not already established, so connect and store for later
             return (False, "Node not connected. Why?")
 
-        socket.send(msg)
+        self.loginfo("Transmitting message.")
+
+        socket.send(jsonpickle.encode(msg))
         return True
 
     def rpc_discoverNode(self, ip):
@@ -248,6 +252,16 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                                 reply = msg.response({'ip': self.Configuration['routeraddress']})
                                 
                                 self.nodes[msg.sendernode]['socket'].send(jsonpickle.encode(reply))
+                                
+                                route = Message(sender=self.name,
+                                                recipient=self.systemdispatcher,
+                                                func="addgateway",
+                                                arg={'remotenode': msg.sendernode, 
+                                                     'connector': self.name},
+                                                )
+                                
+                                self.send(route, "outbox")
+                                
                                 del(self.probednodes[ip])
                                 del(self.probes[ip])
                             else:
@@ -261,6 +275,16 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                             probe = self.probes[ip] 
                             self.nodes[probe['uuid']] = probe 
                             self.nodes[probe['uuid']]['socket'] = self.probednodes[ip]
+                            
+                            route = Message(sender=self.name,
+                                            recipient=self.systemdispatcher,
+                                            func="addgateway",
+                                            arg={'remotenode': probe['uuid'], 
+                                                 'connector': self.name},
+                                            )
+                                
+                            self.send(route, "outbox")
+                                
                             del(self.probednodes[ip])
                             del(self.probes[ip])
 
@@ -268,7 +292,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                             
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
-                elif msg.recipientnode == Identity.SystemUUID:
+                elif msg.recipientnode == str(Identity.SystemUUID):
                     self.loginfo("Publishing Message from '%s': '%s'" % (msg.sendernode, msg))
                     self.send(msg, "outbox")
                 else:

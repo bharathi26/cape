@@ -282,7 +282,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 else:
                     self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
             else:
-                self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                self.logdebug("Got a component's ('%s') RPC info. Parsing." % msg.sender)
 
                 comp = msg.sender
                 result = msg.arg

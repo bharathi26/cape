@@ -35,6 +35,7 @@ class ZMQTest(RPCComponent):
     def __init__(self):
         self.MR['rpc_test_dispatcher_node'] = {}
         self.MR['rpc_test_local_discovery'] = {}
+        self.MR['rpc_test_remote_transmit'] = {}
         super(ZMQTest, self).__init__()
 
     def rpc_test_local_discovery(self):
@@ -46,6 +47,14 @@ class ZMQTest(RPCComponent):
         self.logdebug("Transmitting '%s' to local node discovery " % package)
         socket.send(package)
         return True
+
+    def rpc_test_remote_transmit(self):
+        msg = Message(sender=self.name, 
+                      recipient="RAIN.System.RegistryComponent.RegistryComponent_7", 
+                      recipientnode='3508dac4-1b23-4134-81f9-29cd10e02181',
+                      func="listRegisteredComponents",
+                      arg=None)
+        self.send(msg, "outbox")
 
     def rpc_test_dispatcher_node(self):
         msg = Message(sender="", recipient="RAIN.", func="ping", arg="HELLO?", sendernode='FOOBAR')

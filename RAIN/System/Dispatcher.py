@@ -21,12 +21,14 @@
 import Axon
 from Axon.AdaptiveCommsComponent import AdaptiveCommsComponent
 
+from RAIN.System.RPCComponent import RPCMixin
+from RAIN.System.BaseComponent import BaseComponent
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System import Registry
 from RAIN.System import Identity
 from RAIN.Messages import Message
 
-class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
+class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
     inboxes = {'inbox': 'Dispatcher Inbox',
                'control': 'Not used yet.'}
     outboxes = {'outbox': 'Dispatcher Outbox',
@@ -35,7 +37,18 @@ class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
 
     def __init__(self):
         AdaptiveCommsComponent.__init__(self)
-        LoggableComponent.__init__(self)
+        
+        BaseComponent.__init__(self)
+        
+        self.MR['rpc_addgateway'] = {'remotenode': [(str, unicode), 'UUID of remote node'],
+                                     'connector': [str, 'Name of connector']}
+        RPCMixin.__init__(self)
+                
+        self.gateways = {}
+
+    def rpc_addgateway(self, remotenode, connector):
+        self.gateways[remotenode] = connector
+        self.loginfo(self.gateways)
 
     def RegisterComponent(self, thecomponent):
         self.logdebug("Trying to register new component")
@@ -77,17 +90,29 @@ class Dispatcher(AdaptiveCommsComponent, LoggableComponent):
 
             if isinstance(msg, Message):
                 response = None
-                self.loginfo("Received message from '%s' for '%s'" % (msg.sender, msg.recipient))
-                if msg.recipient in self.inboxes:
+                if not msg.localRecipient:
+                    self.logcritical("WHoa! A non-me-node message!")
+                    if msg.recipientnode in self.gateways:
+                        gateway = self.gateways[msg.recipientnode]
+                        msg.sendernode = str(Identity.SystemUUID)
+                        forward = Message(sender=self.name,
+                                          recipient=self.gateways[msg.recipientnode],
+                                          func="transmit",
+                                          arg={'msg': msg})
+                        
+                        self.send(forward, gateway)
+                    else:
+                        self.logwarning("Remote node '%s' not available." % msg.recipientnode)
+                elif msg.recipient in self.inboxes:
                     self.send(msg, msg.recipient)
                 elif msg.recipient == self.name:
-                    self.logdebug('Dispatcher services requested.')
-                    if msg.func == "directory":
-                        response = msg.response((True, str(self.Components)))
-                    else:
-                        response = msg.response((False, "Not available."))
-                elif not msg.localRecipient:
-                    self.logcritical("WHoa! A non-me-node message!")
+                    self.loginfo("Handling incoming rpc messages.")
+                    
+                    response = self.handleRPC(msg)
+                    if response:
+                        self.loginfo("Sending response to '%s'" % response.recipient)
+                        self.send(response, response.recipient)
+                     
                      
                 else:
                     self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))

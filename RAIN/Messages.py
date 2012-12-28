@@ -74,7 +74,7 @@ class Message(object):
 
     def localRecipient():
         def fget(self):
-            return self.recipientnode == Identity.SystemUUID
+            return self.recipientnode in ("", str(Identity.SystemUUID))
         
         return locals()
     
@@ -82,7 +82,7 @@ class Message(object):
         
     def localSender():
         def fget(self):
-            return self.sendernode == Identity.SystemUUID
+            return self.sendernode in ("", str(Identity.SystemUUID))
         
         return locals()
         

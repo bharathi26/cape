@@ -152,7 +152,7 @@ class RPCMixin(object):
 
         # TODO: Checking the args isn't doing good here. We'd better check the specs ;)
         args = msg.arg if msg.arg is not None else {}
-        self.loginfo("Method '%s' (multiple args) called. Checking parameters." % msg.func)
+        self.logdebug("Method '%s' called. Checking parameters." % msg.func)
 
         # TODO: with this, specified args HAVE to be supplied AND named.
         # Consider optional and required args as possibly better alternative
@@ -244,6 +244,7 @@ class RPCMixin(object):
         if self.MR.has_key(method[0]):
             return self.MR[method[0]]
         else:
+            self.logdebug(self.MR)
             self.logerror("Argspec for method '%s' not found." % method[0])
             return False
 
