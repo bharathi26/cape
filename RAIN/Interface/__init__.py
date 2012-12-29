@@ -1,1 +1,1 @@
-__all__ = ['SerialLCD', 'TkAdmin']
+__all__ = ['SerialLCD', 'TkAdmin', 'TkRPCArgDialog']

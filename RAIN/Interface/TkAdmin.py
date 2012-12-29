@@ -22,108 +22,23 @@
 # * Needs cleanup and standardization
 # * Move RPCArgDialog out of this file
 
-from RAIN.System import Registry
-from RAIN.System import RPCComponent
-import RAIN.Messages
 from RAIN.System import Identity
-from RAIN.System.LoggableComponent import LoggableComponent
+from RAIN.System import Registry
 from RAIN.System.RPCComponent import RPCComponent
+from RAIN.Messages import Message
 
-from RAIN.Interface.TkMapDialog import TkMapDialog
-from RAIN.Interface.TkMessageDialog import TkMessageDialog
+from RAIN.Interface.TkMessageDialog import TkMessageDialog 
+from RAIN.Interface.TkRPCArgDialog import TkRPCArgDialog
 
 from Kamaelia.UI.Tk.TkWindow import TkWindow, tkInvisibleWindow
 
-import Axon
-
-try:
-    unicode
-    from Tkinter import * #as tkinter
-    import tkMessageBox as messagebox
-    import Pmw
-except NameError:
-    import tkinter
-    from tkinter import *
-    import tkinter.messagebox as messagebox
+from Tkinter import Frame, Menu, Label, Entry, Button, Canvas, BooleanVar, TOP, BOTTOM, END
+import tkMessageBox as messagebox
 
 import jsonpickle
-import json
+import Pmw
 
-from pprint import pprint
-
-
-class TkRPCArgDialog(TkWindow, LoggableComponent):
-    def __init__(self, parent, callback, componentname, methodname, methodinfo):
-        # TODO:
-        # * Clean up (ownerships etc)
-        # * parsing of args and interaction with them (export etc)
-        super(TkRPCArgDialog, self).__init__()
-
-        argspec = methodinfo['args']
-        doc = methodinfo['doc']
-
-        title = "%s@%s" % (methodname, componentname)
-        self.window.title(title)
-
-        self.argspec = argspec
-        self.callback = callback
-        self.componentname = componentname
-        self.methodname = methodname
-
-        self._methFrame = Frame(self.window)
-        self._methLabel = Label(self._methFrame, text=title)
-        self._methLabel.pack(fill='x', expand='yes', side='top')
-        self._methDoc = Label(self._methFrame, text=doc)
-        self._methDoc.pack(fill='x', expand='yes', side='bottom')
-        self._methFrame.pack(fill='x', expand='yes', side='top')
-
-        self.argEntries = {}
-        self.argDocs = {}
-        self._argsFrame = Frame(self.window)
-
-        for arg in argspec:
-            argFrame = Frame(self._argsFrame)
-            argDocFrame = Frame(argFrame)
-            argDoc = Label(argDocFrame, text=argspec[arg][1], height=3)
-            argDoc.pack(fill='x', side="left")
-            argDocFrame.pack(fill="x", expand="yes")
-
-            argEntry = Entry(argFrame)
-            #argEntry._textbox.config(height=1)
-            argEntry.pack(fill='x', expand="yes", side="right")
-            argLabel = Label(argFrame, text="%s (%s)" % (arg, argspec[arg][0].__name__))
-            argLabel.pack(side='left')
-            argFrame.pack(fill='x', expand='yes')
-
-            self.argEntries[arg] = {'Frame': argFrame, 'Entry': argEntry, 'Doc': argDoc}
-
-        self._argsFrame.pack(expand='yes', fill='both', side="top")
-
-        self._buttonFrame = Frame(self.window)
-
-        self._submitButton = Button(self._buttonFrame, text='Submit', command=self.transmit)
-        self._closeButton = Button(self._buttonFrame, text='Close', command=self.close)
-        self._submitButton.pack(side="left")
-        self._closeButton.pack(side="right")
-
-        self._buttonFrame.pack(side="bottom", fill="x", expand="yes")
-
-    def transmit(self):
-        arguments = {}
-
-        for args in self.argEntries:
-            self.logdebug("Checking '%s' against '%s'" % (args, self.argspec[args]))
-            # TODO: There's a bug here, that prevents bools and probably a lot of other stuff from
-            # being parsed correctly.
-            if self.argspec[args][0] == dict:
-                arguments[args] = json.loads(self.argEntries[args]['Entry'].get())
-            else:
-                arguments[args] = self.argspec[args][0](self.argEntries[args]['Entry'].get())
-        self.callback(self.componentname, self.methodname, arguments)
-
-    def close(self):
-        self.window.destroy()
-
+from Axon import Scheduler
 
 class TkAdmin(TkWindow, RPCComponent):
     """
@@ -135,6 +50,9 @@ class TkAdmin(TkWindow, RPCComponent):
     # * Develop interaction elements for all primitives
 
     def __init__(self):
+        self.nodelist = {}
+        self.messages = []
+        
         self.title = "RAIN TkAdmin - [%s]" % Identity.SystemName
         super(TkAdmin, self).__init__()
 
@@ -154,8 +72,6 @@ class TkAdmin(TkWindow, RPCComponent):
         # TODO: Don't we need a central InvisibleWindow thats kept inbetween destruction of tkinterfaces?
         self._invisibleRoot = tkInvisibleWindow().activate()
         #        self.clearInput = tkinter.BooleanVar()
-        self.componentlist = {}
-        self.messages = []
         self.MapViewer = None
 
     def __on_ButtonClear_Press(self, Event=None):
@@ -179,7 +95,7 @@ class TkAdmin(TkWindow, RPCComponent):
         msgdialog = TkMessageDialog(self.window, msg)
         
     def composeMessage(self):
-        msg = RAIN.Messages.Message()
+        msg = Message()
         msgdialog = TkMessageDialog(self.window, msg, onclosecallback=self.transmit)  
 
     def clearEntry(self):
@@ -188,32 +104,58 @@ class TkAdmin(TkWindow, RPCComponent):
 
     #        self.__EntryInput['fg'] = self.defaultcolors['fg']
 
-    def scanregistry(self):
-        msg = RAIN.Messages.Message(sender=self.name, recipient=self.systemregistry, func="listRegisteredComponents",
-                                    arg=None)
+    def scanregistry(self, node=""):
+        msg = Message(sender=self.name, 
+                      recipientnode=node, 
+                      recipient=self.systemregistry, 
+                      func="listRegisteredComponents",
+                      arg=None
+                      )
         self.transmit(msg)
 
-    def scancomponent(self, name):
+    def scangateways(self):
+        msg = Message(sender=self.name,
+                      recipient=self.systemdispatcher,
+                      func="listgateways"
+                      )
+        self.transmit(msg)
+
+    def dumpnodelist(self):
+        from pprint import pprint
+        pprint(self.nodelist)        
+
+    def scancomponent(self, name, node=""):
         self.loginfo("Scanning component '%s'." % name)
-        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func="getComponentInfo", arg=None)
+        msg = Message(sender=self.name, recipientnode=node, recipient=name, func="getComponentInfo", arg=None)
         self.transmit(msg)
+        
+    def copystring(self, name):
+        self.window.clipboard_clear()
+        self.window.clipboard_append(name)        
 
-    def callComplexMethod(self, componentname, func):
+    def callComplexMethod(self, componentname, node, func):
         self.loginfo("Creating function dialog for '%s'@'%s'." % (func, componentname))
-        methodregister = self.componentlist[componentname]["info"]["methods"][func]
-        InputDialog = TkRPCArgDialog(self.window, self.callComplexMethodFinal, componentname, func, methodregister)
+        from pprint import pprint
+        componentlist = self.nodelist[node]['componentlist']
+        component = componentlist[componentname]
+        componentinfo = component["info"]
+        methods = componentinfo["methods"]
+        methodregister = methods[func]
+        
+        InputDialog = TkRPCArgDialog(self.window, self.callComplexMethodFinal, componentname, node, func, methodregister)
 
-    def callComplexMethodFinal(self, name, func, args):
+    def callComplexMethodFinal(self, name, node, func, args):
         self.loginfo("Finally calling func '%s'@'%s' with args '%s'" % (func, name, args))
-        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func=func, arg=args)
+        msg = Message(sender=self.name, recipientnode=node, recipient=name, func=func, arg=args)
         self.transmit(msg)
 
-    def callSimpleMethod(self, name, func):
+    def callSimpleMethod(self, name, node, func):
         self.loginfo("Calling '%s'@'%s'." % (func, name))
-        msg = RAIN.Messages.Message(sender=self.name, recipient=name, func=func, arg=None)
+        msg = Message(sender=self.name, recipient=name, recipientnode=node, func=func, arg=None)
         self.transmit(msg)
 
     def transmit(self, msg):
+        self.loginfo("Transmitting Message '%s'" % msg)
         self.recordMessage(msg)
         self.send(msg, "outbox")
 
@@ -270,59 +212,123 @@ class TkAdmin(TkWindow, RPCComponent):
         if self.autoclear.get():
             self.clearEntry()
 
+    def rebuildNodeMenu(self):
+        NodeMenu = self.__MenuNodes
+        NodeMenu.delete(4, END)
+
+        for node in self.nodelist:
+            NodeMenu.add_cascade(menu=self.nodelist[node]['menu'], label=node if node != "" else "LOCAL")
+            
+
+    def __handleNewNode(self, node):
+        if node not in self.nodelist:
+            self.loginfo("New node appeared! Hmm.")
+        else:       
+            self.loginfo("Node rescanned.")
+            print self.__MenuNodes   
+            
+        componentlist = {}
+        ComponentMenu = Menu(self.__MenuNodes)
+        ComponentMenu.add_command(label="Scan", command=lambda node=node: self.scanregistry(node))
+        ComponentMenu.add_command(label="Copy Name", command=lambda node=node: self.copystring(node))
+        ComponentMenu.add_separator()
+
+        nodeinfo = {'componentlist': componentlist,
+                    'menu': ComponentMenu}
+            
+        self.nodelist[node] = nodeinfo
+
+
 
     def handleResponse(self, msg):
         self.recordMessage(msg)
 
         def __handleComponentInfo(msg):
-            if msg.sender not in self.componentlist:
+            node = msg.sendernode
+            if node not in self.nodelist:
+                self.logerror('Node unknown')
+            else:
+                componentlist = self.nodelist[node]['componentlist']
+            
+            if msg.sender not in componentlist:
                 if self.autoscan.get():
-                    self.loginfo("Unknown component '%s'. Rescanning registry." % msg.sender)
-                    self.scanregistry()
+                    self.loginfo("Unknown component '%s'. Rescanning registry." % msg.senderid)
+                    self.scanregistry(node)
                 else:
                     self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
             else:
-                self.logdebug("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
 
-                comp = msg.sender
+                component = msg.sender
                 result = msg.arg
 
-                self.componentlist[comp]["info"] = result
-                MenuSubComponent = self.componentlist[comp]["Menu"]
-                MenuSubComponent.delete(3, END)
+                componentlist[component]["info"] = result
+                
+                FuncMenu = componentlist[component]["menu"]
+                FuncMenu.delete(4, END)
 
                 mr = result['methods']
 
                 for meth in mr:
                     self.logdebug("Got method '%s'." % meth)
                     if len(mr[meth]['args']) > 0:
-                        MenuSubComponent.add_command(label=meth,
-                                                     command=lambda (name, meth)=(comp, meth): self.callComplexMethod(
-                                                         name, meth))
+                        FuncMenu.add_command(label=meth,
+                                             command=lambda (node, name, meth)=(node, component, meth): self.callComplexMethod(name, node, meth))
                     else:
-                        MenuSubComponent.add_command(label=meth,
-                                                     command=lambda (name, meth)=(comp, meth): self.callSimpleMethod(
-                                                         name, meth))
+                        FuncMenu.add_command(label=meth,
+                                             command=lambda (node, name, meth)=(node, component, meth): self.callSimpleMethod(name, node, meth))
 
-        def __handleRegisteredComponents(components):
-            self.loginfo("Got a list of registered components. Parsing.")
-            self.componentlist = {}
-            self.__MenuComponents.delete(4, END)
+        def __handleRegisteredComponents(msg):
+            node = msg.sendernode
+            
+            self.loginfo("Got a list of registered components from '%s'. Parsing." % node)
+            
+            self.__handleNewNode(node)
+                     
+            # Schema nodelist:
+            # {nodeUUID: {'componentlist': componentlist, 'menu': ComponentMenu}
+            # Schema componentlist:
+            # {componentname: {'funclist': funclist, 'menu': funcmenu}
+            # Schema funclist:
+            # {func: menu}
+            
+            components = msg.arg
+            componentlist = self.nodelist[node]['componentlist']
+            ComponentMenu = self.nodelist[node]['menu']
+            
             for comp in components:
-                if self.autoscan.get() and comp not in self.componentlist:
-                    self.scancomponent(comp)
-                MenuSubComponent = Menu(self.__MenuComponents)
-                MenuSubComponent.add_command(label="Scan", command=lambda name=comp: self.scancomponent(name))
-                MenuSubComponent.add_separator()
+                self.loginfo("Adding component '%s@%s'" % (comp, node))
+                if self.autoscan.get() and comp not in componentlist:
+                    self.scancomponent(comp, node)
+                FuncMenu = Menu(ComponentMenu)
+                FuncMenu.add_command(label="Scan", command=lambda (name,node)=(comp, node): self.scancomponent(name, node))
+                FuncMenu.add_command(label="Copy Name", command=lambda name=comp: self.copystring(name))
+                FuncMenu.add_separator()
 
-                self.__MenuComponents.add_cascade(label=comp, menu=MenuSubComponent)
-                self.componentlist[comp] = {"Menu": MenuSubComponent, "info": None}
+                ComponentMenu.add_cascade(label=comp, menu=FuncMenu)
+                componentlist[comp] = {'menu': FuncMenu}
+                
+            self.rebuildNodeMenu() 
 
-        if isinstance(msg, RAIN.Messages.Message):
+        def __handleGatewayList(msg):
+            self.loginfo("Received a list of connected nodes.")
+            
+            for node in msg.arg:
+                self.__handleNewNode(node)
+                if self.autoscan.get():
+                    self.scanregistry(node)
+                
+            self.rebuildNodeMenu()
+            
+
+        if isinstance(msg, Message):
+            if msg.sender == self.systemdispatcher:
+                if msg.func == "listgateways":
+                    __handleGatewayList(msg)
             if msg.sender == self.systemregistry:
                 if msg.func == "listRegisteredComponents":
                     if not msg.error:
-                        __handleRegisteredComponents(msg.arg)
+                        __handleRegisteredComponents(msg)
             if msg.func == "getComponentInfo":
                 if not msg.error:
                     __handleComponentInfo(msg)
@@ -340,12 +346,10 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def quit(self):
         self.logcritical("Shutting down hard.")
-        Axon.Scheduler.scheduler.run.stop()
+        Scheduler.scheduler.run.stop()
 
     def setupWindow(self):
         self.logdebug("Setting up TkAdmin GUI")
-
-        import Pmw
 
         Pmw.initialise(self.window)
 
@@ -387,12 +391,14 @@ class TkAdmin(TkWindow, RPCComponent):
                                             variable=self.showresponses)
         
         self.__MenuSystem.add_command(label="View/Edit Identity", command=self.editIdentity)
+        
+        self.__MenuNodes = Menu(self.__Menu)
+        self.__MenuNodes.add_command(label="Update connected nodes", command=self.scangateways)
+        self.__MenuNodes.add_command(label="Scan Local", command=self.scanregistry)
+        self.__MenuNodes.add_command(label="Dump Nodelist", command=self.dumpnodelist)
 
-        self.__MenuComponents = Menu(self.__Menu)
-        self.__MenuComponents.add_command(label="Scan", command=self.scanregistry)
-        self.__MenuComponents.add_separator()
-
-        self.__Menu.add_cascade(menu=self.__MenuComponents, label="Components")
+        self.__MenuNodes.add_separator()
+        self.__Menu.add_cascade(menu=self.__MenuNodes, label="Nodes")
 
 
         ### /Menu ###
@@ -505,6 +511,7 @@ class TkAdmin(TkWindow, RPCComponent):
         """
 
         if self.autoscan.get():
+            self.loginfo("Local autoscan initiated.")
             self.scanregistry()
 
         while not self.isDestroyed():

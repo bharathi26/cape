@@ -18,48 +18,25 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Axon
-
-from Kamaelia.Util.Backplane import Backplane, PublishTo, SubscribeTo
-from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Chassis.Graphline import Graphline
-
-from ..Messages import Message
-from ..Primitives import Frequency
+from RAIN.System import Registry
+from RAIN.System.RPCComponent import RPCComponent
 
 from time import time
 
-class Pong(Axon.Component.component):
-    Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol"}
-    verbosity = 1
+class Pong(RPCComponent):
+    """
+    Classic Pong component.
+    
+    Returns Ping requests, no more.
+    """
+    
+    def __init__(self):
+        self.MR['rpc_ping'] = {}
+        super(Pong, self).__init__()
+    
+    def rpc_ping(self):
+        self.logdebug("Got a ping.")
+        return time()
 
-    def main(self):
-        while True:
-            while not self.anyReady():
-                # Thumb twiddling.
-                self.pause()
-                yield 1
-            now = time()
-            response = None
-            if self.dataReady("inbox"):
-                msg = self.recv("inbox")
-                if msg.recipient == "Pong":
-                    if msg.func == "PING":
-                        response = msg.response()
-                        response.arg['received'] = now
-                    if msg.func == "SetVerbosity":
-                        self.verbosity = int(msg.arg)
-                        response = msg.response(True)
-            if response:
-                self.send(response, "outbox")
-            yield 1
 
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
-
+Registry.ComponentTemplates['Pong'] = [Pong, "Pong component (see also: Ping)"]

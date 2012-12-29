@@ -110,12 +110,20 @@ class TkMessageDialog(TkWindow, LoggableComponent):
         
     def _compileMessage(self):
         sendernode = self._textSenderNodeName.get()[:-1]
+        if sendernode[:4] == "SELF" or sendernode == "":
+            sendernode = Identity.SystemUUID
+            
+        sendername = self._textSender.get()[:-1]
+        if sendername == "":
+            sendername = self.name
+        
         recipientnode = self._textRecipientNodeName.get()[:-1]
-        msg = RAIN.Messages.Message(sender=self._textSender.get()[:-1], 
+        
+        msg = RAIN.Messages.Message(sender=sendername, 
                       recipient=self._textRecipient.get()[:-1], 
                       func=self._textFunc.get()[:-1], 
                       arg=self._textArg.get()[:-1], 
-                      sendernode=Identity.SystemUUID if (node[:4] == "SELF" or node == "") else sendernode,
+                      sendernode=sendernode,
                       recipientnode=recipientnode 
                      )
         return msg                

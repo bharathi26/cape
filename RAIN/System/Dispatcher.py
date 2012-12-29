@@ -42,13 +42,20 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
         
         self.MR['rpc_addgateway'] = {'remotenode': [(str, unicode), 'UUID of remote node'],
                                      'connector': [str, 'Name of connector']}
+        self.MR['rpc_listgateways'] = {}
         RPCMixin.__init__(self)
-                
+            
+        # TODO: Evaluate renaming, gateway maybe hella confusing..
         self.gateways = {}
 
     def rpc_addgateway(self, remotenode, connector):
         self.gateways[remotenode] = connector
         self.loginfo(self.gateways)
+        return True
+        
+    def rpc_listgateways(self):
+        self.loginfo("Gatewaylist requested.")
+        return self.gateways.keys() if (len(self.gateways) > 0) else None
 
     def RegisterComponent(self, thecomponent):
         self.logdebug("Trying to register new component")
@@ -81,6 +88,26 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
         return True
 
     def main(self):
+        def handleMessage(msg):
+            if not msg.localRecipient:
+                self.logcritical("Remote node message received for '%s'" % msg.recipientnode)
+                if msg.recipientnode in self.gateways:
+                    gateway = self.gateways[msg.recipientnode]
+                    msg.sendernode = str(Identity.SystemUUID)
+                    forward = Message(sender=self.name,
+                                      recipient=self.gateways[msg.recipientnode],
+                                      func="transmit",
+                                      arg={'msg': msg})
+                    self.send(forward, gateway)
+                else:
+                    self.logwarning("Remote node '%s' not available." % msg.recipientnode)
+            elif msg.recipient in self.inboxes:
+                self.send(msg, msg.recipient)
+            else:
+                self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
+                
+                
+        
         while True:
             while not self.anyReady():
                 yield 1 # Twiddle thumbs.
@@ -90,38 +117,24 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
 
             if isinstance(msg, Message):
                 response = None
-                if not msg.localRecipient:
-                    self.logcritical("WHoa! A non-me-node message!")
-                    if msg.recipientnode in self.gateways:
-                        gateway = self.gateways[msg.recipientnode]
-                        msg.sendernode = str(Identity.SystemUUID)
-                        forward = Message(sender=self.name,
-                                          recipient=self.gateways[msg.recipientnode],
-                                          func="transmit",
-                                          arg={'msg': msg})
-                        
-                        self.send(forward, gateway)
-                    else:
-                        self.logwarning("Remote node '%s' not available." % msg.recipientnode)
-                elif msg.recipient in self.inboxes:
-                    self.send(msg, msg.recipient)
-                elif msg.recipient == self.name:
+                if msg.recipient == self.name:
                     self.loginfo("Handling incoming rpc messages.")
                     
                     response = self.handleRPC(msg)
                     if response:
                         self.loginfo("Sending response to '%s'" % response.recipient)
-                        self.send(response, response.recipient)
-                     
-                     
+                        handleMessage(response)
+                        
                 else:
-                    self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
-                if response:
-                    if response.recipient in self.inboxes:
-                        self.logdebug("Responding to '%s'" % response.recipient)
-                        self.send(response, response.recipient)
-                    else:
-                        self.logerror("Response to '%s' can't be sent, not available." % response.recipient)
+                    handleMessage(msg)
+                     
+                     
+#                if response:
+#                    if response.recipient in self.inboxes:
+#                        self.logdebug("Responding to '%s'" % response.recipient)
+#                        self.send(response, response.recipient)
+#                    else:
+#                        self.logerror("Response to '%s' can't be sent, not available." % response.recipient)
             else:
                 self.logerror("Received something weird non-message: '%s'" % msg)
 

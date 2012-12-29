@@ -52,7 +52,7 @@ class Message(object):
 
     #__slots__ = ['sendernode', 'sender', 'recipientnode', 'recipient', 'timestamp', 'msg_type', 'func', 'arg', 'error']
 
-    def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg="", error="", msg_type="request"):
+    def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg=None, error="", msg_type="request"):
         """Initializes a new message with the current timestamp and given arguments.
         Default message type is "request"
         
@@ -71,6 +71,22 @@ class Message(object):
         self.func = func
         self.arg = arg
         self.error = error
+        
+    def senderid():
+        def fget(self):
+            return "%s@%s" % (self.sender, self.sendernode)
+        
+        return locals()
+        
+    senderid = property(**senderid())
+
+    def recipientid():
+        def fget(self):
+            return "%s@%s" % (self.recipient, self.recipientnode)
+    
+        return locals()
+    
+    recipientid = property(**recipientid())    
 
     def localRecipient():
         def fget(self):

@@ -103,6 +103,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
             self.logwarning(errmsg)
             return (False, errmsg)
 
+        msg.sendernode = str(Identity.SystemUUID)
+
         self.loginfo("Getting socket.")
 
         socket = self.nodes[msg.recipientnode]['socket']
@@ -186,6 +188,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         return str(self.nodes.keys())
 
     def mainthread(self):
+        # TODO: Check if incoming packets are coming from a stale connection
+        #   If so: we have to await rediscovery before transmitting back our packets
         msg = incoming = None        
         
         # If listening, collect incoming buffer
@@ -293,6 +297,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 # Oh, nothing for us, but someone else.
                 # TODO: Now, we'd better check for security and auth.
                 elif msg.recipientnode == str(Identity.SystemUUID):
+                    # TODO: We need to check wether the socket really is associated with the stored Identity
+                    # This is really important to make sure nobody injects messages with wrong sender id
                     self.loginfo("Publishing Message from '%s': '%s'" % (msg.sendernode, msg))
                     self.send(msg, "outbox")
                 else:

@@ -237,8 +237,8 @@ class RPCMixin(object):
 
         return {'name': self.name, 'doc': self.__doc__, 'methods': self.MethodRegister}
 
-    def __buildArgSpec3(self, method):
-        return inspect.getfullargspec(method[1]).annotations
+#    def __buildArgSpec3(self, method):
+#        return inspect.getfullargspec(method[1]).annotations
 
     def __buildArgSpec2(self, method):
         if self.MR.has_key(method[0]):
@@ -308,6 +308,12 @@ class RPCMixin(object):
         """
         pass
 
+    def main_loop(self):
+        """
+        Method that is before RPC handling.
+        Overwrite if necessary.
+        """
+        pass
 
     def main(self):
         """Start the already initialized component and wait for messages.
@@ -319,6 +325,7 @@ class RPCMixin(object):
         self.loginfo("Entering main loop.")
         while True:
             while not self.anyReady():
+                self.main_loop()
                 yield 1
 
             response = None

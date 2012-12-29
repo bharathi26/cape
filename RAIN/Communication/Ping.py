@@ -17,6 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from RAIN.System import Registry
 from RAIN.Messages import Message
 from RAIN.Primitives import Frequency
 from RAIN.System.RPCComponent import RPCComponent
@@ -25,67 +26,81 @@ from time import time
 from math import fsum
 
 class Ping(RPCComponent):
-    Inboxes = {"inbox": "RPC commands",
-               "control": "Signaling to this Protocol"}
-    Outboxes = {"outbox": "RPC Responses",
-                "signal": "Signaling from this Protocol"}
-    lastping = 0
-    count = 0
-    rttlist = [0] * 30
-    verbosity = 1
 
-    def __init__(self, frequency=Frequency("PingFreq", period=60), verbosity=3):
-        super(Ping, self).__init__(self)
-        self.frequency = frequency
-        self.verbosity = verbosity
+    def __init__(self):
+        self.MR['rpc_setinterval'] = {'interval': [float, "Interval of pings in seconds."]}
+        self.MR['rpc_getlastpings'] = {}
+        self.MR['rpc_getmeanrtt'] = {}
+        self.MR['rpc_settarget'] = {'target': [str, "Name of new target component (must be a Pong component or something else implementing function 'ping')"],
+                                    'node': [str, "Target node UUID"]}
+                                            
+        super(Ping, self).__init__()
+        
+        self.Configuration.update({'interval': 60.0,
+                                   'target': None,
+                                   'targetnode': None,
+                                   'rttsize': 30,                                   
+                                   }
+                                  )
+        self.lastping = 0
+        self.count = 0
+        self.rttlist = [0] * self.Configuration['rttsize'] # TODO: This has to be reflected in getmeanrtt
+        self.verbosity = 1
 
-    def main(self):
-        self.lastping = time()
-        while True:
-            while (self.lastping + self.frequency.Period() > time()) and (not self.anyReady()):
-                # Thumb twiddling.
-                yield 1
-            now = time()
-            response = None
-            if self.dataReady("inbox"):
-                msg = self.recv("inbox")
-                if msg.sender == "Pong":
-                    roundtrip = now - msg.arg['time']
-                    del(self.rttlist[0])
-                    self.rttlist.append(roundtrip)
 
-                    arg = {}
-                    arg['rtt'] = roundtrip
-                    if self.verbosity > 0:
-                        arg['count'] = self.count
-                    if self.verbosity > 1:
-                        arg['lastping'] = self.lastping
-                    if self.verbosity > 2:
-                        meanrtt = (
-                        fsum(self.rttlist[-10:]) / 10, fsum(self.rttlist[-20:]) / 20, fsum(self.rttlist) / 30)
-                        arg['meanrtt'] = meanrtt
-                    response = Message(sender=self.name, recipient="ALL", arg=arg)
-                if msg.recipient == "Ping":
-                    response = msg.response(None)
-                    if msg.func == "SetVerbosity":
-                        self.verbosity = int(msg.arg)
-                        response = msg.response(True)
-                    if msg.func == "SetFreq": # and type(msg.arg) == type(Frequency):
-                        self.frequency = msg.arg
-                        response = msg.response(True)
-            elif not response and (self.lastping + self.frequency.Period() < now):
-                self.count += 1
-                arg = {}
-                arg['time'] = time()
-                response = Message(sender=self.name, recipient="Pong", func="PING", arg=arg)
-                self.lastping = time()
-            if response:
-                self.send(response, "outbox")
-            yield 1
+    def rpc_setinterval(self, interval):
+        self.Configuration['interval'] = float(interval)
+        return True 
+    
+    def handleResponse(self, msg):     
+        if msg.func == "ping":
+            roundtrip = time() - float(msg.arg)
+            self.loginfo("Pong from '%s' received. Roundtrip time: '%f'" % (msg.senderid, roundtrip))
+            del(self.rttlist[0])
+            self.rttlist.append(roundtrip)
+        else:
+            self.logwarning("Strange response received: '%s'" % msg)
+    
+    def rpc_getlastpings(self):
+        """
+        Returns the last 30 Pings
+        """
+        
+        return self.rttlist
+        
+    def rpc_getmeanrtt(self):
+        """
+        Returns the median round trip time over the last 30 Pings.
+        """
+        
+        meanrtt = fsum(self.rttlist[-10:]) / 10, fsum(self.rttlist[-20:]) / 20, fsum(self.rttlist) / 30
+        return (True, meanrtt)        
 
-    def shutdown(self):
-        # TODO: Handle correct shutdown
-        if self.dataReady("control"):
-            msg = self.recv("control")
-            return isinstance(msg, Axon.Ipc.producerFinished)
+    def rpc_settarget(self, target, node):
+        """
+        Sets this ping components target.
+        """
+        
+        self.Configuration['target'] = str(target)
+        self.Configuration['targetnode'] = str(node)
+        return True
 
+    def main_loop(self):
+        """
+        Loops and pings the configured pong component every configured interval.
+        """
+        if self.Configuration['target'] and (self.lastping + self.Configuration['interval'] < time()):
+            self.logdebug("Pinging '%s'." % (self.Configuration['target']))
+            self.lastping = time()
+            # Time to act: Send a ping message to our pong counterpart
+            self.count += 1
+            
+            pingmsg = Message(sender=self.name, 
+                              recipient=self.Configuration['target'],
+                              recipientnode=self.Configuration['targetnode'], 
+                              func="ping", 
+                              arg=None)
+            self.send(pingmsg, "outbox")
+            
+            
+Registry.ComponentTemplates['Ping'] = [Ping, "Ping component (see also: Pong)"]
