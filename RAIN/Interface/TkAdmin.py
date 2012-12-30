@@ -94,8 +94,10 @@ class TkAdmin(TkWindow, RPCComponent):
         msg = self.messages[int(sel[0])]
         msgdialog = TkMessageDialog(self.window, msg)
         
-    def composeMessage(self):
-        msg = Message()
+    def composeMessage(self, name="", node="", sender=None):
+        if not sender:
+            sender = self.name
+        msg = Message(sender=sender, recipientnode=node, recipient=name)
         msgdialog = TkMessageDialog(self.window, msg, onclosecallback=self.transmit)  
 
     def clearEntry(self):
@@ -265,7 +267,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 componentlist[component]["info"] = result
                 
                 FuncMenu = componentlist[component]["menu"]
-                FuncMenu.delete(4, END)
+                FuncMenu.delete(5, END)
 
                 mr = result['methods']
 
@@ -303,6 +305,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 FuncMenu = Menu(ComponentMenu)
                 FuncMenu.add_command(label="Scan", command=lambda (name,node)=(comp, node): self.scancomponent(name, node))
                 FuncMenu.add_command(label="Copy Name", command=lambda name=comp: self.copystring(name))
+                FuncMenu.add_command(label="Compose...", command=lambda (name,node)=(comp,node): self.composeMessage(name, node))
                 FuncMenu.add_separator()
 
                 ComponentMenu.add_cascade(label=comp, menu=FuncMenu)

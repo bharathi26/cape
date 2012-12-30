@@ -180,7 +180,7 @@ class Message(object):
         except AttributeError:
             return "Corrupted Message. Not all relevant parts were contained."
 
-        if len(argstring) > 1024:
+        if len(argstring) > 4096:
             argstring = "Too large to display (%i bytes)" % len(argstring)
 
         result = "%f - [%10s]@%s -> [%10s]@%s %s %15s (%s)" % (self.timestamp, 
