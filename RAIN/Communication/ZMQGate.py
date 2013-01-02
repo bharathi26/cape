@@ -30,7 +30,7 @@ from RAIN.System import Registry
 from RAIN.System.RPCComponent import RPCComponentThreaded
 from RAIN.System.NodeConnector import NodeConnector
 
-from time import sleep
+from time import sleep, time
 
 import jsonpickle
 import zmq
@@ -41,7 +41,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
     """Exemplary and experimental ZMQ node interconnector class."""
 
     separator = b"\r\n"
-
+    
     def __init__(self):
         self.loginfo('ZMQConnector initializing')
         self.MR['rpc_transmit'] = {'msg':
@@ -51,6 +51,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         self.MR['rpc_disconnectNode'] = {'node':
                                          [str, 'Node UUID to disconnect.']}
         self.MR['rpc_disconnectNodes'] = {}
+        self.MR['rpc_test'] = {}
 
         super(ZMQConnector, self).__init__()
         self.logdebug('ZMQConnector configuring')
@@ -68,12 +69,16 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         # {'ip': Probedata}
         self.probes = {}
 
-        self.nodes = {}  # Identity.SystemUUID: {'ip': '127.0.0.1', 'registry': '', 'dispatcher': '', 'socket': None}}
+        self.nodes = {}  # Identity.SystemUUID: {'ip': '127.0.0.1', 'registry': '', 'dispatcher': '', 'socket': None, 'timeout': int, 'lastping': int}}
 
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.ROUTER)
 
         self.logdebug("Init complete!")
+
+    def rpc_test(self):
+        return self._discoverNode("192.168.1.185")
+
 
     def main_prepare(self):
         """Opens the listener socket."""
@@ -81,7 +86,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         # TODO: Maybe make this a function call thats available via RPC, too
         # Since we might want to change the socket after e.g. reconfiguration
         self.url = "tcp://%s:55555" % self.Configuration['routeraddress']
-
+ 
         self.loginfo("Setting up socket '%s'" % self.url)
         try:
             self.socket.bind(self.url)
@@ -90,59 +95,161 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         except zmq.core.error.ZMQError:
             self.logcritical("Couldn't bind socket: Already in use!")
 
+    def mainthread(self):
+        # TODO: Check if incoming packets are coming from a stale connection
+        #   If so: we have to await rediscovery before transmitting back our packets
+        msg = jsonmsg = None
 
-    def rpc_transmit(self, msg):
-        if msg.recipientnode == str(Identity.SystemUUID):
-            errmsg = "(Unsent) message to ourself received for distribution: '%s'" % msg
-            self.logerror(errmsg)
-            return (False, errmsg)
+        # If listening, collect incoming buffer
+        if self.listening:
+            try:
+                senderid = self.socket.recv(zmq.NOBLOCK)
+                # self.logdebug("Received '%s'" % incoming)
+                jsonmsg = self.socket.recv(zmq.NOBLOCK)
+                
+            except zmq.core.error.ZMQError as e:
+                if not "Resource temporarily unavailable" in str(e):
+                    self.logerror(e)
 
-        if not msg.recipientnode in self.nodes:
-            errmsg = "Node '%s' unknown."
-            self.logwarning(errmsg)
-            return (False, errmsg)
-
-        msg.sendernode = str(Identity.SystemUUID)
-
-        self.logdebug("Getting socket.")
-
-        socket = self.nodes[msg.recipientnode]['socket']
-
-        if not socket:
-            # Connection not already established, so connect and store for later
-            return (False, "Node not connected. Why?")
-
-        self.loginfo("Transmitting message to '%s'." % msg.recipientnode)
-
-        socket.send(jsonpickle.encode(msg))
-        return True
-
-    def rpc_discoverNode(self, ip):
-        """Discovers a Node at a given IP."""
-
-        if ip not in self.probednodes:
-            msg = "Probing new node: '%s'" % ip
-            self.logdebug(msg)
-            self._discoverNode(ip)
-            return True, msg
+            # Split buffer, if we have some
+            # TODO: This all is probably not very necessary and should be kicked out
+            #if incoming:
+            #    # new piece of a message arrived
+            #    parts = incoming.split(ZMQConnector.separator)
+    
+            # If there are messages, decode and process them
+            if jsonmsg:
+                try:
+                    msg = jsonpickle.decode(jsonmsg)
+                except Exception as e:
+                    self.logdebug(jsonmsg)
+                    self.logerror("JSON decoding failed: '%s'" % e)    
+    
+                self.logdebug('Received a message')
+                                    
+                # Check if we have to forward or process the message locally
+                if msg.recipient in ("ZMQConnector", self.name):
+                    self._handleMessage(msg)
+                elif msg.recipientnode == str(Identity.SystemUUID):
+                    # Oh, nothing for us, but someone else on this node.
+                    # TODO: Now, we'd better check for security and auth.
+                    # TODO: We need to check wether the socket really is associated with the stored Identity
+                    # This is really important to make sure nobody injects messages with wrong sender id
+                    # This can be done using the ZMQ.Identity, which gets sent first by the ZMQ Socket
+                    self.loginfo("Publishing Message from '%s': '%s'" % (msg.sendernode, msg))
+                    self.send(msg, "outbox")
+                else:
+                    self.logwarning("Message for another node received - WTF?!")
+                
+            self._pingNodes()
         else:
-            self.logerror("Node has already been discovered: '%s'" % ip)
-            return False
+            self.logdebug("Sleeping.")
+            self.sleep(0.1)
+            
+    def _handleMessage(self, msg):
+        """
+        Handle messages for this ZMQConnector component.
+        """
+        
+        sendernode = msg.sendernode
+        
+        if sendernode in self.nodes:
+            # Any message from a node resets the ping interval 
+            self.nodes[sendernode]['lastping'] = time()
+                
+        self.logdebug("Analysing input: '%s'" % msg)
+                
+        if msg.func == "ping":
+            if msg.type == "request":
+                self.loginfo("Got a ping from '%s'." % sendernode)
+            
+                response = msg.response(time())
+                if sendernode in self.nodes: 
+                    self.loginfo("Replying to ping request.")
+                    self.nodes[sendernode]['pingcount'] = 0
+                    self.nodes[sendernode]['socket'].send(jsonpickle.encode(response))
+                else:
+                    self.logerror("Can't respond to ping request, no socket!")
+            if msg.type == "response":
+                self.loginfo("Got a pong from '%s'." % sendernode)
+                if sendernode in self.nodes:
+                    self.nodes[sendernode]['pingcount'] = 0
+                
+            
+        if msg.func == "disconnect":
+            if sendernode in self.nodes:
+                self.loginfo("Disconnect announcement received from '%s'@'%s'" % (sendernode,
+                                                                                  self.nodes[sendernode]['ip']))
+                self._disconnectNode(sendernode)
+            else:
+                self.logwarning("Disconnect announcement from unconnected node received '%s', args: '%s'" % (sendernode,
+                                                                                                             msg.arg))
+        if msg.func == "discover":
+            node = msg.arg
+            ip = node['ip']
 
-    def rpc_disconnectNode(self, node):
-        """Disconnects a given Node including announcement of its disconnection."""
+            if msg.type == 'request':
+                self.loginfo("Probe request received from '%s' " % node['ip'])
+                # We're being probed! Store request details.
 
-        return self._disconnectNode(node)
+                self.probes[ip] = {'uuid': sendernode,
+                                   'registry': node['registry'],
+                                   'dispatcher': node['dispatcher'],
+                                   'lastping': time(),
+                                   'pingcount': 0,
+                                   'interval': 15  # TODO: Automate the interval with smart info (like movement speed)
+                                   }
 
-    def rpc_disconnectNodes(self):
-        """Disconnects from all nodes after sending an announcement to each."""
+                if ip in self.probednodes:
+                    self.loginfo("Probe returned storing socket for '%s'" % (ip))
 
-        result = True
+                    self.nodes[sendernode] = self.probes[ip]
+                    self.nodes[sendernode]['socket'] = self.probednodes[ip]
 
-        for node in self.nodes:
-            result = result and self._disconnectNode(node)
+                    reply = msg.response({'ip': self.Configuration['routeraddress']})
 
-        return result
+                    self.nodes[sendernode]['socket'].send(jsonpickle.encode(reply))
+
+                    route = Message(sender=self.name,
+                                    recipient=self.systemdispatcher,
+                                    func="addgateway",
+                                    arg={'remotenode': sendernode,
+                                         'connector': self.name},
+                                    )
+
+                    self.send(route, "outbox")
+
+                    del(self.probednodes[ip])
+                    del(self.probes[ip])
+                else:
+                    self.loginfo("Uninitiated probe by '%s' - discovering in reverse." % ip)
+                    self._discoverNode(ip)
+
+            else:
+                # Hm, a response! This is the last packet in our discovery chain.
+                self.loginfo("'%s' has successfully connected to us." % ip)
+                # if ip in self.probes:
+                probe = self.probes[ip]
+                self.nodes[probe['uuid']] = probe
+                self.nodes[probe['uuid']]['socket'] = self.probednodes[ip]
+                self.nodes[probe['uuid']]['lastping'] = time()
+                self.nodes[probe['uuid']]['pingcount'] = 0
+                self.nodes[probe['uuid']]['interval'] = 15
+
+                route = Message(sender=self.name,
+                                recipient=self.systemdispatcher,
+                                func="addgateway",
+                                arg={'remotenode': probe['uuid'],
+                                     'connector': self.name},
+                                )
+
+                self.send(route, "outbox")
+
+                del(self.probednodes[ip])
+                del(self.probes[ip])
+
+            self.loginfo("Connected nodes after discovery action: '%s'" % self.nodes.keys())
+
 
     def _disconnectNode(self, node, announce=True):
         if node not in self.nodes:
@@ -184,128 +291,89 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
 
         self.logdebug("Discovery sent to '%s'" % ip)
 
+    def _pingNodes(self):
+        disconnectednodes = []
+        for node in self.nodes:
+            if self.nodes[node]['lastping'] + self.nodes[node]['interval'] <= time():
+                if self.nodes[node]['pingcount'] >= 3:
+                    self.loginfo("Node '%s' hasn't reacted for three pings, disconnecting." % node)
+                    disconnectednodes.append(node)
+                else:
+                    self.loginfo("Pinging '%s'." % node)
+                    self.nodes[node]['pingcount'] += 1
+                    self.nodes[node]['lastping'] = time()
+                    ping = Message(sender=self.name,
+                                   sendernode=Identity.SystemUUID,
+                                   recipientnode=node,
+                                   recipient='ZMQConnector',
+                                   func='ping',
+                                   arg={})
+                    self.nodes[node]['socket'].send(jsonpickle.encode(ping))
+            else:
+                pass
+                #self.logdebug("Not pinging '%s' - interval not yet reached." % node)
+                
+        for node in disconnectednodes:
+            self._disconnectNode(node, announce=False)
+            
+            
     def rpc_listconnectedNodes(self):
         return str(self.nodes.keys())
 
-    def mainthread(self):
-        # TODO: Check if incoming packets are coming from a stale connection
-        #   If so: we have to await rediscovery before transmitting back our packets
-        msg = incoming = None
+    def rpc_transmit(self, msg):
+        if msg.recipientnode == str(Identity.SystemUUID):
+            errmsg = "(Unsent) message to ourself received for distribution: '%s'" % msg
+            self.logerror(errmsg)
+            return (False, errmsg)
 
-        # If listening, collect incoming buffer
-        if self.listening:
-            try:
-                incoming = self.socket.recv(zmq.NOBLOCK)
-                # self.logdebug("Received '%s'" % incoming)
-            except zmq.core.error.ZMQError as e:
-                if not "Resource temporarily unavailable" in str(e):
-                    self.logerror(e)
+        if not msg.recipientnode in self.nodes:
+            errmsg = "Node '%s' unknown." % msg.recipientnode
+            self.logwarning(errmsg)
+            return (False, errmsg)
 
-        # Split buffer, if we have some
-        # TODO: This all is probably not very necessary and should be kicked out
-        if incoming:
-            # new piece of a message arrived
-            parts = incoming.split(ZMQConnector.separator)
+        msg.sendernode = str(Identity.SystemUUID)
 
-            if len(parts) > 1:
-                self.logdebug("Length of incoming: %i" % len(parts))
+        self.logdebug("Getting socket.")
 
-            for part in parts:
-                self.logdebug(part)
-                if len(part) > 0:
-                    self.buflist.append(part.rstrip(ZMQConnector.separator))
+        socket = self.nodes[msg.recipientnode]['socket']
 
-        # If there are messages, decode and process them
-        if len(self.buflist) > 0:
-            jsonmsg = self.buflist.popleft()
-            try:
-                msg = jsonpickle.decode(jsonmsg)
-            except Exception as e:
-                self.logdebug(jsonmsg)
-                self.logerror("JSON decoding failed: '%s'" % e)
+        if not socket:
+            # Connection not already established, so connect and store for later
+            return (False, "Node not connected. Why?")
 
-            if msg:
-                self.logdebug("Analysing input: '%s'" % msg)
+        self.loginfo("Transmitting message to '%s'." % msg.recipientnode)
 
-                if msg.recipient in ("ZMQConnector", self.name):
-                    if msg.func == "disconnect":
-                        if msg.sendernode in self.nodes:
-                            self.loginfo("Disconnect announcement received from '%s'@'%s'" % (msg.sendernode,
-                                                                                              self.nodes[msg.sendernode]['ip']))
-                            self._disconnectNode(msg.sendernode)
-                        else:
-                            self.logwarning("Disconnect announcement from unconnected node received '%s', args: '%s'" % (msg.sendernode,
-                                                                                                                         msg.arg))
-                    if msg.func == "discover":
-                        node = msg.arg
-                        ip = node['ip']
+        socket.send(jsonpickle.encode(msg))
+        return True
 
-                        if msg.type == 'request':
-                            self.loginfo("Probe request received from '%s' " % node['ip'])
-                            # We're being probed! Store request details.
+    def rpc_discoverNode(self, ip):
+        """Discovers a Node at a given IP."""
 
-                            self.probes[ip] = {'uuid': msg.sendernode,
-                                               'registry': node['registry'],
-                                               'dispatcher': node['dispatcher']
-                                               }
+        #if ip not in self.probednodes:
+        msg = "Probing new node: '%s'" % ip
+        self.logdebug(msg)
+        self._discoverNode(ip)
+        return True, msg
+        #else:
+        #    self.logerror("Node has already been discovered: '%s'" % ip)
+        #    return False
 
-                            if ip in self.probednodes:
-                                self.loginfo("Probe returned storing socket for '%s'" % (ip))
+    def rpc_disconnectNode(self, node):
+        """Disconnects a given Node including announcement of its disconnection."""
 
-                                self.nodes[msg.sendernode] = self.probes[ip]
-                                self.nodes[msg.sendernode]['socket'] = self.probednodes[ip]
+        return self._disconnectNode(node)
 
-                                reply = msg.response({'ip': self.Configuration['routeraddress']})
+    def rpc_disconnectNodes(self):
+        """Disconnects from all nodes after sending an announcement to each."""
 
-                                self.nodes[msg.sendernode]['socket'].send(jsonpickle.encode(reply))
+        result = True
 
-                                route = Message(sender=self.name,
-                                                recipient=self.systemdispatcher,
-                                                func="addgateway",
-                                                arg={'remotenode': msg.sendernode,
-                                                     'connector': self.name},
-                                                )
+        for node in self.nodes:
+            result = result and self._disconnectNode(node)
 
-                                self.send(route, "outbox")
+        return result
 
-                                del(self.probednodes[ip])
-                                del(self.probes[ip])
-                            else:
-                                self.loginfo("Uninitiated probe by '%s' - discovering in reverse." % ip)
-                                self._discoverNode(ip)
 
-                        else:
-                            # Hm, a response! This is the last packet in our discovery chain.
-                            self.loginfo("'%s' has successfully connected to us." % ip)
-                            # if ip in self.probes:
-                            probe = self.probes[ip]
-                            self.nodes[probe['uuid']] = probe
-                            self.nodes[probe['uuid']]['socket'] = self.probednodes[ip]
 
-                            route = Message(sender=self.name,
-                                            recipient=self.systemdispatcher,
-                                            func="addgateway",
-                                            arg={'remotenode': probe['uuid'],
-                                                 'connector': self.name},
-                                            )
-
-                            self.send(route, "outbox")
-
-                            del(self.probednodes[ip])
-                            del(self.probes[ip])
-
-                        self.loginfo("Connected nodes after discovery action: '%s'" % self.nodes.keys())
-
-                # Oh, nothing for us, but someone else.
-                # TODO: Now, we'd better check for security and auth.
-                elif msg.recipientnode == str(Identity.SystemUUID):
-                    # TODO: We need to check wether the socket really is associated with the stored Identity
-                    # This is really important to make sure nobody injects messages with wrong sender id
-                    self.loginfo("Publishing Message from '%s': '%s'" % (msg.sendernode, msg))
-                    self.send(msg, "outbox")
-                else:
-                    self.logwarning("Message for another node received - WTF?!")
-        else:
-            sleep(0.1)
 
 Registry.ComponentTemplates['ZMQConnector'] = [ZMQConnector, "Node-to-node ØMQ Connector"]
