@@ -12,11 +12,11 @@ of communication to the outside world.
 """
 
 __all__ = ['Echo',
-           'JSONServer',
-           'Maestro',
            'Ping',
            'Pong',
-           'WSGIGateway',
+           'JSONServer',
            'SerialPort',
-           'ZMQGate',
+           'Maestro',
+           'WebGate',
+           'DTNGate',
 ]

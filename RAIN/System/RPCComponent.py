@@ -310,7 +310,7 @@ class RPCMixin(object):
 
     def main_loop(self):
         """
-        Method that is before RPC handling.
+        Method that is executed before RPC handling.
         Overwrite if necessary.
         """
         pass

@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Preliminary testing ZMQ gateway component.
+Preliminary testing ZMQ-based DTN gateway component.
 
 The intention of this component is to integrate ZMQ as node-to-node communication protocol
 into RAIN.
@@ -37,13 +37,13 @@ import zmq
 
 from collections import deque
 
-class ZMQConnector(RPCComponentThreaded, NodeConnector):
+class DTNGate(RPCComponentThreaded, NodeConnector):
     """Exemplary and experimental ZMQ node interconnector class."""
 
     separator = b"\r\n"
-    
+
     def __init__(self):
-        self.loginfo('ZMQConnector initializing')
+        self.loginfo('DTNGate initializing')
         self.MR['rpc_transmit'] = {'msg':
                                    [Message, 'Message to transmit via ZMQ.']}
         self.MR['rpc_discoverNode'] = {'ip': [str, 'IP to discover']}
@@ -53,8 +53,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         self.MR['rpc_disconnectNodes'] = {}
         self.MR['rpc_test'] = {}
 
-        super(ZMQConnector, self).__init__()
-        self.logdebug('ZMQConnector configuring')
+        super(DTNGate, self).__init__()
+        self.logdebug('DTNGate configuring')
 
         self.Configuration.update({
                                    'routeraddress': '127.0.0.1',
@@ -86,7 +86,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         # TODO: Maybe make this a function call thats available via RPC, too
         # Since we might want to change the socket after e.g. reconfiguration
         self.url = "tcp://%s:55555" % self.Configuration['routeraddress']
- 
+
         self.loginfo("Setting up socket '%s'" % self.url)
         try:
             self.socket.bind(self.url)
@@ -106,7 +106,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 senderid = self.socket.recv(zmq.NOBLOCK)
                 # self.logdebug("Received '%s'" % incoming)
                 jsonmsg = self.socket.recv(zmq.NOBLOCK)
-                
+
             except zmq.core.error.ZMQError as e:
                 if not "Resource temporarily unavailable" in str(e):
                     self.logerror(e)
@@ -115,8 +115,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
             # TODO: This all is probably not very necessary and should be kicked out
             #if incoming:
             #    # new piece of a message arrived
-            #    parts = incoming.split(ZMQConnector.separator)
-    
+            #    parts = incoming.split(DTNGate.separator)
+
             # If there are messages, decode and process them
             if jsonmsg:
                 try:
@@ -124,11 +124,11 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 except Exception as e:
                     self.logdebug(jsonmsg)
                     self.logerror("JSON decoding failed: '%s'" % e)    
-    
+
                 self.logdebug('Received a message')
-                                    
+
                 # Check if we have to forward or process the message locally
-                if msg.recipient in ("ZMQConnector", self.name):
+                if msg.recipient in ("DTNGate", self.name):
                     self._handleMessage(msg)
                 elif msg.recipientnode == str(Identity.SystemUUID):
                     # Oh, nothing for us, but someone else on this node.
@@ -140,29 +140,29 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                     self.send(msg, "outbox")
                 else:
                     self.logwarning("Message for another node received - WTF?!")
-                
+
             self._pingNodes()
         else:
             self.logdebug("Sleeping.")
-            self.sleep(0.1)
-            
+            sleep(0.1)
+
     def _handleMessage(self, msg):
         """
-        Handle messages for this ZMQConnector component.
+        Handle messages for this DTNGate component.
         """
-        
+
         sendernode = msg.sendernode
-        
+
         if sendernode in self.nodes:
             # Any message from a node resets the ping interval 
             self.nodes[sendernode]['lastping'] = time()
-                
+
         self.logdebug("Analysing input: '%s'" % msg)
-                
+
         if msg.func == "ping":
             if msg.type == "request":
                 self.loginfo("Got a ping from '%s'." % sendernode)
-            
+
                 response = msg.response(time())
                 if sendernode in self.nodes: 
                     self.loginfo("Replying to ping request.")
@@ -174,8 +174,8 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                 self.loginfo("Got a pong from '%s'." % sendernode)
                 if sendernode in self.nodes:
                     self.nodes[sendernode]['pingcount'] = 0
-                
-            
+
+
         if msg.func == "disconnect":
             if sendernode in self.nodes:
                 self.loginfo("Disconnect announcement received from '%s'@'%s'" % (sendernode,
@@ -259,7 +259,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         if announce:
             msg = Message(sendernode=str(Identity.SystemUUID),
                           sender=self.name,
-                          recipient='ZMQConnector',
+                          recipient='DTNGate',
                           func='disconnect')
             socket.send(jsonpickle.encode(msg))
 
@@ -277,7 +277,7 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
         # Maybe better in the reply...
         msg = Message(sendernode=str(Identity.SystemUUID),
                       sender=self.name,
-                      recipient='ZMQConnector',
+                      recipient='DTNGate',
                       func="discover",
                       arg={'ip': self.Configuration['routeraddress'],
                            'registry': str(self.systemregistry),
@@ -305,18 +305,18 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
                     ping = Message(sender=self.name,
                                    sendernode=Identity.SystemUUID,
                                    recipientnode=node,
-                                   recipient='ZMQConnector',
+                                   recipient='DTNGate',
                                    func='ping',
                                    arg={})
                     self.nodes[node]['socket'].send(jsonpickle.encode(ping))
             else:
                 pass
                 #self.logdebug("Not pinging '%s' - interval not yet reached." % node)
-                
+
         for node in disconnectednodes:
             self._disconnectNode(node, announce=False)
-            
-            
+
+
     def rpc_listconnectedNodes(self):
         return str(self.nodes.keys())
 
@@ -376,4 +376,4 @@ class ZMQConnector(RPCComponentThreaded, NodeConnector):
 
 
 
-Registry.ComponentTemplates['ZMQConnector'] = [ZMQConnector, "Node-to-node ØMQ Connector"]
+Registry.ComponentTemplates['DTNGate'] = [DTNGate, "Node-to-node ØMQ Connector"]

@@ -1,1 +1,1 @@
-__all__ = ["ZMQTest"]
+__all__ = ["ZMQTest", "Cat"]

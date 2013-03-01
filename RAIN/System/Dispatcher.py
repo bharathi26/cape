@@ -101,6 +101,7 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
                     self.send(forward, gateway)
                 else:
                     self.logwarning("Remote node '%s' not available." % msg.recipientnode)
+                    self.logdebug("Offending sender: '%s'" % msg.sender)
             elif msg.recipient in self.inboxes:
                 self.send(msg, msg.recipient)
             else:
