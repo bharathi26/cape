@@ -1,25 +1,19 @@
 <html>
-<head>
-    <title>AJAX with jQuery and cherrypy</title>
-    <script type="text/javascript" src="/static/jquery-1.9.1.min.js"></script>
-<script type="text/javascript">
-    $(function() {
-    // When the testform is submitted…
-    $("#testform").submit(function() {
-        // post the form values via AJAX…
-        var postdata = {name: $("#name").val()} ;
-        $.post('/submit', postdata, function(data) {
-            // and set the title with the result
-            $("#title").html(data['title']) ;
-           });
-        return false ;
-        });
-    });
-</script>
-</head>
-    <body>
-    <h1 id="title">What's your name?</h1>
+    <head>
+        <title>AJAX with jQuery and cherrypy</title>
+        <link href="/static/css/smoothness/jquery-ui-1.10.1.custom.css" rel="stylesheet">
+        <link href="/static/css/index.css" rel="stylesheet" type="text/css">
 
+        <script src="/static/js/jquery-1.9.1.min.js"></script>
+        <script src="/static/js/jquery-ui-1.10.1.custom.min.js"></script>
+
+        <script type="text/javascript" src="/static/js/rain-client.js"></script>
+
+    </head>
+    
+    <body>
+    <h1 id="title">RAIN Client Interface</h1>
+    
     <form id="testform" action="#" method="post">
         <p>
         <label for="name">Name:</label>
@@ -28,5 +22,11 @@
         <input type="submit" value="Set" />
         </p>
     </form>
+    <button>A button element</button>
+    <input type="submit_a" value="A submit button" />
+    
+    <div id="rpc_request">No requests yet.</div>
+    <div id="rpc_response">No responses yet.</div>
+    <div id="status">HTML loaded</div>
     </body>
 </html>

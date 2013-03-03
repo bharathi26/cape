@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #    Prototype of the MS0x00 RAIN Operating Software
-#     - Test.ZMQTest
+#     - Test.DTNTest
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ from RAIN.System import Registry
 from RAIN.Messages import Message
 from RAIN.System.RPCComponent import RPCComponent
 
-from RAIN.Communication.ZMQGate import ZMQConnector
+from RAIN.Communication.DTNGate import DTNGate
 
 from RAIN.Messages import Message
 
@@ -31,17 +31,17 @@ import jsonpickle
 
 import zmq
 
-class ZMQTest(RPCComponent):
+class DTNTest(RPCComponent):
     def __init__(self):
         self.MR['rpc_test_dispatcher_node'] = {}
         self.MR['rpc_test_local_discovery'] = {}
         self.MR['rpc_test_remote_transmit'] = {}
-        super(ZMQTest, self).__init__()
+        super(DTNTest, self).__init__()
 
     def rpc_test_local_discovery(self):
         context = zmq.Context()
         socket = context.socket(zmq.DEALER)
-        socket.connect("tcp://%s:55555" % (ZMQConnector.routeraddress))
+        socket.connect("tcp://%s:55555" % (DTNGate.routeraddress))
         msg = Message(sendernode="FOOBAR", func="discovery", arg={'ip': 'bazqux'})
         package = jsonpickle.encode(msg)
         self.logdebug("Transmitting '%s' to local node discovery " % package)
@@ -83,4 +83,4 @@ class ZMQTest(RPCComponent):
         pass
 
 
-Registry.ComponentTemplates['ZMQTest'] = [ZMQTest, "ZMQ test component"]
+Registry.ComponentTemplates['DTNTest'] = [DTNTest, "ZMQ test component"]

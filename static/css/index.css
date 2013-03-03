@@ -1,0 +1,23 @@
+body{
+	
+/*
+   Name             Value
+Logocolor           #005688
+Less Saturated      #1A4A66
+Dark Blue           #003858
+Light Blue          #318DC3
+Super Light Blue    #589CC3
+*/
+	font-size: 18;
+	font-family: sans;
+	
+	background-color: #005688;
+	
+	color: white;
+}
+#rpc_response {
+   font-size: 8;
+}
+#rpc_request {
+   font-size: 8;
+}

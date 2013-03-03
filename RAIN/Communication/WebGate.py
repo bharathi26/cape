@@ -4,13 +4,18 @@
 
 from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponent
+from RAIN.Messages import Validate, Message
 
 import cherrypy
 from cherrypy import Tool
 import jsonpickle
 import os
 
-class WebGateway(RPCComponent):
+from pprint import pprint
+
+class WebGate(RPCComponent):
+    """Cherrypy based Web Gateway Component for user interaction."""
+    
     class WebClient(object):
         def __init__(self, gateway=None, loader=None):
             self.gateway = gateway
@@ -18,20 +23,33 @@ class WebGateway(RPCComponent):
 
         @cherrypy.expose
         def index(self):
-            self.gateway.loginfo(str(cherrypy.request.__dict__))
+            #pprint(cherrypy.request)
+            self.gateway.loginfo("Client connected from '%s:%s." % (cherrypy.request.remote.ip,
+                                                                    cherrypy.request.remote.port))
+
+            self.gateway.logdebug(str(cherrypy.request.__dict__))
             if self.loader:
                 return self.loader
 
         @cherrypy.expose
         def submit(self, name):
+            self.gateway.loginfo("Submission received!")
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return jsonpickle.encode(dict(title="Hello, %s" %name))
+
+        @cherrypy.expose
+        def rpc(self, recipient, func, arg):
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            msg = Message(sender=self.gateway.name, recipient=recipient, func=func, arg=arg)
+            response = msg.response("Thank you for your request.")
+            self.gateway.loginfo(msg)
+            return jsonpickle.encode(response)
 
     def __init__(self):
         self.MR= {'rpc_startEngine': {},
                   'rpc_stopEngine': {}
                  }
-        super(WebGateway, self).__init__()
+        super(WebGate, self).__init__()
 
         self.Configuration['port'] = 8055
         self.Configuration['staticdir'] = os.path.join(os.path.abspath("."), "static")
@@ -67,4 +85,4 @@ class WebGateway(RPCComponent):
     def rpc_stopEngine(self):
         cherrypy.engine.stop()
 
-ComponentTemplates["WebGateway"] = [WebGateway, "AJAX-capable Gateway component"]
+ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gateway component"]
