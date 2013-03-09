@@ -4,7 +4,7 @@
 
 from RAIN.System.Registry import ComponentTemplates
 from RAIN.System.RPCComponent import RPCComponent
-from RAIN.Messages import Validate, Message
+from RAIN.Messages import Message
 
 import cherrypy
 from cherrypy import Tool
@@ -91,4 +91,4 @@ class WebGate(RPCComponent):
     def rpc_stopEngine(self):
         cherrypy.engine.stop()
 
-ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gateway component"]
+ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gate component"]

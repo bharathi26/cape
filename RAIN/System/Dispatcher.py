@@ -55,7 +55,7 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
         
     def rpc_listgateways(self):
         self.loginfo("Gatewaylist requested.")
-        return self.gateways.keys() if (len(self.gateways) > 0) else None
+        return self.gateways.keys() if (len(self.gateways) > 0) else False
 
     def RegisterComponent(self, thecomponent):
         self.logdebug("Trying to register new component")
