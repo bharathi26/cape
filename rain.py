@@ -41,6 +41,7 @@ from RAIN.Interface import *
 from RAIN.Controls import *
 from RAIN.Sensors import *
 from RAIN.Autonomy import *
+from RAIN.Misc import *
 from RAIN.Test import *
 
 #

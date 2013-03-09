@@ -31,46 +31,78 @@ class RegistryComponent(RPCComponent):
     Among them are:
     * Creation of new components
     * Listing of available components and templates
+    * Directory services
 
     More (like finding all available but not loaded components) will follow.
     """
 
     def rpc_createAllComponents(self):
         """Debugging Function to create all known components."""
+        
         self.loginfo("Creating all known components.")
         for template in Registry.ComponentTemplates:
             self._createComponent(template)
         return True
 
+    def rpc_getConfigDB(self):
+        """Instructs the configuration system to return the current configuration.."""
+        
+        self.loginfo("Getting configuration database.")
+        return Configuration.Configuration
+
+    def rpc_storeConfigDB(self):
+        """Instructs the configuration system to write back its DB."""
+        
+        self.loginfo("Storing configuration database.")
+        return Configuration.writeConfig()
+
+    def rpc_createComponent(self, templatename):
+        "RPC Wrapper"
+        
+        component = self._createComponent(templatename)
+        if isinstance(component, BaseComponent):
+            return True
+        else:
+            return component
+
+    def rpc_directory(self):
+        """Returns our built directory of unique components.
+        
+        Components making use of any directory services should cache this.
+        """
+        
+        return (True, self.directory)
+
+    def rpc_listRegisteredComponents(self):
+        """Returns the current list of registered (running!) components."""
+        
+        self.logdebug("RPC: List of registered (running) components requested")
+        self.logdebug(Registry.Components)
+        return (
+        True, list(Registry.Components.keys()))
+        # TODO: Watch out, this is dangerous, when someone else writes here
+
+    def rpc_listRegisteredTemplates(self):
+        """Returns the current list of available (producible via createComponent) components."""
+        
+        self.logdebug("RPC: List of registered component templates requested")
+        self.logdebug(list(Registry.ComponentTemplates.keys()))
+        return (True, list(Registry.ComponentTemplates.keys()))  # TODO: See above
+
     def initFromConfig(self):
         "Generates all configured components from the global Configuration"
+        
         config = Configuration.Configuration
         for sectionitem in config:
             section = config[sectionitem]
+            
+            # TODO: Structure this! so we don't accidentally create a monster
             if "template" in section:
                 result, newcomponent = self._createComponent(section["template"], sectionitem)
                 if result:
                     newcomponent.ReadConfiguration()
                 else:
                     self.logerror("Couldn't create component '%s'." % sectionitem)
-
-    def rpc_getConfigDB(self):
-        """Instructs the configuration system to return the current configuration.."""
-        self.loginfo("Getting configuration database.")
-        return Configuration.Configuration
-
-    def rpc_storeConfigDB(self):
-        """Instructs the configuration system to write back its DB."""
-        self.loginfo("Storing configuration database.")
-        return Configuration.writeConfig()
-
-    def rpc_createComponent(self, templatename):
-        "RPC Wrapper"
-        component = self._createComponent(templatename)
-        if isinstance(component, BaseComponent):
-            return True
-        else:
-            return component
 
     def _createComponent(self, templatename, name=None):
         """Creates a new component and registers it with a dispatcher."""
@@ -82,7 +114,11 @@ class RegistryComponent(RPCComponent):
                     (name if name is not None else "Unnamed", templatename))
                 try:
                     # Add templating info
-                    newcomponent = Registry.ComponentTemplates[templatename][0]()
+                    
+                    template = Registry.ComponentTemplates[templatename][0]
+                    
+                    
+                    newcomponent = template()
                     newcomponent.template = templatename
 
                     # Add essential system components
@@ -93,13 +129,30 @@ class RegistryComponent(RPCComponent):
                     # system parameters, too, since we're at it.
                     # (like SystemUUID et al)
 
+                    #realname = newcomponent.name
+
                     if name:  # given name overwrites automatic
                         newcomponent.name = name
 
-                    realname = newcomponent.name
+                    # Directory Services
+                    
+                    # External name lookup table
 
-                    Registry.Components[realname] = newcomponent
-
+                    if template.directory_name:
+                        directory_name = template.directory_name
+                        
+                        if directory_name in self.directory:
+                            msg = "Cannot register another unique '%s' in directory." % directory_name
+                            self.logerror(msg)
+                            return (False, msg)
+                        
+                        self.loginfo("Creating directory entry for '%s'" % directory_name)
+                        self.directory[directory_name] = newcomponent.name
+                    
+                    ## Internal component name register
+                    #
+                    #Registry.Components[realname] = newcomponent.name
+                    
                     self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                     self.dispatcher.RegisterComponent(newcomponent)
 
@@ -116,31 +169,27 @@ class RegistryComponent(RPCComponent):
             self.logerror("No dispatcher found! I can't run standalone")
             return (False, "No Dispatcher found to register component")
 
-    def rpc_listRegisteredComponents(self):
-        """Returns the current list of registered (running!) components."""
-        self.logdebug("RPC: List of registered (running) components requested")
-        self.logdebug(Registry.Components)
-        return (
-        True, list(Registry.Components.keys()))
-        # TODO: Watch out, this is dangerous, when someone else writes here
-
-    def rpc_listRegisteredTemplates(self):
-        """Returns the current list of available (producible via createComponent) components."""
-        self.logdebug("RPC: List of registered component templates requested")
-        self.logdebug(list(Registry.ComponentTemplates.keys()))
-        return (True, list(Registry.ComponentTemplates.keys()))  # TODO: See above
-
     def __init__(self, dispatcher):
+        """Initializes the Registry Component.
+
+        Sets up base directory services."""
+
         self.dispatcher = dispatcher
+
         self.MR['rpc_createComponent'] = {'templatename': [str, 'Name of new component template']}
         self.MR['rpc_listRegisteredComponents'] = {}
         self.MR['rpc_listRegisteredTemplates'] = {}
         self.MR['rpc_storeConfigDB'] = {}
         self.MR['rpc_getConfigDB'] = {}
         self.MR['rpc_createAllComponents'] = {}
+        self.MR['rpc_directory'] = {}
         super(RegistryComponent, self).__init__()
+
+        # Set up Directory with base components
+        self.directory = {'dispatcher': dispatcher.name, 'registry': self.name}
 
         # TODO:
         # * Destruction of components
+        # * Removal of destroyed components
 
 Registry.ComponentTemplates['RegistryComponent'] = [RegistryComponent, "Registry Component"]

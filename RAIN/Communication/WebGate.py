@@ -15,7 +15,9 @@ from pprint import pprint
 
 class WebGate(RPCComponent):
     """Cherrypy based Web Gateway Component for user interaction."""
-    
+
+    directory_name = "WebGate"
+
     class WebClient(object):
         def __init__(self, gateway=None, loader=None):
             self.gateway = gateway
@@ -53,10 +55,14 @@ class WebGate(RPCComponent):
 
         self.Configuration['port'] = 8055
         self.Configuration['staticdir'] = os.path.join(os.path.abspath("."), "static")
+        self.Configuration['enabled'] = True
         self.loader = None
 
     def main_prepare(self):
-        self.start_Engine()
+        if self.Configuration['enabled']:
+            self.start_Engine()
+        else:
+            self.logwarning("WebGate not enabled!")
 
     def _ev_client_connect(self):
         self.loginfo("Client connected: '%s'" % cherrypy.request)

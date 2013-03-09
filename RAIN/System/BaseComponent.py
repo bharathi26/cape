@@ -42,6 +42,16 @@ class BaseMixin(object):
 
     """
 
+    #
+    # Class (Component) settings
+    #
+
+    # Determines at runtime wether this component is a singleton
+    unique = False
+
+    # Given Directory Name (if unique)
+    directory_name = False
+
     def __init__(self, **kwargs):
         """Initializes this Configurable Component.
         Don't forget to call

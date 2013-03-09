@@ -20,10 +20,11 @@
 
 from pymongo import Connection
 
+from RAIN.System.Identity import SystemUUID
 from RAIN.System.Registry import ComponentTemplates
-from RAIN.System.RPCComponent import RPCComponent, RPCComponentThreaded
+from RAIN.System.RPCComponent import RPCComponentThreaded
 
-class MongoMixin(object):
+class MongoComponent(RPCComponentThreaded):
     """
     Mongo Component
 
@@ -31,39 +32,48 @@ class MongoMixin(object):
 
     """
 
+    unique = True
     mongodb = Connection()
 
     def __init__(self, **kwargs):
-        """Initializes this Configurable Component.
-        Don't forget to call
-            super(ConfigurableComponent, self).__init__()
-        if you overwrite this.
-        """
         self.MR['rpc_getStatus'] = {}
         self.MR['rpc_getDatabases'] = {}
+        self.MR['rpc_getCollection'] = {'collection': [str, "Name of collection"],
+                                        'create': [bool, "Wether to create a non existing collection (default: no)"]
+                                        }
+
+        RPCComponentThreaded.__init__(self)
+
+        self.initDatabase()
+
+    def initDatabase(self, createdb=False):
+        """Initializes a single database for use with per component collections."""
+        self.loginfo("Initializing Database.")
+        self.database = MongoComponent.mongodb['rain_%s' % SystemUUID]
+
 
     def rpc_getStatus(self):
         """Returns the current global mongodb connection status."""
-        return (True, {'serverinfo': MongoMixin.mongodb.server_info(),
-                       'hostname': MongoMixin.mongodb.host,
-                       'port': MongoMixin.mongodb.port
-        }
-            )
+        return (True, {'serverinfo': MongoComponent.mongodb.server_info(),
+                       'hostname': MongoComponent.mongodb.host,
+                       'port': MongoComponent.mongodb.port,
+                       'db': self.database
+                       }
+                )
 
     def rpc_getDatabases(self):
         """Returns a list of mongodb's stored databases."""
-        return (True, MongoMixin.mongodb.database_names())
+        return (True, MongoComponent.mongodb.database_names())
+    
+    
+    
+    def rpc_getCollection(self, collection,create=False):
+        """Returns a specified collection for access"""
+        self.loginfo("Got a collection request for '%s'" % collection)
+        if collection in self.database.collection_names() or create:
+            return (True, self.database[collection])
+        else:
+            return (False, "Collection '%s' not found." % collection)
 
-
-class MongoComponent(RPCComponent, MongoMixin):
-    def __init__(self, **kwargs):
-        MongoMixin.__init__(self)
-        RPCComponent.__init__(self)
-
-
-class MongoComponentThreaded(RPCComponentThreaded, MongoMixin):
-    def __init__(self, **kwargs):
-        MongoMixin.__init__(self)
-        RPCComponentThreaded.__init__(self)
 
 ComponentTemplates["MongoComponent"] = [MongoComponent, "Mongo Component"]
