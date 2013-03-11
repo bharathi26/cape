@@ -20,7 +20,7 @@
 #
 
 import jsonpickle
-from voluptuous import Schema, required, Optional, all, any, range, match
+#from voluptuous import Schema, required, Optional, all, any, range, match
 
 from time import time
 
@@ -29,35 +29,21 @@ from copy import deepcopy
 from RAIN.System import Identity
 
 
-message_schema = Schema({
-                         'sender': unicode,
-                         Optional('sendernode'): unicode,
-                         'recipient': unicode,
-                         Optional('recipientnode'): unicode,
-                         'func': unicode,
-                         'arg': unicode,
-                         Optional('error'): unicode,
-                         Optional('msg_type'): unicode
-                         },
-                        required=True)
-
-#    required('device_uuid'): match(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'),
-#    'device_model': unicode,
-#    required('buoys'): [
-#        {
-#            required('buoy_type'): unicode,
-#            'buoy_id': unicode,
-#            required('bearings'): [
-#                {
-#                    required('timestamp'): all(long, range(min=0)),
-#                    required('lat'): all(float, range(min=-180, max=180)),
-#                    required('lon'): all(float, range(min=-90, max=90)),
-#                    required('bearing'): all(int, range(min=0, max=359)),
-#                    required('accuracy'): all(any(float, int), range(min=0))
-
-
-def Validate(msg_like_object):
-    return message_schema(msg_like_object)
+#message_schema = Schema({
+#                         'sender': unicode,
+#                         Optional('sendernode'): unicode,
+#                         'recipient': unicode,
+#                         Optional('recipientnode'): unicode,
+#                         'func': unicode,
+#                         'arg': unicode,
+#                         Optional('error'): unicode,
+#                         Optional('msg_type'): unicode
+#                         },
+#                        required=True)
+#
+#
+#def Validate(msg_like_object):
+#    return message_schema(msg_like_object)
 
 class Message(object):
     """

@@ -22,9 +22,18 @@ from pymongo import Connection
 
 from RAIN.System.Identity import SystemUUID
 from RAIN.System.Registry import ComponentTemplates
-from RAIN.System.RPCComponent import RPCComponentThreaded
+from RAIN.System.RPCComponent import RPCComponent
 
-class MongoComponent(RPCComponentThreaded):
+Database = Connection()
+
+#class MongoMixin(object):
+#    def __init__(self):
+#        print "#" * 23
+#        self.loginfo("Database opened for '%s'" % self.name)
+#        self.database = database[self.name]
+        
+
+class MongoComponent(RPCComponent):
     """
     Mongo Component
 
@@ -33,23 +42,26 @@ class MongoComponent(RPCComponentThreaded):
     """
 
     unique = True
+
+    directory_name = 'database'
+
     mongodb = Connection()
 
     def __init__(self, **kwargs):
         self.MR['rpc_getStatus'] = {}
         self.MR['rpc_getDatabases'] = {}
-        self.MR['rpc_getCollection'] = {'collection': [str, "Name of collection"],
+        self.MR['rpc_getCollection'] = {'name': [str, "Name of collection"],
                                         'create': [bool, "Wether to create a non existing collection (default: no)"]
                                         }
 
-        RPCComponentThreaded.__init__(self)
+        super(MongoComponent, self).__init__()
 
         self.initDatabase()
 
     def initDatabase(self, createdb=False):
         """Initializes a single database for use with per component collections."""
         self.loginfo("Initializing Database.")
-        self.database = MongoComponent.mongodb['rain_%s' % SystemUUID]
+        self.database = self.mongodb['rain_%s' % SystemUUID]
 
 
     def rpc_getStatus(self):
@@ -67,13 +79,13 @@ class MongoComponent(RPCComponentThreaded):
     
     
     
-    def rpc_getCollection(self, collection,create=False):
+    def rpc_getCollection(self, name, create=False):
         """Returns a specified collection for access"""
-        self.loginfo("Got a collection request for '%s'" % collection)
-        if collection in self.database.collection_names() or create:
-            return (True, self.database[collection])
+        self.loginfo("Got a collection request for '%s'" % name)
+        if name in self.database.collection_names() or create:
+            return (True, self.database[name])
         else:
-            return (False, "Collection '%s' not found." % collection)
+            return (False, "Collection '%s' not found." % name)
 
 
 ComponentTemplates["MongoComponent"] = [MongoComponent, "Mongo Component"]

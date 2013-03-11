@@ -22,12 +22,10 @@
 import Axon
 import uuid
 
-
-
 from RAIN.System.Identity import SystemUUID
 from RAIN.System.LoggableComponent import LoggableComponent
 from RAIN.System.ConfigurableComponent import ConfigurableComponent
-
+from RAIN.System import Registry
 
 class BaseMixin(object):
     """
@@ -51,6 +49,8 @@ class BaseMixin(object):
 
     # Given Directory Name (if unique)
     directory_name = False
+    
+    directory = Registry.Directory
 
     def __init__(self, **kwargs):
         """Initializes this Configurable Component.

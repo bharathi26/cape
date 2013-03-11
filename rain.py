@@ -81,8 +81,10 @@ Logger.systeminfo("Instantiating Registry Component")
 registrycomponent = RegistryComponent.RegistryComponent(dispatcher)
 dispatcher.RegisterComponent(registrycomponent)
 
-Registry.Components[dispatcher.name] = dispatcher
-Registry.Components[registrycomponent.name] = registrycomponent
+Registry.Components.append(registrycomponent.name)
+
+Registry.Directory['dispatcher'] = dispatcher.name
+Registry.Directory['registry'] = registrycomponent.name
 
 Logger.systeminfo("Initializing Node from Configuration.")
 registrycomponent.initFromConfig()

@@ -102,10 +102,14 @@ class Dispatcher(AdaptiveCommsComponent, BaseComponent, RPCMixin):
                 else:
                     self.logwarning("Remote node '%s' not available." % msg.recipientnode)
                     self.logdebug("Offending sender: '%s'" % msg.sender)
-            elif msg.recipient in self.inboxes:
-                self.send(msg, msg.recipient)
             else:
-                self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
+                if msg.recipient in self.directory:
+                    # Replace with real name
+                    msg.recipient = self.directory[msg.recipient]
+                if msg.recipient in self.inboxes:
+                    self.send(msg, msg.recipient)
+                else:
+                    self.logerror('MESSAGE WITH ERRONEOUS RECIPIENT RECIEVED: %s\n%s\n' % (msg, self.inboxes))
                 
                 
         

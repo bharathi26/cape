@@ -78,9 +78,7 @@ class RegistryComponent(RPCComponent):
         
         self.logdebug("RPC: List of registered (running) components requested")
         self.logdebug(Registry.Components)
-        return (
-        True, list(Registry.Components.keys()))
-        # TODO: Watch out, this is dangerous, when someone else writes here
+        return (True, Registry.Components)
 
     def rpc_listRegisteredTemplates(self):
         """Returns the current list of available (producible via createComponent) components."""
@@ -136,7 +134,7 @@ class RegistryComponent(RPCComponent):
 
                     # Directory Services
                     
-                    # External name lookup table
+                    # Unique Component lookup table
 
                     if template.directory_name:
                         directory_name = template.directory_name
@@ -149,9 +147,9 @@ class RegistryComponent(RPCComponent):
                         self.loginfo("Creating directory entry for '%s'" % directory_name)
                         self.directory[directory_name] = newcomponent.name
                     
-                    ## Internal component name register
-                    #
-                    #Registry.Components[realname] = newcomponent.name
+                    # Component name register
+                    
+                    Registry.Components.append(newcomponent.name)
                     
                     self.loginfo("Instantiated '%s' successfully, handing over to dispatcher." % newcomponent.name)
                     self.dispatcher.RegisterComponent(newcomponent)
@@ -186,7 +184,7 @@ class RegistryComponent(RPCComponent):
         super(RegistryComponent, self).__init__()
 
         # Set up Directory with base components
-        self.directory = {'dispatcher': dispatcher.name, 'registry': self.name}
+        self.directory.update({'dispatcher': dispatcher.name, 'registry': self.name})
 
         # TODO:
         # * Destruction of components

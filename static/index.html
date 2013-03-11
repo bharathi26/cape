@@ -8,25 +8,26 @@
         <script src="/static/js/jquery-ui-1.10.1.custom.min.js"></script>
 
         <script type="text/javascript" src="/static/js/rain-client.js"></script>
-
     </head>
     
     <body>
-    <h1 id="title">RAIN Client Interface</h1>
-    
-    <form id="testform" action="#" method="post">
-        <p>
-        <label for="name">Name:</label>
-        <input type="text" id="name" /> <br />
-
-        <input type="submit" value="Set" />
-        </p>
-    </form>
-    <button>A button element</button>
-    <input type="submit_a" value="A submit button" />
-    
-    <div id="rpc_request">No requests yet.</div>
-    <div id="rpc_response">No responses yet.</div>
-    <div id="status">HTML loaded</div>
+	    <h1 id="title">RAIN Client Interface</h1>
+	    
+	    <p>
+	    <label for="name">Pagename:</label>
+	    <input type="text" id="name" /> <br />
+	    <input type="submit" value="Get Page" id="get_page"/>
+	    </p>
+	    
+	    <div id="wikicontent"></div>
+	    
+	    <div id="rpc_log">
+	        <h3>RPC Status</h3>
+	        <div id="status">HTML loaded</div>
+	        <h3>RPC Requests</h3>
+		    <div id="rpc_requests">No requests yet.</div>
+		    <h3>RPC Responses</h3>
+		    <div id="rpc_responses">No responses yet.</div>
+	    </div>
     </body>
 </html>

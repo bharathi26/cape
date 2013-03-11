@@ -20,14 +20,15 @@
 #
 
 ComponentTemplates = {} # Schema: {'ComponentDescriptiveName': [class, 'Description'],}
-Components = {}         # Schema: {'ComponentName': Component}
+Components = []         # Schema: ['ComponentName']
+Directory = {}          # Schema: {'LookupName': ComponentName}
 Dispatcher = None
 Modules = {}
 
 from RAIN.System import Configuration
 from RAIN.System import Logger
 
-import glob, os, imp
+import glob, os
 
 #TODO: Reintegrate Registry Component.
 # This involves clearing up a circular import, since RPCComponent needs to be imported

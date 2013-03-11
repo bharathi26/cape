@@ -1,53 +1,77 @@
 $(function() {
     function handleResponse(response) {
-            $("#rpc_response").html("Content: " + JSON.stringify(response));
-            $("#status").html("Message received.");
+    	// Handle responses from outgoing messages.
+        $("#rpc_responses").append("<br />" + response);
+        $("#status").html("Message received.");
+
+        msg = jQuery.parseJSON(response);
+        // TODO: Actually it should be unnecessary to convert to and from
+        // JSON all the time, jQuery and Cherrypy are both capable of
+        // native JSON handling. Somehow POSTs vanish in 404's and other
+        // weird stuff happens when using that.
+
+        // Exemplary Wiki response handler
+        if (msg["func"] == "getPage") {
+        	$("#wikicontent").html(msg["arg"]);
         }
+        if (msg["sender"] == "wiki") {}
+        // TODO: This doesn't work, since the senders name is his real
+        // complex name, "wiki" only its directory name.
+        
+        //$("#rpc_log").accordion("refresh");
+    }
     
     function composeMsg(recipient, func, arg) {
+    	// Composes and sends a Message to the hosting RAIN Node.
     	$("#status").html("Composing Message.");
-        // def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg=None, error="", msg_type="request"):
+        
+    	// Compose Message
         var msg = {'recipient': recipient,
                 'func': func,
                 'arg': arg
                 };
-        $("#rpc_request").html(msg);
         
-        $.post('/rpc', msg, function(data) {
-            handleResponse(data);
-        }
-        );
+        // Transmit and wait for a reply
+        $.ajax({
+        	type: "POST",
+        	url: '/rpc',
+        	data: JSON.stringify(msg),
+        	success: function(data) {
+        		handleResponse(data);
+        	},
+        	contentType: 'application/json',
+        	dataType: 'text'
+        	});
         
         $("#status").html("Message sent.");
+        $("#rpc_requests").append("<br />" + JSON.stringify(msg));
+        //$("#rpc_log").accordion("refresh");
         
     }
 
     $(document).ready(function () {
-        // var nodename = {name: $("#nodename".val()}
+        $("#status").html("Ready.");
 
-        $("#status").html("The DOM is now loaded and can be manipulated.");
+        // On load, retrieve index page from wiki. Just for demoing purposes.        
+        composeMsg("wiki", "getPage", {'pagename': "index"});
         
-        composeMsg("REGISTRY", "rpc_listRegisteredComponents", "");
     })
-
-
-    // When the testform is submitted…
-    $("#testform").submit(function() {
-        // post the form values via AJAX…
-        var postdata = {name: $("#name").val()} ;
-        $.post('/submit', postdata, function(data) {
-            // and set the title with the result
-            $("#title").html(data['title']) ;
-           });
-        composeMsg("REGISTRY", "rpc_listRegisteredComponents", "");
-        return false ;
-    });
     
     $(function() {
-    	$( "input[type=submit_a], a, button" )
+    	// RPC Log sits in an height filled accordion
+	    $("#rpc_log").accordion({
+	    	heightStyle: "fill"
+	    });
+	});
+
+    $(function() {
+    	// Button to retrieve named Wiki page
+    	$("#get_page" )
     	.button()
     	.click(function( event ) {
-    	composeMsg("REGISTRY", "rpc_listRegisteredComponents", ""); //event.preventDefault();
+    		pagename = $("#name").val();
+    		
+    		composeMsg("wiki", "getPage", {'pagename': pagename});
     	});
     });
 });

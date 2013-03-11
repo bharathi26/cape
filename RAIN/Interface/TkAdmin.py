@@ -114,6 +114,13 @@ class TkAdmin(TkWindow, RPCComponent):
                       arg=None
                       )
         self.transmit(msg)
+        msg = Message(sender=self.name,
+                      recipientnode=node,
+                      recipient=self.systemregistry,
+                      func="listRegisteredTemplates",
+                      arg=None
+                      )
+        self.transmit(msg)
 
     def scangateways(self):
         msg = Message(sender=self.name,
@@ -127,8 +134,13 @@ class TkAdmin(TkWindow, RPCComponent):
         pprint(self.nodelist)        
 
     def scancomponent(self, name, node=""):
-        self.loginfo("Scanning component '%s'." % name)
+        self.logdebug("Scanning component '%s'." % name)
         msg = Message(sender=self.name, recipientnode=node, recipient=name, func="getComponentInfo", arg=None)
+        self.transmit(msg)
+
+    def createcomponent(self, name, node=""):
+        self.loginfo("Creating component from template '%s'." % name)
+        msg = Message(sender=self.name, recipientnode=node, recipient=self.systemregistry, func="createComponent", arg={'templatename': name})
         self.transmit(msg)
         
     def copystring(self, name):
@@ -137,7 +149,7 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def callComplexMethod(self, componentname, node, func):
         self.loginfo("Creating function dialog for '%s'@'%s'." % (func, componentname))
-        from pprint import pprint
+        
         componentlist = self.nodelist[node]['componentlist']
         component = componentlist[componentname]
         componentinfo = component["info"]
@@ -157,7 +169,7 @@ class TkAdmin(TkWindow, RPCComponent):
         self.transmit(msg)
 
     def transmit(self, msg):
-        self.loginfo("Transmitting Message '%s'" % msg)
+        self.logdebug("Transmitting Message '%s'" % msg)
         self.recordMessage(msg)
         self.send(msg, "outbox")
 
@@ -245,6 +257,16 @@ class TkAdmin(TkWindow, RPCComponent):
     def handleResponse(self, msg):
         self.recordMessage(msg)
 
+        def __handleListRegisteredTemplates(msg):
+            TemplateMenu = Menu(self.__MenuSystem)
+            
+            for template in sorted(msg.arg):
+                node = ''
+                TemplateMenu.add_command(label=template, command=lambda (name,node)=(template, node): self.createcomponent(name, node))
+        
+            self.__MenuSystem.add_cascade(label='Create Component', menu=TemplateMenu)
+        
+
         def __handleComponentInfo(msg):
             node = msg.sendernode
             if node not in self.nodelist:
@@ -259,7 +281,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 else:
                     self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
             else:
-                self.loginfo("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                self.logdebug("Got a component's ('%s') RPC info. Parsing." % msg.sender)
 
                 component = msg.sender
                 result = msg.arg
@@ -307,6 +329,7 @@ class TkAdmin(TkWindow, RPCComponent):
                 FuncMenu.add_command(label="Copy Name", command=lambda name=comp: self.copystring(name))
                 FuncMenu.add_command(label="Compose...", command=lambda (name,node)=(comp,node): self.composeMessage(name, node))
                 FuncMenu.add_separator()
+                FuncMenu = Menu(ComponentMenu)
 
                 ComponentMenu.add_cascade(label=comp, menu=FuncMenu)
                 componentlist[comp] = {'menu': FuncMenu}
@@ -332,6 +355,9 @@ class TkAdmin(TkWindow, RPCComponent):
                 if msg.func == "listRegisteredComponents":
                     if not msg.error:
                         __handleRegisteredComponents(msg)
+                elif msg.func == "listRegisteredTemplates":
+                    if not msg.error:
+                        __handleListRegisteredTemplates(msg)
             if msg.func == "getComponentInfo":
                 if not msg.error:
                     __handleComponentInfo(msg)

@@ -26,27 +26,44 @@ from RAIN.Messages import Message
 
 class Wiki(RPCComponent):
     
-    directory_name = "Wiki"
+    directory_name = "wiki"
     
     def __init__(self):
-        self.MR['rpc_getPage'] = {'pagename': [str, 'Name of Page to get']}
-        self.MR['rpc_storePage'] = {'pagename': [str, 'Name of Page to store'],
-                                    'content': [str, 'New Pagecontent']}
+        self.MR['rpc_getPage'] = {'pagename': [unicode, 'Name of Page to get']}
+        self.MR['rpc_storePage'] = {'pagename': [unicode, 'Name of Page to store'],
+                                    'content': [unicode, 'New Pagecontent']}
         self.MR['rpc_getCollection'] = {'collection': [object, 'Mongo Collection returnable']}
         super(Wiki, self).__init__()
 
-        self.collection = None
+    def handleResponse(self, msg):
+        if msg.func == 'getCollection':
+            self.logdebug("Database request returned.")
 
-    def rpc_getCollection(self, collection):
-        self.loginfo("Got database access.")
-        self.collection = collection
+            if not msg.error:
+                self.loginfo("Got database access.")
+                self.collection = msg.arg
+            else:
+                self.logcritical("Database access request failed.")
 
     def rpc_storePage(self, pagename, content):
-        pass
+        if self.collection:
+            page = {'pagename': pagename,
+                    'content': content}
+            self.collection.insert(page)
+        else:
+            return (False, "No database access.")
 
     def rpc_getPage(self, pagename):
+        self.logdebug("Page requested: '%s'" % pagename)
         if self.collection:
-            return self.collection[pagename]
+            
+            page = self.collection.find_one({'pagename': pagename})
+            if page:
+                self.loginfo("Returned page: '%s'." % pagename)
+                return page['content']
+            else:
+                self.loginfo("Not yet existing page requested: '%s'." % pagename)
+                return "EMPTY"
         else:
             return (False, "No database access.")
 
@@ -55,7 +72,19 @@ class Wiki(RPCComponent):
         Method that is executed prior entering mainloop.
         Overwrite if necessary.
         """
-        msg = Message(recipient="RAIN.System.MongoComponent", func="getCollection", arg={'name': "wiki", 'create': True})
-        self.send(msg, "outbox")
+        self.logdebug("Requesting database access.")
+        
+        if "database" in self.directory:
+            recipient = self.directory['database']
+            self.logdebug("Database found: '%s'" % recipient)
+            msg = Message(sender=self.name,
+                          recipient=recipient,
+                          func="getCollection",
+                          arg={'name': "wiki", 'create': True})
+            self.send(msg, "outbox")
+            self.loginfo("Database access requested.")
+        else:
+            self.logerror("No db access.")
+        
 
 Registry.ComponentTemplates["Wiki"] = [Wiki, "Wiki Component"]
