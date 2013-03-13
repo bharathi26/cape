@@ -375,6 +375,12 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def quit(self):
         self.logcritical("Shutting down hard.")
+        try:
+            import cherrypy
+            self.loginfo("WebGate running. Stopping cherrypy first.")
+            cherrypy.engine.stop()
+        except ImportError:
+            self.loginfo("WebGate not running. Not killing cherrypy.")
         Scheduler.scheduler.run.stop()
 
     def setupWindow(self):

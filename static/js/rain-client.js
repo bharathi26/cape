@@ -13,12 +13,25 @@ $(function() {
         // Exemplary Wiki response handler
         if (msg["func"] == "getPage") {
         	$("#wikicontent").html(msg["arg"]);
+        	$("#edit_page").show();
         }
+        
+        if (msg["func"] == "editPage") {
+        	$("#wikisource").val(msg["arg"]);
+        	
+        }
+        
+        if (msg["func"] == "storePage") {
+			composeMsg("wiki", "getPage", {'pagename': $("#name").val()});
+		}
+        
         if (msg["sender"] == "wiki") {}
         // TODO: This doesn't work, since the senders name is his real
         // complex name, "wiki" only its directory name.
         
-        //$("#rpc_log").accordion("refresh");
+        if (document.readyState === "complete") {
+        	$("#rpc_log").accordion("refresh");
+        }
     }
     
     function composeMsg(recipient, func, arg) {
@@ -45,17 +58,18 @@ $(function() {
         
         $("#status").html("Message sent.");
         $("#rpc_requests").append("<br />" + JSON.stringify(msg));
-        //$("#rpc_log").accordion("refresh");
         
+        if (document.readyState === "complete") {
+        	$("#rpc_log").accordion("refresh");
+        }
     }
 
     $(document).ready(function () {
         $("#status").html("Ready.");
-
+        $("#edit_page").hide();
         // On load, retrieve index page from wiki. Just for demoing purposes.        
-        composeMsg("wiki", "getPage", {'pagename': "index"});
-        
-    })
+        //composeMsg("wiki", "getPage", {'pagename': "index"});
+    });
     
     $(function() {
     	// RPC Log sits in an height filled accordion
@@ -63,6 +77,17 @@ $(function() {
 	    	heightStyle: "fill"
 	    });
 	});
+    
+    $(function() {
+    	$("#save_page")
+    	.button()
+    	.click(function( event ) {
+    		pagename = $("#name").val();
+    		content = $("#wikisource").val();
+    		
+    		composeMsg("wiki", "storePage", {'pagename': pagename, 'content': content});
+    	});
+    });
 
     $(function() {
     	// Button to retrieve named Wiki page
@@ -72,6 +97,17 @@ $(function() {
     		pagename = $("#name").val();
     		
     		composeMsg("wiki", "getPage", {'pagename': pagename});
+    	});
+    });
+    
+    $(function() {
+    	// Button to retrieve editable content
+    	$("#edit_page")
+    	.button()
+    	.click(function(event) {
+    		pagename = $("#name").val();
+    		
+    		composeMsg("wiki", "editPage", {'pagename': pagename});
     	});
     });
 });

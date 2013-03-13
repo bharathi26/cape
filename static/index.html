@@ -12,22 +12,31 @@
     
     <body>
 	    <h1 id="title">RAIN Client Interface</h1>
-	    
+	    <!--  Test content: begin -->
 	    <p>
 	    <label for="name">Pagename:</label>
-	    <input type="text" id="name" /> <br />
-	    <input type="submit" value="Get Page" id="get_page"/>
+	    <input type="text" id="name" /> 
+	    <input type="submit" value="Get Page" id="get_page" />
+	    <input type="submit" value="Edit Page" id="edit_page" />
+	    <br />
+	    <div id="wikicontent"></div>
+	    <br />
+	    <textarea name="wikisource" rows=10 cols=60 id="wikisource"></textarea>
+	    <br />
+	    <input type="submit" value="Save Page" id="save_page" />
+	    <br />
+	    
 	    </p>
 	    
-	    <div id="wikicontent"></div>
+	    <!--  Test content: end -->
 	    
 	    <div id="rpc_log">
 	        <h3>RPC Status</h3>
 	        <div id="status">HTML loaded</div>
 	        <h3>RPC Requests</h3>
-		    <div id="rpc_requests">No requests yet.</div>
+		    <div id="rpc_requests"></div>
 		    <h3>RPC Responses</h3>
-		    <div id="rpc_responses">No responses yet.</div>
+		    <div id="rpc_responses"></div>
 	    </div>
     </body>
 </html>

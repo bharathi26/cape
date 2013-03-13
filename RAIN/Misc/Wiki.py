@@ -23,16 +23,19 @@
 from RAIN.System import Registry
 from RAIN.System.RPCComponent import RPCComponent
 from RAIN.Messages import Message
+import markdown
 
 class Wiki(RPCComponent):
     
     directory_name = "wiki"
     
     def __init__(self):
-        self.MR['rpc_getPage'] = {'pagename': [unicode, 'Name of Page to get']}
-        self.MR['rpc_storePage'] = {'pagename': [unicode, 'Name of Page to store'],
-                                    'content': [unicode, 'New Pagecontent']}
-        self.MR['rpc_getCollection'] = {'collection': [object, 'Mongo Collection returnable']}
+        self.MR.update({'rpc_getPage': {'pagename': [unicode, 'Name of Page to get']},
+                        'rpc_getPage': {'pagename': [unicode, 'Name of Page to get']},
+                        'rpc_storePage': {'pagename': [unicode, 'Name of Page to store'],
+                                          'content': [unicode, 'New Pagecontent']},
+                        'rpc_getCollection': {'collection': [object, 'Mongo Collection returnable']}
+                        })
         super(Wiki, self).__init__()
 
     def handleResponse(self, msg):
@@ -47,20 +50,39 @@ class Wiki(RPCComponent):
 
     def rpc_storePage(self, pagename, content):
         if self.collection:
-            page = {'pagename': pagename,
-                    'content': content}
-            self.collection.insert(page)
+            page = {'pagename': pagename}
+            page = self.collection.find_one(page)
+
+            page['content'] = content
+            
+            self.collection.save(page)
+            self.loginfo("Page '%s' stored." % pagename)
+            return True
+        else:
+            return (False, "No database access.")
+
+    def rpc_getContent(self, pagename):
+        self.logdebug("Markdown of page requested: '%s'" % pagename)
+        if self.collection:
+            
+            page = self.collection.find_one({'pagename': pagename})
+            if page:
+                self.loginfo("Returned content: '%s'." % pagename)
+                return page['content']
+            else:
+                self.loginfo("Not yet existing page requested: '%s'." % pagename)
+                return "EMPTY"
         else:
             return (False, "No database access.")
 
     def rpc_getPage(self, pagename):
-        self.logdebug("Page requested: '%s'" % pagename)
+        self.logdebug("Rendered Page requested: '%s'" % pagename)
         if self.collection:
             
             page = self.collection.find_one({'pagename': pagename})
             if page:
                 self.loginfo("Returned page: '%s'." % pagename)
-                return page['content']
+                return markdown.markdown(page['content'])
             else:
                 self.loginfo("Not yet existing page requested: '%s'." % pagename)
                 return "EMPTY"

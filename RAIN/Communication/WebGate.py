@@ -56,6 +56,7 @@ class WebGate(RPCComponent):
             return response
 
         @cherrypy.expose
+        #@cherrypy.tools.json_in
         def rpc(self):
             # Inconveniently decode JSON back to an object.
             # Actually this should be managed by cherrpy and jQuery,
@@ -94,10 +95,14 @@ class WebGate(RPCComponent):
         self.send(msg, "outbox")
 
     def rpc_startEngine(self):
-        return self.start_Engine()
+        return self._start_Engine()
 
     def rpc_stopEngine(self):
-        cherrypy.engine.stop()
+        return self._stop_Engine()
+
+    def rpc_restartEngine(self):
+        result = self._stop_Engine()
+        return result & self._start_Engine()
 
     def rpc_listDefers(self):
         return str(self.defers)
@@ -105,40 +110,61 @@ class WebGate(RPCComponent):
     def __init__(self):
         self.MR= {'rpc_startEngine': {},
                   'rpc_stopEngine': {},
+                  'rpc_restartEngine': {},
                   'rpc_listDefers': {}
                  }
         super(WebGate, self).__init__()
 
+        self.Configuration['debug'] = True
         self.Configuration['port'] = 8055
         self.Configuration['staticdir'] = os.path.join(os.path.abspath("."), "static")
-        self.Configuration['enabled'] = True
+        self.Configuration['serverenabled'] = True
         self.loader = None
-        self.defers = {} # Schema: {clientref: msg}
+        self.defers = {} # Schema: {msg.recipient: {ref:clientref,msg:msg}}
         
     def main_prepare(self):
-        if self.Configuration['enabled']:
-            self.start_Engine()
+        if self.Configuration['serverenabled']:
+            self._start_Engine()
         else:
             self.logwarning("WebGate not enabled!")
 
     def _ev_client_connect(self):
         self.loginfo("Client connected: '%s'" % cherrypy.request)
         self.clients.append(cherrypy.request)
+    
+    def _readLoader(self):
+        try:
+            self.loader = open(os.path.join(self.Configuration['staticdir'], "index.html")).read()
+        except Exception as e:
+            self.logerror(str(e))
 
-    def start_Engine(self):
+    def _stop_Engine(self):
+        self.defers = {}
+        cherrypy.engine.stop()
+        return True # TODO: Make sure we really stopped it..
+
+    def _start_Engine(self):
         cherrypy.config.update({'server.socket_port': self.Configuration['port'],
                                 'server.socket_host': '0.0.0.0'})
+        if self.Configuration['debug']:
+            self.loginfo("Enabling debug (autoreload) mode for staticdir '%s'" % self.Configuration['staticdir'])
+            
+            for folder, subs, files in os.walk(self.Configuration['staticdir']):
+                for filename in files:
+                    self.loginfo("Autoreload enabled for: '%s'" % str(filename))
+                    cherrypy.engine.autoreload.files.add(filename)
+
         cherrypy.tools.clientconnect = Tool('on_start_resource', self._ev_client_connect)
         config = {'/static':
                   {'tools.staticdir.on': True,
                    'tools.staticdir.dir': self.Configuration['staticdir']}
                  }
         self.logdebug(str(config))
-        self.loader = open(os.path.join(self.Configuration['staticdir'], "index.html")).read()
+        self._readLoader()
         self.logdebug(self.loader)
 
         cherrypy.tree.mount(self.WebClient(gateway=self, loader=self.loader), "/", config=config)
         cherrypy.engine.start()
-        return True
+        return True # TODO: Make sure we really started it..
 
 ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gateway component"]
