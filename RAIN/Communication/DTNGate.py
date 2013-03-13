@@ -93,6 +93,8 @@ class DTNGate(RPCComponentThreaded, NodeConnector):
             self.listening = True
             self.loginfo("Socket bound")
         except zmq.core.error.ZMQError:
+            # TODO: Differentiate and offer solutions
+            # ...for the many, many problems we can encounter here.
             self.logcritical("Couldn't bind socket: Already in use!")
 
     def mainthread(self):

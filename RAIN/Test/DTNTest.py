@@ -41,7 +41,7 @@ class DTNTest(RPCComponent):
     def rpc_test_local_discovery(self):
         context = zmq.Context()
         socket = context.socket(zmq.DEALER)
-        socket.connect("tcp://%s:55555" % (DTNGate.routeraddress))
+        socket.connect("tcp://%s:55555" % (DTNConnector.routeraddress))
         msg = Message(sendernode="FOOBAR", func="discovery", arg={'ip': 'bazqux'})
         package = jsonpickle.encode(msg)
         self.logdebug("Transmitting '%s' to local node discovery " % package)
@@ -83,4 +83,4 @@ class DTNTest(RPCComponent):
         pass
 
 
-Registry.ComponentTemplates['DTNTest'] = [DTNTest, "ZMQ test component"]
+Registry.ComponentTemplates['DTNTest'] = [DTNTest, "DTN test component"]

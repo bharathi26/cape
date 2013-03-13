@@ -167,4 +167,4 @@ class WebGate(RPCComponent):
         cherrypy.engine.start()
         return True # TODO: Make sure we really started it..
 
-ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gateway component"]
+ComponentTemplates["WebGate"] = [WebGate, "AJAX-capable Gate component"]
