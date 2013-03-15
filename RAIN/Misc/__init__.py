@@ -1,1 +1,2 @@
-__all__ = ['Wiki']
+__all__ = ['Wiki',
+           'WebGetter']

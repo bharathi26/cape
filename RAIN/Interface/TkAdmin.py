@@ -44,6 +44,9 @@ class TkAdmin(TkWindow, RPCComponent):
     """
     Development graphical user interface for RAIN systems.
     """
+    
+    unique = True
+    directory_name = "TkAdmin"
 
     # TODO:
     # * Clean up user interface

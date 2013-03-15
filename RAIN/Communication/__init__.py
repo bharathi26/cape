@@ -19,4 +19,5 @@ __all__ = ['Echo',
            'Maestro',
            'WebGate',
            'DTNGate',
+           'Crypto',
 ]

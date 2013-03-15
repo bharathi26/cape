@@ -400,7 +400,7 @@ class RPCComponentThreaded(RPCMixin, BaseComponentThreaded):
         while True:
             if self.runsynchronized:
                 self.sync()
-            self.log(5, "Running Main Thread.")
+            #self.log(5, "Running Main Thread.")
             self.mainthread()
 
             response = None

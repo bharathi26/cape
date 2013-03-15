@@ -44,6 +44,7 @@ from RAIN.Autonomy import *
 from RAIN.Misc import *
 from RAIN.Test import *
 
+Logger.systeminfo("All modules loaded.")
 #
 # Fifth: Construct a base system and instantiate the Node
 #

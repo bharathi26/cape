@@ -68,15 +68,13 @@ def _updateModule(Name):
     reload(Name)
 
 
-Logger.systeminfo("Looking for modules")
-ModuleFiles = _findModules(Configuration.ModulePaths)
-Logger.systeminfo("Found %i modules. Loading..." % len(ModuleFiles))
+#Logger.systeminfo("Looking for modules")
+#ModuleFiles = _findModules(Configuration.ModulePaths)
+#Logger.systeminfo("Found %i modules. Loading..." % len(ModuleFiles))
 
-for module in ModuleFiles:
-    Logger.systemdebug("Loading %s" % module)
-    Modules[module] = _loadModule(ModuleFiles[module])
-
-Logger.systeminfo("All modules loaded.")
+#for module in ModuleFiles:
+#    Logger.systemdebug("Loading %s" % module)
+#    Modules[module] = _loadModule(ModuleFiles[module])
 
 def test():
     """N/A: Should test the version information system."""

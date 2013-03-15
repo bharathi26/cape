@@ -89,6 +89,7 @@ class ConfigurableComponent(object):
         c['template'] = self.template
         c['hname'] = self.hname
         c['hdesc'] = self.hdesc
+
         self.logdebug("Writing config.")
         ConfigurationDB[self.name] = c
         return True
@@ -99,6 +100,7 @@ class ConfigurableComponent(object):
 
         try:
             self.Configuration = ConfigurationDB[self.name]
+
             return True
         except KeyError as e:
             errormsg = "No configuration found for '%s'" % self.name
