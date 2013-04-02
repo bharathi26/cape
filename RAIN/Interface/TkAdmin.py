@@ -259,15 +259,37 @@ class TkAdmin(TkWindow, RPCComponent):
 
     def handleResponse(self, msg):
         self.recordMessage(msg)
+        
+        def __addComponents(components, node):
+            componentlist = self.nodelist[node]['componentlist']
+            ComponentMenu = self.nodelist[node]['menu']
+            
+            for comp in components:
+                self.loginfo("Adding component '%s@%s'" % (comp, node))
+                if self.autoscan.get() and comp not in componentlist:
+                    self.scancomponent(comp, node)
+                FuncMenu = Menu(ComponentMenu)
+                FuncMenu.add_command(label="Scan", command=lambda (name,node)=(comp, node): self.scancomponent(name, node))
+                FuncMenu.add_command(label="Copy Name", command=lambda name=comp: self.copystring(name))
+                FuncMenu.add_command(label="Compose...", command=lambda (name,node)=(comp,node): self.composeMessage(name, node))
+                FuncMenu.add_separator()
+                FuncMenu = Menu(ComponentMenu)
+
+                ComponentMenu.add_cascade(label=comp, menu=FuncMenu)
+                componentlist[comp] = {'menu': FuncMenu}
+                
+
 
         def __handleListRegisteredTemplates(msg):
-            TemplateMenu = Menu(self.__MenuSystem)
+            MenuTemplates = self.__MenuTemplates
+            
+            MenuTemplates.delete(0, END)
             
             for template in sorted(msg.arg):
                 node = ''
-                TemplateMenu.add_command(label=template, command=lambda (name,node)=(template, node): self.createcomponent(name, node))
-        
-            self.__MenuSystem.add_cascade(label='Create Component', menu=TemplateMenu)
+                MenuTemplates.add_command(label=template, command=lambda (name,node)=(template, node): self.createcomponent(name, node))
+            self.__MenuTemplates = MenuTemplates
+            
         
 
         def __handleComponentInfo(msg):
@@ -285,6 +307,8 @@ class TkAdmin(TkWindow, RPCComponent):
                     self.loginfo("Unknown component's ('%s') info encountered. Ignoring.")
             else:
                 self.logdebug("Got a component's ('%s') RPC info. Parsing." % msg.sender)
+                if componentlist[msg.sender] == 'scanned':
+                    self.logdebug("Scan from a self-created component returned.")
 
                 component = msg.sender
                 result = msg.arg
@@ -305,6 +329,18 @@ class TkAdmin(TkWindow, RPCComponent):
                         FuncMenu.add_command(label=meth,
                                              command=lambda (node, name, meth)=(node, component, meth): self.callSimpleMethod(name, node, meth))
 
+        def __handleCreateComponent(msg):
+            node = msg.sendernode
+            component = msg.arg
+            
+            if node not in self.nodelist:
+                self.__handleNewNode(node)
+                
+            componentlist = self.nodelist[node]['componentlist']
+            
+            __addComponents([component], node)
+
+
         def __handleRegisteredComponents(msg):
             node = msg.sendernode
             
@@ -320,23 +356,9 @@ class TkAdmin(TkWindow, RPCComponent):
             # {func: menu}
             
             components = msg.arg
-            componentlist = self.nodelist[node]['componentlist']
-            ComponentMenu = self.nodelist[node]['menu']
             
-            for comp in components:
-                self.loginfo("Adding component '%s@%s'" % (comp, node))
-                if self.autoscan.get() and comp not in componentlist:
-                    self.scancomponent(comp, node)
-                FuncMenu = Menu(ComponentMenu)
-                FuncMenu.add_command(label="Scan", command=lambda (name,node)=(comp, node): self.scancomponent(name, node))
-                FuncMenu.add_command(label="Copy Name", command=lambda name=comp: self.copystring(name))
-                FuncMenu.add_command(label="Compose...", command=lambda (name,node)=(comp,node): self.composeMessage(name, node))
-                FuncMenu.add_separator()
-                FuncMenu = Menu(ComponentMenu)
-
-                ComponentMenu.add_cascade(label=comp, menu=FuncMenu)
-                componentlist[comp] = {'menu': FuncMenu}
-                
+            __addComponents(components, node)
+            
             self.rebuildNodeMenu() 
 
         def __handleGatewayList(msg):
@@ -354,13 +376,13 @@ class TkAdmin(TkWindow, RPCComponent):
             if msg.sender == self.systemdispatcher:
                 if msg.func == "listgateways":
                     __handleGatewayList(msg)
-            if msg.sender == self.systemregistry:
+            if msg.sender == self.systemregistry and not msg.error:
+                if msg.func == "createComponent":
+                    __handleCreateComponent(msg)
                 if msg.func == "listRegisteredComponents":
-                    if not msg.error:
-                        __handleRegisteredComponents(msg)
+                    __handleRegisteredComponents(msg)
                 elif msg.func == "listRegisteredTemplates":
-                    if not msg.error:
-                        __handleListRegisteredTemplates(msg)
+                    __handleListRegisteredTemplates(msg)
             if msg.func == "getComponentInfo":
                 if not msg.error:
                     __handleComponentInfo(msg)
@@ -429,6 +451,8 @@ class TkAdmin(TkWindow, RPCComponent):
                                             variable=self.showresponses)
         
         self.__MenuSystem.add_command(label="View/Edit Identity", command=self.editIdentity)
+        self.__MenuTemplates = Menu(self.__MenuSystem)
+        self.__MenuSystem.add_cascade(label='Create Component', menu=self.__MenuTemplates)
         
         self.__MenuNodes = Menu(self.__Menu)
         self.__MenuNodes.add_command(label="Update connected nodes", command=self.scangateways)

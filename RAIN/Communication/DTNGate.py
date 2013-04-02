@@ -29,6 +29,8 @@ from RAIN.System import Identity
 from RAIN.System import Registry
 from RAIN.System.RPCComponent import RPCComponentThreaded
 from RAIN.System.NodeConnector import NodeConnector
+from RAIN.Communication import Crypto
+from Axon.AdaptiveCommsComponent import AdaptiveCommsComponent
 
 from time import sleep, time
 
@@ -37,10 +39,8 @@ import zmq
 
 from collections import deque
 
-class DTNGate(RPCComponentThreaded, NodeConnector):
+class DTNGate(AdaptiveCommsComponent, RPCComponentThreaded, NodeConnector):
     """Exemplary and experimental ZMQ node interconnector class."""
-
-    separator = b"\r\n"
 
     def __init__(self):
         self.loginfo('DTNGate initializing')
@@ -62,6 +62,7 @@ class DTNGate(RPCComponentThreaded, NodeConnector):
 
         self.listening = False
         self.buflist = deque()
+        
 
         # Schema:
         # {'ip': ZMQ-Socket}
@@ -113,11 +114,6 @@ class DTNGate(RPCComponentThreaded, NodeConnector):
                 if not "Resource temporarily unavailable" in str(e):
                     self.logerror(e)
 
-            # Split buffer, if we have some
-            # TODO: This all is probably not very necessary and should be kicked out
-            #if incoming:
-            #    # new piece of a message arrived
-            #    parts = incoming.split(DTNGate.separator)
 
             # If there are messages, decode and process them
             if jsonmsg:

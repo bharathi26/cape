@@ -59,12 +59,15 @@ class RegistryComponent(RPCComponent):
     def rpc_createComponent(self, templatename):
         "RPC Wrapper"
         
-        component = self._createComponent(templatename)
-        if isinstance(component, BaseComponent):
-            return True
+        result, newcomponent = self._createComponent(templatename)
+        if result:
+            return (True, newcomponent.name)
         else:
-            return component
+            #TODO: UAGH, this is then supposed to be an error message.
+            # Sort out return types here...
+            return (False, newcomponent) 
 
+        
     def rpc_directory(self):
         """Returns our built directory of unique components.
         

@@ -28,33 +28,43 @@ Modules = {}
 from RAIN.System import Configuration
 from RAIN.System import Logger
 
-import glob, os
+from pkg_resources import iter_entry_points
 
 #TODO: Reintegrate Registry Component.
 # This involves clearing up a circular import, since RPCComponent needs to be imported
 # for the RegistryComponent.
 
-def _findModules(Paths):
+def findModules():
     # TODO: ...LOTS
     # * Make sure only ONE module containing a certain object is listed (the newest?) or with version numbers?
     # * Inspection of Components should happen - and thoroughly
     # * Modules should possibly signed and here, verification could happen (or better: upon (re)loading?)
     # * ...
-    def gatherModules(path):
-        Logger.systemdebug(os.path.dirname(path) + "/*.py")
-        modules = {}
-        for f in glob.glob(os.path.dirname(path) + "/*.py"):
-            Logger.systemdebug("Inspecting '%s'" % f)
-            modules[os.path.basename(f)[:-3]] = f
-        Logger.systemdebug("Found modules: %s" % modules)
-        return modules
+    def gatherModules():
+        dists = {}
+        for ep in iter_entry_points(group='rain.components', name=None):
+            Logger.systemdebug("Inspecting module '%s'" % ep)
+            if not dists.has_key(ep.dist):
+                dists[ep.dist] = {}
+            dists[ep.dist][ep.name] = ep.load()
 
-    modules = {}
-    for path in Paths:
-        Logger.systemdebug("Inspecting modulepath '%s'" % path)
-        modules.update(gatherModules(path))
+        for dist, mods in dists.items():
+            Logger.systemdebug("Module Entrypoint: [%s] ('%s')" % (dist, mods))
+            for templatename, template in mods.items():
+                Logger.systemdebug("Component template found: [%s]" % templatename)
+                ComponentTemplates[str(templatename)] = [template, template.__doc__]
+            
+            
+        Logger.systemdebug("Found Distributions: %s" % dists.keys())
+        Logger.systemdebug("Found Templates: %s" % ComponentTemplates.keys())
+        Logger.systeminfo("Found %i Templates." % len(ComponentTemplates))
 
-    return modules
+    gatherModules()
+#    for path in Paths:
+#        Logger.systemdebug("Inspecting modulepath '%s'" % path)
+#        modules.update(gatherModules(path))
+
+    return True
 
 
 def _loadModule(modfilename):
@@ -68,9 +78,6 @@ def _updateModule(Name):
     reload(Name)
 
 
-#Logger.systeminfo("Looking for modules")
-#ModuleFiles = _findModules(Configuration.ModulePaths)
-#Logger.systeminfo("Found %i modules. Loading..." % len(ModuleFiles))
 
 #for module in ModuleFiles:
 #    Logger.systemdebug("Loading %s" % module)

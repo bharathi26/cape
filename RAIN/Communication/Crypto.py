@@ -21,9 +21,15 @@
 #
 
 from RAIN.System import Registry
+from RAIN.Messages import Message
 from RAIN.System.BaseComponent import BaseComponent
+from RAIN.System.RPCComponent import RPCComponent
 
-import zlib, gpgme
+from RAIN.System.Identity import SystemUUID
+
+from io import BytesIO
+
+import zlib, gpgme, jsonpickle
 
 class Packer(BaseComponent):
     # Probably not needed, gnupg compresses data itself
@@ -74,16 +80,80 @@ class Unpacker(BaseComponent):
                 self.logdebug("Sending response to outbox.")
                 self.send(response, "outbox")
             yield 1
+
+class KeyManager(RPCComponent):
+    def __init__(self):
+        self.MR = {'rpc_generateKey':{},
+                   'rpc_exportKey': {},
+                   'rpc_importKey': {},
+                   'rpc_checkKeys': {}
+                   }
+        super(KeyManager, self).__init__()
+        self.keyconfig = {'type': 'RSA',
+                          'length': 2048}
         
+        self.context = gpgme.Context()
+        self.context.armor = False
+        
+    def rpc_exportKey(self):
+        if self._hasKey():
+            return self.context.get_key(self.Configuration['KeyID'])
+        else:
+            return (False, "Don't have a key.")
+    
+    def rpc_generateKey(self):
+        if not self._hasKey():
+            self._genKey()
+            return True
+        else:
+            return (False, "Already have a key.")
+        
+    def _hasKey(self):
+        try:
+            self.context.get_key(self.Configuration['KeyID'])
+        except KeyError:
+            self.loginfo("Key not configured.")
+        except gpgme.GpgmeError:
+            self.loginfo("Key not generated.")
+        else:
+            return True
+        return False
+        
+    def _genKey(self):
+        self.loginfo("Generating new Key.")
+        passphrase = "secret"
+        expiry = 0
+        key_params = """
+<GnupgKeyParms format="internal">
+Key-Type: %s
+Key-Length: %i
+Name-Real: %s
+Name-Email: %s@openseadata.org
+Expire-Date: %i
+Passphrase: %s
+</GnupgKeyParms>
+""" % (self.keyconfig['type'], self.keyconfig['length'], SystemUUID, SystemUUID, expiry, passphrase)
+        result = self.context.genkey(key_params)
+        #key = self.context.get_key(result.fpr, True)
+        self.Configuration['KeyID'] = result.fpr
+        self.loginfo("Key successfully generated, fingerprint: '%s'" % result.fpr)
 
 class Encryptor(BaseComponent):
     def __init__(self):
         super(Encryptor, self).__init__()
-        #self.key = ""
-        #self.method =
+        self.context = gpgme.Context()
 
     def _handleData(self, data):
-        pass # data-dead-end (not encrypting, so not delivering)
+        if isinstance(data, Message):
+            node = data.recipientnode
+            key = self.context.get_key(node)
+            plaintext = BytesIO(jsonpickle.encode(data))
+            ciphertext = BytesIO()
+            self.loginfo("Encrypting message: '%s'" % str(data))
+            self.context.encrypt([key], gpgme.ENCRYPT_ALWAYS_TRUST, plaintext, ciphertext)
+            return ciphertext
+        else:
+            self.logcritical("Got a non-message to encrypt! '%s'" % data)
 
     def main(self):
         self.loginfo("Entering main loop.")
@@ -132,3 +202,4 @@ Registry.ComponentTemplates["Packer"] = [Packer, "Packer Description"]
 Registry.ComponentTemplates["Unpacker"] = [Unpacker, "Unpacker Description"]
 Registry.ComponentTemplates["Encryptor"] = [Encryptor, "GnuPG Encryption component"]
 Registry.ComponentTemplates["Decryptor"] = [Decryptor, "GnuPG Decryption component"]
+Registry.ComponentTemplates["KeyManager"] = [KeyManager, "GnuPG Key management component"]
