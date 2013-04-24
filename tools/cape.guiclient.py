@@ -1,8 +1,8 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 RAIN Operating Software - Graphical CLIClient
-#    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
+#    A Kamaelia based graphical cape client
+#    Copyright (C) 2011-2013  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@
 # (If not sufficient - replace them!)
 
 from Kamaelia.Chassis.Pipeline import Pipeline
-from Kamaelia.Util.Console import ConsoleReader, ConsoleEchoer
+from Kamaelia.UI.Pygame.Text import Textbox, TextDisplayer
 from Kamaelia.Internet.TCPClient import TCPClient
 
-
-Pipeline( ConsoleReader(),
-          TCPClient("127.0.0.1", 55555),
-          ConsoleEchoer(),
+Pipeline(
+         Textbox(size = (800, 300), position = (100,380)),
+         TCPClient("127.0.0.1", 55555),
+         TextDisplayer(size = (800, 300), position = (100,40))
 ).run()

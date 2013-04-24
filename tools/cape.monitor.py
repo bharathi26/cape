@@ -1,8 +1,8 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 RAIN Operating Software - Graphical CLIClient
-#    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
+#    A Kamaelia based graphical cape monitor
+#    Copyright (C) 2011-2013  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

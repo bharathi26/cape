@@ -1,8 +1,8 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-#    Prototype of the MS0x00 RAIN Operating Software
-#     - Joystick Analyzer (loosely based on Mike Doty's work) -
+#    cape joystick remote control
+#     (loosely based on Mike Doty's work)
 #    Copyright (C) 2011-2012  riot <riot@hackerfleet.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ __readme__ = "LOL. Just kidding."
 # TODO:
 # * Outsource useful parts to Kamaelia
 # * Network code
-# * Add  RAIN Interface Objects
+# * Add  cape Interface Objects
 #  * Bandwidth && Latency Meter
 #  * Rudder && Thruster Visualization
 #  * Messages Window
@@ -71,7 +71,7 @@ class App(object):
     def __init__(self, joynum, ip, port):
         pygame.init()
 
-        pygame.display.set_caption("RAIN Joystick Prototype")
+        pygame.display.set_caption("cape Joystick RC")
 
         # Set up the network connection
         self.socket = None
@@ -130,7 +130,7 @@ class App(object):
         else:
             print("Connected!")
         self.socket = s
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "RAIN.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (
+        request = """{"py/object": "cape.messages.Message", "sender": "cape.JoystickRemote", "timestamp": %f, "func": "AddRecipient", "arg": "cape.JoystickRemote", "recipient": "JSONServer"}\r\n""" % (
         time())
         self.socket.sendto(request, (self.hostname, self.port))
 
@@ -172,12 +172,12 @@ class App(object):
 
 
     def TransmitRudder(self, value):
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "RAIN.Rudder"}\r\n""" % (
+        request = """{"py/object": "cape.Messages.Message", "sender": "cape.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newangle": %f}, "func": "setRudder", "error": "", "recipient": "cape.Rudder"}\r\n""" % (
         time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
     def TransmitThrust(self, value):
-        request = """{"py/object": "RAIN.Messages.Message", "sender": "RAIN.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "RAIN.Engine"}\r\n""" % (
+        request = """{"py/object": "cape.Messages.Message", "sender": "cape.JoystickRemote", "msg_type": "request", "timestamp": %f, "arg": {"newthrust": %f}, "func": "setThrust", "error": "", "recipient": "cape.Engine"}\r\n""" % (
         time(), value)
         self.socket.sendto(request, (self.hostname, self.port))
 
