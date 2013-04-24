@@ -1,6 +1,6 @@
 About
 =====
-RAIN is an asynchronous multi component framework with distributed computing
+cape is an asynchronous multi component framework with distributed computing
 capabilities. A lot of aspects of message oriented middleware systems are
 integrated, too, since one of the goals is driving a fully fledged, planetwide
 Delay Tolerant Network (DTN).
@@ -18,7 +18,7 @@ Usage is pretty unlimited, as long as you can do it reasonably in Python.
 
 Warning
 =======
-This README, as RAIN itself, is young and thus heavy WiP!
+This README, as cape itself, is young and thus heavy WiP!
 
 Installation
 ============
@@ -31,12 +31,12 @@ Quick Setup.
 
 Quick Setup
 -----------
-This quick setup cannot install all extras and addons, but the core RAIN
+This quick setup cannot install all extras and addons, but the core cape
 system. Missing things are: Mapnik2 and Mongo connectors.
-Clone manually (rain is not yet published on pypi) and install via setup.py:
+Clone manually (cape is not yet published on pypi) and install via setup.py:
 ::
-    hg clone https://repos.hackerfleet.org/hg/repos/rain
-    cd rain
+    hg clone https://repos.hackerfleet.org/hg/repos/cape
+    cd cape
     sudo python setup.py install
 
 All required dependencies should be installed automatically via PyPi, Python's
@@ -70,36 +70,30 @@ As root:
 ::
     apt-get install python-setuptools python-serial python-jsonpickle \
     python-configobj python-pmw python-pymongo \
-    python-imaging python-imaging-tk python-mapnik2 \
+    python-imaging python-imaging-tk \
     mongodb mercurial
     
-    svn checkout http://kamaelia.googlecode.com/svn/trunk/ kamaelia
-    cd kamaelia/Code/Python/Axon
-    python setup.py install
-    cd ../Kamaelia
-    python setup.py install
-    cd ../../../../
 
-RAIN
+cape
 ====
-Installing rain itself will soon be automated via pypi, for now clone manually:
+Installing cape itself will soon be automated via pypi, for now clone manually:
 ::
-    hg clone https://hackerfleet.org/hg/rain
-    cd rain
+    hg clone https://hackerfleet.org/hg/cape
+    cd cape
     python setup.py install
 
 Running & Tests
 ---------------
 Now you should be ready to start the system with:
 ::
-    rain.py
+    cape.py
 
 Tests haven't been written, yet. This is going to be funny work. Very.
 
 AddOns
 ------
 There are some init-scripts and helper utilities. You can find these in
-RAIN/Tools. Their integration into your system will be implemented as command
+cape/Tools. Their integration into your system will be implemented as command
 for the automated installation procedure, soon. In the meantime read the files
 for more documentation.
 
@@ -107,7 +101,7 @@ Documentation
 =============
 After installation, try:
 ::
-    pydoc RAIN
+    pydoc cape
 
 Contributors
 ============
@@ -127,14 +121,14 @@ Contact/Support
 This software comes without warranty and express support (See License).
 Support is based on community best-effort.
 
-RAIN's project page is here:
-https://hackerfleet.org/dev/wiki/rain
+cape's project page is here:
+https://hackerfleet.org/dev/wiki/cape
 
 You can browse the source code comfortably here:
-https://hackerfleet.org/dev/browser/rain
+https://hackerfleet.org/dev/browser/cape
 
 Tickets can be found here:
-https://hackerfleet.org/dev/query?component=rain
+https://hackerfleet.org/dev/query?component=cape
 
 Here are the official contact urls:
 
@@ -143,8 +137,8 @@ https://hackerfleet.org/support
 
 License
 =======
-Prototype of the RAIN Operating Software
-Copyright (C) 2011-2012 riot <riot@hackerfleet.org> and others.
+Component Architecture for Python Environments (cape)
+Copyright (C) 2011-2013 riot <riot@hackerfleet.org> and others.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

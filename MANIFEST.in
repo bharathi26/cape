@@ -1,8 +1,8 @@
 include *.py README .hgignore
 
-recursive-include Doc *
-recursive-include Tools *
-recursive-include RAIN *
+recursive-include doc *
+recursive-include tools *
+recursive-include cape *
 
 global-exclude *.pyc
 global-exclude __pycache__
