@@ -97,6 +97,9 @@ Now you should be ready to start the system with:
 ::
     cape.py
 
+cape logs (by default) to /tmp/cape.log if not specified otherwise.
+You should inspect this file if you encounter problems.
+
 Tests haven't been written, yet. This is going to be funny work. Very.
 
 AddOns

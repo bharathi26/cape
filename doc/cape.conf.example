@@ -2,10 +2,6 @@
 name = 'testscaffold'
 class = 'server'
 
-[NET]
-port = 55555
-ip = '127.0.0.1'
-
 [NODE]
 run.jsongate = False
 run.allthreads = True
