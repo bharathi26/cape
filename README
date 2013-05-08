@@ -31,6 +31,23 @@ Quick Setup.
 
 Quick Setup
 -----------
+This is a debian optimized quicksetup.
+
+Dependencies
+''''''''''''
+What you'll need (bare minimum):
+* mercurial
+* python setuptools
+* python headers
+* gcc
+* mongodb
+
+As root:
+::
+    apt-get install mercurial gcc python-dev python-setuptools mongodb
+
+cape
+''''
 This quick setup cannot install all extras and addons, but the core cape
 system. Missing things are: Mapnik2 and Mongo connectors.
 Clone manually (cape is not yet published on pypi) and install via setup.py:
@@ -42,16 +59,17 @@ Clone manually (cape is not yet published on pypi) and install via setup.py:
 All required dependencies should be installed automatically via PyPi, Python's
 official package repository.
 
-Debian
-------
-Debian has a lot of prepackaged libs. Please do not use them. Instead, setup a 
-virtual environment and install into this via pip if possible.
+Virtual Environment
+-------------------
+E.g. Debian has a lot of prepackaged python libraries. Please do not use them.
+Instead, setup a virtual environment and install into this via pip if possible.
 
-Some features rely on external non-python software and thus need the appropriate
-packages installed.
+Some features/components rely on external non-python software and thus need the 
+appropriate packages installed.
+
 
 MongoDB on armhf
-''''''''''''''''
+----------------
 If you're installing dependencies on debian's armhf port, you'll notice mongodb
 missing. This is because the non-x86 port of mongodb isn't yet debian-packaged.
 
@@ -63,24 +81,15 @@ https://github.com/mongodb/mongo/blob/master/docs/building.debian.etch.ec2.md
 Mind you, there is no need to use gcc4.1 in sid or wheezy, so skip
 that part.
 
-Dependencies
-''''''''''''
-This needs rework towards a virtual environment friendly process. WiP!
-As root:
-::
-    apt-get install python-setuptools python-serial python-jsonpickle \
-    python-configobj python-pmw python-pymongo \
-    python-imaging python-imaging-tk \
-    mongodb mercurial
-    
-
-cape
-====
-Installing cape itself will soon be automated via pypi, for now clone manually:
-::
-    hg clone https://hackerfleet.org/hg/cape
-    cd cape
-    python setup.py install
+Configuration
+-------------
+cape needs a configuration to do anything. Automatic generation of the necessary
+data is in preparation.
+Until then, copy
+    cape/doc/cape.conf.example
+to
+    /etc/cape/cape.conf
+and modify if necessary.
 
 Running & Tests
 ---------------

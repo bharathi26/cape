@@ -82,7 +82,6 @@ setup(name = "cape",
                       'configobj>=4.7.2',
                       'Pmw>=1.3.2',
                       'pymongo>=2.4.1',
-                      'pyzmq>=2.2.0.1',
                       'CherryPy>=3.2.2'
                       ]
     # OPTIONALS, currently setup only works by hard deactivating (removal) of modules, sorry.
