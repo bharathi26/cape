@@ -64,13 +64,11 @@ Clone manually (cape is not yet published on pypi) and install via setup.py:
 All required dependencies should be installed automatically via PyPi, Python's
 official package repository.
 
-There are some other packages in preparation, see 
+There are some other packages in preparation, see
+https://repos.hackerfleet.org/cape for more information.  You will probably
+want to install cape.tkadmin, if you want to develop cape components:
 ::
-    https://repos.hackerfleet.org/cape
-for more information.
-You will probably want to install cape.tkadmin, if you want to develop cape
-components:
-::
+    sudo apt-get install python-tk
     hg clone https://repos.hackerfleet.org/cape/cape.tkadmin
     cd cape.tkadmin
     python setup.py install
@@ -83,7 +81,6 @@ This also enhances security and makes development a lot easier.
 
 Before downloading and installing cape, make sure you have python-virtualenv
 and set up an environment:
-
 ::
     virtualenv venv
     cd venv
