@@ -29,5 +29,10 @@
   "frequency": 50, 
   "systemname": "testscaffold", 
   "name": "cape.system.idler.Idler"
- } 
+ },
+ "cape.system.tkadmin": {
+  "template": "cape.ui.tkadmin",
+  "systemname": "testscaffold",
+  "name": "cape.ui.tkadmin"
+ }
 }
