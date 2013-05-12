@@ -46,7 +46,7 @@ def boot():
     from cape.system import identity
     identity.setupidentity()
 
-    if 'NODE' in configuration.Configuration.sections:
+    if 'NODE' in configuration.Configuration:
         NodeConfig = configuration.Configuration['NODE']
     else:
         logger.systemcritical("No Node configuration found. Copy the sample or create one.")

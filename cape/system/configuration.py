@@ -19,83 +19,47 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import configobj
+#import configobj
+import json
 import os.path
+import sys 
 
-#TODO Rewrite the file/module finding...
-
-# General paths to look for configuration and module data
-Paths = DefaultPaths = {1: '/etc/cape/',
-                        2: os.path.expanduser('~/.'),
-                        3: os.path.expanduser('~/.cape/'),
-                       }
+from pprint import pprint
 
 # Filename of main configuration
-ConfigFilename = DefaultConfigFilename = "cape.conf"
+ConfigFilename = "/etc/cape/cape.conf"
 
-# Pathname to look for modules in
-ModulePath = DefaultModulePath = "modules/"
+Configuration = {}
 
-# Actual found module paths
-ModulePaths = []
-
-# TODO:
-# * Modules shouldn't be stored along configuration and only looked for in
-#   trusted locations
-# * Segmentation of Configurationdata - desired? Or only one host-exclusive
-#   configuration?
-#   (i.e. basic config is loaded from a general source, userdata can overwrite)
-
-Configuration = configobj.ConfigObj()
-
-
-def _getConfigFilename(filename=None):
-    # TODO: This is stupid. Either read ONE configfile (which?) or read them
-    # one after another. The latter would allow overwriting by the user.
-    # Currently only the last one found will be inspected, wich works 
-    # during development and testing
-
-    configfile = None
-
-    if filename and os.path.exists(filename):
-        configfile = filename
-    else:
-        # TODO: Like this, using a dict with preference value is useless.
-        # Needs config segmentation or clearing.
-        for key, path in Paths.items():
-            name = path + DefaultConfigFilename
-
-            if os.path.exists(name):
-                configfile = name
-
-    return configfile
-
-
-def _getModulePath(path=DefaultModulePath):
-    modulepaths = []
-
-    for key, path in Paths.items():
-        name = path + ModulePath
-        if os.path.exists(name):
-            modulepaths.append(name)
-
-    return modulepaths
-
-
-def readConfig(filename=DefaultConfigFilename):
+def readConfig(filename):
     """
     Reads a configuration file.
     """
     global Configuration
+
+    def convert(input):
+        if isinstance(input, dict):
+            return {convert(key): convert(value) for key, value in input.iteritems()}
+        elif isinstance(input, list):
+            return [convert(element) for element in input]
+        elif isinstance(input, unicode):
+            return input.encode('utf-8')
+        else:
+            return input
+
     try:
-        newconfig = configobj.ConfigObj(filename,
-                                        unrepr=True,
-                                        interpolation=False)
+        #newconfig = configobj.ConfigObj(filename,
+        #                                unrepr=True,
+        #                                interpolation=False)
+        configfile = open(filename, "r")
+        newconfig = json.load(configfile, object_hook=convert)
+        configfile.close()
+
         Configuration = newconfig
         return True
-    except configobj.UnknownType as error:
-        # TODO: do not silently ignore this!
-        pass
+    except Exception as error:
+        # TODO: Handle this better, friendlier
+        print("Configuration error: %s" % error)
 
 
 def reloadConfig():
@@ -121,12 +85,14 @@ def setupConfig(filename=ConfigFilename):
     """
      Prepares a configuration file and loads it.
      """
-    Filename = _getConfigFilename(filename)
+    global ConfigFilename
 
-    readConfig(Filename)
+    if not os.path.exists(ConfigFilename):
+        print("""Configuration file not found!
+        Copy the sample in cape/doc/cape.conf.example to /etc/cape/cape.conf for now.""")
+        sys.exit(23)
 
-    ModulePaths = _getModulePath(ModulePath)
-
+    readConfig(ConfigFilename)
 
 def test():
     """N/A: Should test the configuration system."""

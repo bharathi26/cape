@@ -59,7 +59,7 @@ def setuplogger(lvl=_logging.DEBUG):
     Logger = _logging.getLogger('cape')
     from cape.system.configuration import Configuration as ConfigurationDB
 
-    if 'LOGGING' in ConfigurationDB.sections:
+    if 'LOGGING' in ConfigurationDB:
         logconfig = ConfigurationDB['LOGGING']
 
         Logger.setLevel(logconfig['level'])

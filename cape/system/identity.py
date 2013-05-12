@@ -27,10 +27,10 @@ SystemName = DefaultSystemName = "DEFAULT"
 SystemClass = DefaultSystemClass = "DEFAULT"
 SystemUUID = DefaultSystemUUID = uuid.uuid4()
 
-Systemidentity = {'name': SystemName, 
-                  'class': SystemClass, 
+Systemidentity = {'name': SystemName,
+                  'class': SystemClass,
                   'UUID': SystemUUID
-                  } 
+                  }
 
 def setupidentity():
     global SystemName
@@ -39,11 +39,13 @@ def setupidentity():
     global Systemidentity
 
 
-    if 'IDENTITY' in configuration.Configuration.sections:
+    if 'IDENTITY' in configuration.Configuration:
         config = configuration.Configuration['IDENTITY']
+
         SystemName = config.get('name', DefaultSystemName)
         SystemClass = config.get('class', DefaultSystemClass)
         SystemUUID = config.get('uuid', DefaultSystemUUID)
+
         logger.systeminfo("System name configured from configuration", facility="IDENTITY")
     else:
         logger.systemwarn("Uh oh.", facility='IDENTITY')
@@ -57,11 +59,12 @@ def setupidentity():
             SystemClass = DefaultSystemClass
             SystemUUID = DefaultSystemUUID
             logger.systemwarn("Default system name chosen! You might want to configure this.", facility="IDENTITY")
-            
-    Systemidentity = {'name': SystemName, 
-                      'class': SystemClass, 
+
+    Systemidentity = {'name': SystemName,
+                      'class': SystemClass,
                       'UUID': SystemUUID
-                      } 
+                      }
+
 
 
 def test():

@@ -1,31 +1,33 @@
-[IDENTITY]
-name = 'testscaffold'
-class = 'server'
-
-[NODE]
-run.jsongate = False
-run.allthreads = True
-
-[LOGGING]
-level = 5
-format = '%(asctime)s [%(levelname)8s]:%(message)s'
-filename = '/tmp/cape.log'
-filemode = 'w'
-
-[[handlers]]
-
-[[[filelog]]]
-type = 'file'
-filename = '/tmp/cape.log'
-level = 5
-
-[[[console]]]
-type = 'console'
-level = 20
-
-[cape.system.idler]
-template = 'cape.system.idler'
-realtime = False
-frequency = 50
-systemname = 'testscaffold'
-name = 'cape.system.idler.Idler'
+{
+ "IDENTITY": {
+  "name": "testscaffold", 
+  "class": "server"
+ },
+ "NODE": {
+  "run.allthreads": true
+ }, 
+ "LOGGING": {
+  "level": 5, 
+  "format": "%(asctime)s [%(levelname)8s]:%(message)s", 
+  "filename": "/tmp/cape.log", 
+  "filemode": "w", 
+  "handlers": {
+   "filelog": {
+    "type": "file", 
+    "filename": "/tmp/cape.log", 
+    "level": 5
+   }, 
+   "console": {
+    "type": "console", 
+    "level": 20
+   }
+  }
+ }, 
+ "cape.system.idler": {
+  "template": "cape.system.idler", 
+  "realtime": false, 
+  "frequency": 50, 
+  "systemname": "testscaffold", 
+  "name": "cape.system.idler.Idler"
+ } 
+}
