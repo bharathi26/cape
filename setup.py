@@ -22,7 +22,7 @@ setup(name = "cape",
                 'cape.system',
                 ],
     package_data = {'cape': ['cape']},
-    scripts = ['cape.py'],
+    scripts = ['cape.launcher'],
     entry_points="""
     [cape.components]
     cape.system.loggercomponent=cape.system.loggercomponent:LoggerComponent
@@ -68,21 +68,21 @@ setup(name = "cape",
     # but have never been tested.
     #
     dependency_links = [
-        'https://www.hackerfleet.org/redist/Kamaelia-1.1.2.0.tar.gz',
+        #'https://www.hackerfleet.org/redist/Kamaelia-1.1.2.0.tar.gz',
         'https://www.hackerfleet.org/redist/Axon-1.7.0.tar.gz',
-        'https://www.hackerfleet.org/redist/Pmw-1.3.3.tar.gz',
+        #'https://www.hackerfleet.org/redist/Pmw-1.3.3.tar.gz',
     ],
     install_requires=['jsonpickle>=0.4.0',
-                      'pyserial>=2.6',
                       'hgapi>=1.1.0',
-                      'pillow>=1.7.8',
                       'Axon>=1.7.0',
-                      'Kamaelia>=1.1.2.0',
-                      'pynmea>=0.3.0',
                       'configobj>=4.7.2',
-                      'Pmw>=1.3.2',
                       'pymongo>=2.4.1',
-                      'CherryPy>=3.2.2'
+                      'CherryPy>=3.2.2',
+                      #'Kamaelia>=1.1.2.0',
+                      #'pillow>=1.7.8',
+                      #'Pmw>=1.3.2',
+                      #'pynmea>=0.3.0',
+                      #'pyserial>=2.6',
                       ]
     # OPTIONALS, currently setup only works by hard deactivating (removal) of modules, sorry.
     #extras_require={'mapnik2': 'mapnik2>=2.0.0',

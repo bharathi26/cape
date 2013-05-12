@@ -1,0 +1,137 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Component Architecture for Python Environments (cape)
+# Copyright (C) 2011-2013 riot <riot@hackerfleet.org> and others.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""cape.py
+Starts preconfigured cape systems.
+"""
+
+import sys
+
+def boot():
+    """Boots up a cape instance automatically."""
+    #
+    # First: Load configuration
+    #
+
+    from cape.system import configuration
+    configuration.setupConfig()
+
+    #
+    # Second: Set up the logger
+    #
+
+    from cape.system import logger
+    logger.setuplogger()
+
+    #
+    # Third: The node's identity
+    #
+
+    from cape.system import identity
+    identity.setupidentity()
+
+    if 'NODE' in configuration.Configuration.sections:
+        NodeConfig = configuration.Configuration['NODE']
+    else:
+        logger.systemcritical("No Node configuration found. Copy the sample or create one.")
+        sys.exit(23)
+
+    #
+    # Fourth: Initialize and inspect all components
+    #
+
+    from cape.system import registry
+
+    logger.systeminfo("-"*42)
+    logger.systeminfo("cape ('%s') booting." % identity.SystemUUID)
+
+    registry.findModules()
+
+    logger.systeminfo("All modules loaded.")
+    #
+    # Fifth: Construct a base system and instantiate the Node
+    #
+
+    from cape.system.dispatcher import Dispatcher
+    from cape.system.registrycomponent import RegistryComponent
+
+    from Axon.Scheduler import scheduler
+
+    #
+    # Kamaelia stuff is out for now.
+    #
+    #from Kamaelia.Chassis.ConnectedServer import FastRestartServer as ServerCore
+    #from Kamaelia.Internet.TCPClient import TCPClient
+    #from Kamaelia.Chassis.Pipeline import Pipeline
+    #from Kamaelia.Util.Introspector import Introspector
+
+    # Kamaelia-style introspection; Due to change.
+    #port = 55555
+    #introspector = False
+    #
+    #if introspector:
+    #    logger.systeminfo("Connecting to introspector.")
+    #    Pipeline(
+    #        Introspector(),
+    #        TCPClient("localhost", 55556),
+    #        ).activate()
+
+    logger.systeminfo("Instantiating Dispatcher Component")
+    dispatcher = Dispatcher()
+    registry.Dispatcher = dispatcher
+
+    dispatcher.activate()
+
+    logger.systeminfo("Instantiating registry Component")
+    registrycomponent = RegistryComponent(dispatcher)
+    dispatcher.RegisterComponent(registrycomponent)
+
+    registry.Components.append(registrycomponent.name)
+
+    registry.Directory['dispatcher'] = dispatcher.name
+    registry.Directory['registry'] = registrycomponent.name
+
+    logger.systeminfo("Initializing Node from configuration.")
+    registrycomponent.initFromConfig()
+
+    #if NodeConfig['run.jsongate']:
+    #    # JSON gateway; Due to change in favour of AMQP node2node communication
+    #    logger.systeminfo("Setting up JSONServer on port %i" % port)
+    #
+    #    jsonserver = ServerCore(protocol=JSONProtocol, port=port)
+    #    jsonserver.activate()
+    #    dispatcher.RegisterComponent(jsonserver)
+
+    #
+    # Sixth: Run the assembled cape Node
+    #
+
+    if NodeConfig['run.allthreads']:
+        logger.systeminfo("Starting all threads")
+        scheduler.run.runThreads()
+    else:
+        logger.systeminfo("Thats it. Terminating.")
+        sys.exit(0)
+
+if __name__ == "__main__":
+    boot()
+
+#
+# Fin
+#
