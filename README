@@ -36,6 +36,7 @@ This is a debian optimized quicksetup.
 Dependencies
 ''''''''''''
 What you'll need (bare minimum):
+
 * mercurial
 * python setuptools
 * python headers
