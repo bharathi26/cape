@@ -76,10 +76,17 @@ def writeConfig():
     Writes the global configuration.
     """
     global Configuration
+    global ConfigFilename
 
-    Configuration.write()
-    return True
+    try:
+        configfile = open(ConfigFilename, "w")
+        json.dump(Configuration, configfile, indent=True)
+        configfile.close()
 
+        return True
+    except Exception as error:
+        # TODO: Handle this better, friendlier
+        print("Configuration error: %s" % error)
 
 def setupConfig(filename=ConfigFilename):
     """
