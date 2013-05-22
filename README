@@ -37,27 +37,29 @@ Dependencies
 ''''''''''''
 What you'll need (bare minimum):
 
-* mercurial
-* python setuptools
-* python headers
-* gcc
-* mongodb
+ * mercurial
+ * python setuptools
+ * python headers
+ * gcc
+ * mongodb
 
-As root:
-::
+As root, use::
+
     apt-get install mercurial gcc python-dev python-setuptools mongodb
+
+to install cape's dependencies.
 
 cape
 ''''
 This quick setup cannot install all extras and addons, but the core cape
 system. Missing things are: Mapnik2 and Mongo connectors.
 
-Warning: You should use a virtual environment to install cape. See next
-chapter! If you don't want to use a virtualenviroment, you will need to
-execute the next commands as root (e.g. with sudo).
+**Warning**: You should use a *virtual environment* to install cape. See next
+chapter! If you don't want to use a virtual enviroment, you will need to
+execute the next commands as root (e.g. with *sudo*).
 
-Clone manually (cape is not yet published on pypi) and install via setup.py:
-::
+Clone manually (cape is not yet published on pypi) and install via setup.py::
+
     hg clone https://repos.hackerfleet.org/cape/cape
     cd cape
     python setup.py install
@@ -67,12 +69,14 @@ official package repository.
 
 There are some other packages in preparation, see
 https://repos.hackerfleet.org/cape for more information.  You will probably
-want to install cape.tkadmin, if you want to develop cape components:
-::
+want to install cape.tkadmin, if you want to develop cape components::
+
     sudo apt-get install python-tk
     hg clone https://repos.hackerfleet.org/cape/cape.tkadmin
     cd cape.tkadmin
     python setup.py install
+
+Et, voila!
 
 Virtual Environment
 -------------------
@@ -81,8 +85,8 @@ Instead, setup a virtual environment and install into this via pip if possible.
 This also enhances security and makes development a lot easier.
 
 Before downloading and installing cape, make sure you have python-virtualenv
-and set up an environment:
-::
+and set up an environment::
+
     virtualenv venv
     cd venv
     source bin/activate
@@ -108,16 +112,20 @@ Configuration
 -------------
 cape needs a configuration to do anything. Automatic generation of the necessary
 data is in preparation.
-Until then, copy
+Until then, copy::
+
     cape/doc/cape.conf.example
-to
+
+to::
+
     /etc/cape/cape.conf
+
 and modify if necessary.
 
 Running & Tests
 ---------------
-Now you should be ready to start the system with:
-::
+Now you should be ready to start the system with::
+
     cape.py
 
 cape logs (by default) to /tmp/cape.log if not specified otherwise.
@@ -134,8 +142,8 @@ for more documentation.
 
 Documentation
 =============
-After installation, try:
-::
+After installation, try::
+
     pydoc cape
 
 Contributors
