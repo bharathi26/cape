@@ -43,10 +43,15 @@ def findModules():
     def gatherModules():
         dists = {}
         for ep in iter_entry_points(group='cape.components', name=None):
-            logger.systemdebug("Inspecting module '%s'" % ep)
-            if not dists.has_key(ep.dist):
-                dists[ep.dist] = {}
-            dists[ep.dist][ep.name] = ep.load()
+            try:
+                logger.systemdebug("Inspecting module '%s'" % ep)
+                if not dists.has_key(ep.dist):
+                    dists[ep.dist] = {}
+                dists[ep.dist][ep.name] = ep.load()
+            except Exception as e:
+                # TODO:
+                # fine grained error analysis, helps the developer
+                logger.systemerror("Broken component found! Exception: '%s'" % str(e))
 
         for dist, mods in dists.items():
             logger.systemdebug("Module Entrypoint: [%s] ('%s')" % (dist, mods))
