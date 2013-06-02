@@ -21,7 +21,7 @@
 Starts preconfigured cape systems.
 """
 
-import sys
+import sys, argparse
 
 def boot():
     """Boots up a cape instance automatically."""
@@ -129,8 +129,24 @@ def boot():
         logger.systeminfo("Thats it. Terminating.")
         sys.exit(0)
 
+def main():
+    """Evaluate arguments, modify configuration accordingly and boot cape"""
+
+    parser = argparse.ArgumentParser(description="cape system launcher.")
+    parser.add_argument("--profile", help="Starts cape in cProfile mode.", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.profile:
+        import cProfile
+        command = """boot()"""
+        print("WARNING: Running in cProfile mode.")
+        cProfile.runctx(command, globals(), locals(), filename="/tmp/cape.profile")
+    else:
+        boot()
+
 if __name__ == "__main__":
-    boot()
+    main()
 
 #
 # Fin
