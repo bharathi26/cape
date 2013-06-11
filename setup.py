@@ -21,7 +21,8 @@ setup(name = "cape",
     packages = ['cape',
                 'cape.system',
                 ],
-    package_data = {'cape': ['cape']},
+    package_data = {'cape': ['cape'],
+                    'static': ['static']},
     scripts = ['cape.launcher'],
     entry_points="""
     [cape.components]
@@ -62,9 +63,10 @@ setup(name = "cape",
     #package_data = {'package' : files },
     #scripts = [""], # None yet
     long_description = read('README'),
+    include_package_data = True,
     # Dependencies
     #
-    # Note: Those are proven to work, older versions might work, 
+    # Note: Those are proven to work, older versions might work,
     # but have never been tested.
     #
     dependency_links = [

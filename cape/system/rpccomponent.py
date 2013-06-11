@@ -198,15 +198,21 @@ class RPCMixin(object):
             if msg.msg_type == 'request':
                 if msg.func in self.MethodRegister:
                     #self.logdebug("Request for method %s" % msg.func)
-                    # TODO: Better get the method from self.MR
-                    method = getattr(self, "rpc_" + msg.func)
+
+                    method = getattr(self, "rpc_" + str(msg.func))
+
                     if method:
+                        spec = self.MethodRegister[msg.func]['args']
+                        insp = inspect.getargspec(method).args[1:]
+
                         argtestresult, log = self._checkArgs(msg)
+
                         if argtestresult:
                             self.log(5, "Calling method after successful ArgSpecTest: %s" % log)
                             # Deliver the final result
                             args = msg.arg if msg.arg is not None else {}
                             result = method(**args)
+
                             if result:
                                 return msg.response(result)
                             else: return
@@ -219,6 +225,7 @@ class RPCMixin(object):
                 else:
                     # Clients should look up the requested method at least once, but may use e.g. caching
                     self.logwarning("Requested Method not found: %s" % msg.func)
+
                     return msg.response((False, "Method not found."))
             elif msg.msg_type == 'response':
                 self.logdebug("Response from call to %s" % msg.func)
@@ -269,7 +276,11 @@ class RPCMixin(object):
                 name = method[0][4:]
 
                 params = ArgSpecBuilder(method)
-                self.log(5, "Parameters for '%s': '%s'" % (method[0], params))
+                if 'msg' in params and len(params) == 1:
+                    self.log(5, "Message oriented rpc call: '%s'" % (method[0]))
+                    params = {}
+                else:
+                    self.log(5, "Parameters for '%s': '%s'" % (method[0], params))
 
                 # TODO: Check for other stuff and log it accurately.
                 if isinstance(params, dict): # This might become more complex
@@ -279,6 +290,13 @@ class RPCMixin(object):
                     self.logerror("Not exporting undocumented RPC function: '%s'" % method[0])
 
         return True
+
+    def send(self, msg, boxname="outbox"):
+        if msg.sender and msg.sender != self.name:
+            self.logcritical("Component '%s' fakes sendername: '%s'!" % (self.name, msg.sender))
+
+        msg.sender = self.name
+        super(RPCMixin, self).send(msg, boxname=boxname)
 
     def __init__(self):
         """Initializes this RPC Component. Don't forget to call super(YourComponent,

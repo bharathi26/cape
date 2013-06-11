@@ -20,9 +20,9 @@
 #
 
 #import configobj
-import json
+import json, jsonpickle
 import os.path
-import sys 
+import sys
 
 from pprint import pprint
 
@@ -80,7 +80,8 @@ def writeConfig():
 
     try:
         configfile = open(ConfigFilename, "w")
-        json.dump(Configuration, configfile, indent=True)
+        #json.dump(Configuration, configfile, indent=True)
+        configfile.write(jsonpickle.encode(Configuration))
         configfile.close()
 
         return True

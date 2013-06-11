@@ -2,7 +2,7 @@ include *.py README .hgignore
 
 recursive-include doc *
 recursive-include tools *
-recursive-include cape *
+recursive-include static *
 
 global-exclude *.pyc
 global-exclude __pycache__
