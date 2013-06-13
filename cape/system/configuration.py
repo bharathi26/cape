@@ -21,10 +21,12 @@
 
 #import configobj
 import json, jsonpickle
+
 import os.path
 import sys
 
 from pprint import pprint
+
 
 # Filename of main configuration
 ConfigFilename = "/etc/cape/cape.conf"
@@ -77,12 +79,15 @@ def writeConfig():
     """
     global Configuration
     global ConfigFilename
+    print("Storing configuration...")
 
+    jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
     try:
         configfile = open(ConfigFilename, "w")
         #json.dump(Configuration, configfile, indent=True)
         configfile.write(jsonpickle.encode(Configuration))
         configfile.close()
+        print("Configuration successfully stored.")
 
         return True
     except Exception as error:

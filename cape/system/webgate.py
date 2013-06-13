@@ -10,6 +10,8 @@ from cherrypy import Tool
 import jsonpickle
 import os, time
 
+from pkg_resources import resource_string
+
 from pprint import pprint
 
 class WebGate(RPCComponent):
@@ -143,7 +145,7 @@ class WebGate(RPCComponent):
 
         self.Configuration['debug'] = True
         self.Configuration['port'] = 8055
-        self.Configuration['staticdir'] = os.path.join(os.path.abspath("."), "static")
+        self.Configuration['staticdir'] = os.path.join(os.path.dirname(__file__), '../../static')
         self.Configuration['serverenabled'] = True
         self.loader = None
         self.header = None

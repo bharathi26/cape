@@ -1,4 +1,4 @@
-include *.py README .hgignore
+include *.py README .hgignore *.html *.css *.js
 
 recursive-include doc *
 recursive-include tools *

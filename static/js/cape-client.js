@@ -70,6 +70,12 @@ $(function() {
         // On load, retrieve index page from wiki. Just for demoing purposes.        
         //composeMsg("wiki", "getPage", {'pagename': "index"});
     });
+
+    $(function() {
+        $("#misc").accordion({
+            heightStyle: "fill"
+        });
+    });
     
     $(function() {
     	// RPC Log sits in an height filled accordion

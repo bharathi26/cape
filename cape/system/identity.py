@@ -23,14 +23,17 @@ import uuid
 
 from cape.system import logger, version, configuration
 
+from pprint import pprint
+
 SystemName = DefaultSystemName = "DEFAULT"
 SystemClass = DefaultSystemClass = "DEFAULT"
-SystemUUID = DefaultSystemUUID = uuid.uuid4()
+SystemUUID = DefaultSystemUUID = int(uuid.uuid4())
 
 Systemidentity = {'name': SystemName,
                   'class': SystemClass,
                   'UUID': SystemUUID
                   }
+
 
 def setupidentity():
     global SystemName
@@ -42,9 +45,18 @@ def setupidentity():
     if 'IDENTITY' in configuration.Configuration:
         config = configuration.Configuration['IDENTITY']
 
-        SystemName = config.get('name', DefaultSystemName)
-        SystemClass = config.get('class', DefaultSystemClass)
-        SystemUUID = config.get('uuid', DefaultSystemUUID)
+        SystemName = config.get('name', None)
+        if not SystemName:
+            SystemName = DefaultSystemName
+            logger.systemwarn("No SystemName set! Using default: '%s'" % SystemName)
+        SystemClass = config.get('class', None)
+        if not SystemClass:
+            SystemClass = DefaultSystemClass
+            logger.systemwarn("No SystemClass set! Using default: '%s'" % SystemClass)
+        SystemUUID = config.get('UUID', None)
+        if not SystemUUID:
+            SystemUUID = DefaultSystemUUID
+            logger.systemwarn("No SystemUUID set! Using default: '%s'" % SystemUUID)
 
         logger.systeminfo("System name configured from configuration", facility="IDENTITY")
     else:
@@ -64,6 +76,7 @@ def setupidentity():
                       'class': SystemClass,
                       'UUID': SystemUUID
                       }
+    configuration.Configuration['IDENTITY'] = Systemidentity
 
 
 

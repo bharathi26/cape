@@ -20,9 +20,11 @@ setup(name = "cape",
     url = "https://hackerfleet.org/cape",
     packages = ['cape',
                 'cape.system',
+                'static'
                 ],
     package_data = {'cape': ['cape'],
-                    'static': ['static']},
+                    'static': ['static/*']},
+    include_package_data= True,
     scripts = ['cape.launcher'],
     entry_points="""
     [cape.components]
@@ -60,10 +62,7 @@ setup(name = "cape",
         'Topic :: System :: Networking'
     ],
 
-    #package_data = {'package' : files },
-    #scripts = [""], # None yet
     long_description = read('README'),
-    include_package_data = True,
     # Dependencies
     #
     # Note: Those are proven to work, older versions might work,

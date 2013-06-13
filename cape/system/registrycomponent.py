@@ -65,7 +65,7 @@ class RegistryComponent(RPCComponent):
         else:
             #TODO: UAGH, this is then supposed to be an error message.
             # Sort out return types here...
-            return (False, newcomponent) 
+            return (False, newcomponent)
 
 
     def rpc_directory(self):
@@ -164,7 +164,7 @@ class RegistryComponent(RPCComponent):
                     return (False, msg)
 
             else:
-                self.logwarning("Cannot instantiate component %s. It is not registered as template." % templatename)
+                self.logwarning("Cannot instantiate component '%s'. It is not registered as template." % templatename)
                 return (False, "Component not found in templates")
         else:
             self.logerror("No dispatcher found! I can't run standalone")

@@ -49,7 +49,7 @@ class BaseMixin(object):
 
     # Given Directory Name (if unique)
     directory_name = False
-    
+
     directory = registry.Directory
 
     def __init__(self, **kwargs):
@@ -62,7 +62,7 @@ class BaseMixin(object):
         # They'll just get thrown upwards in the callchain and will then be bound as attributes, iirc.
         #super(basecomponent, self).__init__(**kwargs)
         self.template = ""
-        self.uuid = uuid.uuid4()
+        self.uuid = int(uuid.uuid4())
         self.hdesc = "No description yet."
         self.hname = self.name
 
