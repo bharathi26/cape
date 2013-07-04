@@ -54,7 +54,7 @@ class ConfigurableComponent(object):
         # TODO: Sort these everywhere
         uuid = name = sysuuid = template = hname = hdesc = "Not found"
         try:
-            c = self.Configuration
+            c = self.Configuration['identity']
             uuid = c['uuid']
             name = c['name']
             sysuuid = c['systemuuid']
@@ -83,13 +83,14 @@ class ConfigurableComponent(object):
         """Stores this components configuration back in to the System's configuration database"""
         self.logdebug("Generating new configuration.")
         c = self.Configuration
-        c['uuid'] = str(self.uuid)
-        c['name'] = self.name
-        c['systemuuid'] = self.systemuuid
-        c['template'] = self.template
-        c['hname'] = self.hname
-        c['hdesc'] = self.hdesc
-
+        identity = {'uuid': str(self.uuid),
+                    'name': self.name,
+                    'systemuuid': self.systemuuid,
+                    'template': self.template,
+                    'hname': self.hname,
+                    'hdesc': self.hdesc
+                   }
+        c['id'] = identity
         self.logdebug("Writing config.")
         ConfigurationDB[self.name] = c
         return True

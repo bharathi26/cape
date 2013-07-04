@@ -98,8 +98,8 @@ class RegistryComponent(RPCComponent):
             section = config[sectionitem]
 
             # TODO: Structure this! so we don't accidentally create a monster
-            if "template" in section:
-                result, newcomponent = self._createComponent(section["template"], sectionitem)
+            if 'id' in section:
+                result, newcomponent = self._createComponent(section['id']['template'], sectionitem)
                 if result:
                     newcomponent.ReadConfiguration()
                 else:

@@ -82,6 +82,8 @@ def writeConfig():
     print("Storing configuration...")
 
     jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
+    jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
+    jsonpickle.set_preferred_backend('json')
     try:
         configfile = open(ConfigFilename, "w")
         #json.dump(Configuration, configfile, indent=True)

@@ -74,65 +74,65 @@ class Message(object):
     def __init__(self, sendernode="", sender="", recipientnode="", recipient="", func="", arg=None, error="", msg_type="request"):
         """Initializes a new message with the current timestamp and given arguments.
         Default message type is "request"
-        
+
         Address pattern for sender and recipient:
         [str(node):]str(component.name)
         """
         self.timestamp = float(time())
-        
+
         self.sender = sender
         self.recipient = recipient
-        
+
         self.sendernode = sendernode
         self.recipientnode = recipientnode
-        
+
         self.msg_type = msg_type
         self.func = func
         self.arg = arg
         self.error = error
-        
+
     def senderid():
         def fget(self):
             return "%s@%s" % (self.sender, self.sendernode)
-        
+
         return locals()
-        
+
     senderid = property(**senderid())
 
     def recipientid():
         def fget(self):
             return "%s@%s" % (self.recipient, self.recipientnode)
-    
+
         return locals()
-    
-    recipientid = property(**recipientid())    
+
+    recipientid = property(**recipientid())
 
     def localRecipient():
         def fget(self):
             return self.recipientnode in ("", str(identity.SystemUUID))
-        
+
         return locals()
-    
+
     localRecipient = property(**localRecipient())
-        
+
     def localSender():
         def fget(self):
             return self.sendernode in ("", str(identity.SystemUUID))
-        
+
         return locals()
-        
-    localSender = property(**localSender())    
+
+    localSender = property(**localSender())
 
     def type():
         def fget(self):
             return self.msg_type
-        
+
         return locals()
     type = property(**type())
 
 #    def recipientNode():
 #        """Returns and sets the recipient node."""
-#       
+#
 #        def fget(self):
 #            if ":" in self.recipient:
 #                # Message recipient has a node, return only that part
@@ -140,7 +140,7 @@ class Message(object):
 #            else:
 #                # No node, systemwide only message
 #                return identity.SystemUUID
-#        
+#
 #        def fset(self, value):
 #            if value in ("", identity.SystemUUID):
 #                # No node means local message - delete node
@@ -149,21 +149,21 @@ class Message(object):
 #                if ":" in self.recipient:
 #                    self.recipient = "%s:%s" % (value, self.recipient.split(":")[1])
 #                else:
-#                    self.recipient = "%s:%s" % (value, self.recipient)  
-#                
+#                    self.recipient = "%s:%s" % (value, self.recipient)
+#
 #        def fdel(self):
 #            if ":" in self.recipient:
 #                # Message recipient has a node, delete that
-#                self.recipient = self.recipient.split(":")[1]            
-#              
+#                self.recipient = self.recipient.split(":")[1]
+#
 #        return locals()
-#       
+#
 #    recipientNode = property(**recipientNode())
 #
 #    def senderNode():
 #        """Returns and sets the sender node."""
 #        # TODO: This is a bulky copy of the recipientNode property
-#       
+#
 #        def fget(self):
 #            if ":" in self.sender:
 #                # Message sender has a node, return only that part
@@ -171,7 +171,7 @@ class Message(object):
 #            else:
 #                # No node, systemwide only message
 #                return identity.SystemUUID
-#        
+#
 #        def fset(self, value):
 #            if value in ("", identity.SystemUUID):
 #                # No node means local message
@@ -179,14 +179,14 @@ class Message(object):
 #                # TODO: essentially this is the same as .fdel()
 #            else:
 #                self.sender = "%s:%s" % (value, self.sender.split(":")[1])
-#                
+#
 #        def fdel(self):
 #            if ":" in self.sender:
 #                # Message sender has a node, delete that
-#                self.sender = self.sender.split(":")[1]            
-#              
+#                self.sender = self.sender.split(":")[1]
+#
 #        return locals()
-#       
+#
 #    senderNode = property(**senderNode())
 
 
@@ -202,21 +202,24 @@ class Message(object):
         if len(argstring) > 4096:
             argstring = "Too large to display (%i bytes)" % len(argstring)
 
-        result = "%f - [%10s]@%s -> [%10s]@%s %s %15s (%s)" % (self.timestamp, 
-                                                               self.sender, 
-                                                               self.sendernode, 
+        result = "%f - [%10s]@%s -> [%10s]@%s %s %15s (%s)" % (self.timestamp,
+                                                               self.sender,
+                                                               self.sendernode,
                                                                self.recipient,
                                                                self.recipientnode,
-                                                               self.msg_type, 
+                                                               self.msg_type,
                                                                self.func,
                                                                argstring if not self.error else str(self.error))
         return result
 
     def response(self, args):
-        response = deepcopy(self)
-        response.sender, response.recipient = response.recipient, response.sender
-        response.sendernode, response.recipientnode = response.recipientnode, response.sendernode
-        response.msg_type = "response"
+
+        response = Message(sender=self.recipient,
+                           recipient=self.sender,
+                           sendernode=self.recipientnode,
+                           recipientnode=self.sendernode,
+                           msg_type = "response",
+                           func = self.func)
         if isinstance(args, tuple):
             success, result = args
         elif isinstance(args, bool):

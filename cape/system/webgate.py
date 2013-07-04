@@ -8,7 +8,7 @@ from cape.messages import Message
 import cherrypy
 from cherrypy import Tool
 import jsonpickle
-import os, time
+import os, time, types
 
 from pkg_resources import resource_string
 
@@ -42,7 +42,7 @@ class WebGate(RPCComponent):
             #self.gateway.logdebug(str(cherrypy.request.__dict__))
 
             if path in self.endpoints:
-                page = "<html>" + self.header + "<body>" + self.endpoints[path] + "</body></html>"
+                page = "<html>" + self.header + "<body>" + self.endpoints[path]() + "</body></html>"
                 return page
             else:
                 if self.loader:
@@ -138,7 +138,7 @@ class WebGate(RPCComponent):
                   'rpc_restartEngine': {},
                   'rpc_listDefers': {},
                   'rpc_registerEndpoint': {'path': [str, 'Path from URL to endpoint'],
-                                           'content': [str, 'HTML content']
+                                           'content': [types.MethodType, 'HTML content']
                                           },
                  }
         super(WebGate, self).__init__()
